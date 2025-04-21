@@ -6,12 +6,15 @@ import { useNavigate } from 'react-router-dom';
 import { UserRole } from '@/types/user';
 import { toast } from '@/components/ui/sonner';
 
+interface ProfileType {
+  role: UserRole;
+  name: string;
+  avatar_url?: string;
+}
+
 interface AuthContextType {
   user: User | null;
-  profile: {
-    role: UserRole;
-    name: string;
-  } | null;
+  profile: ProfileType | null;
   session: Session | null;
   loading: boolean;
   isAuthenticated: boolean;
@@ -25,7 +28,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<{role: UserRole; name: string} | null>(null);
+  const [profile, setProfile] = useState<ProfileType | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -41,14 +44,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Fetch user profile
         const { data, error } = await supabase
           .from('profiles')
-          .select('role, name')
+          .select('role, name, avatar_url')
           .eq('id', currentSession.user.id)
           .single();
 
         if (data) {
           setProfile({
             role: data.role,
-            name: data.name
+            name: data.name,
+            avatar_url: data.avatar_url
           });
         }
       }
@@ -67,13 +71,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (currentSession) {
           const { data } = await supabase
             .from('profiles')
-            .select('role, name')
+            .select('role, name, avatar_url')
             .eq('id', currentSession.user.id)
             .single();
 
           setProfile(data ? {
             role: data.role,
-            name: data.name
+            name: data.name,
+            avatar_url: data.avatar_url
           } : null);
         } else {
           setProfile(null);

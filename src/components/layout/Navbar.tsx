@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -25,7 +24,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, profile, logout, isAuthenticated } = useAuth();
   
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
@@ -47,9 +46,9 @@ export default function Navbar() {
   
   // Determina a cor do avatar e ícone baseado no papel do usuário
   const getRoleColor = () => {
-    if (!user) return 'bg-gray-400';
+    if (!profile) return 'bg-gray-400';
     
-    switch (user.role) {
+    switch (profile.role) {
       case 'admin':
         return 'bg-primary-900';
       case 'manager':
@@ -62,9 +61,9 @@ export default function Navbar() {
   };
   
   const getRoleIcon = () => {
-    if (!user) return <User />;
+    if (!profile) return <User />;
     
-    switch (user.role) {
+    switch (profile.role) {
       case 'admin':
         return <Settings className="h-4 w-4" />;
       case 'manager':
@@ -123,9 +122,9 @@ export default function Navbar() {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="p-0 ml-2">
                       <Avatar className="cursor-pointer">
-                        <AvatarImage src={user?.avatarUrl} />
+                        <AvatarImage src={profile?.avatar_url} />
                         <AvatarFallback className={getRoleColor()}>
-                          {user?.name ? getInitials(user.name) : 'U'}
+                          {profile?.name ? getInitials(profile.name) : 'U'}
                         </AvatarFallback>
                       </Avatar>
                     </Button>
@@ -133,7 +132,7 @@ export default function Navbar() {
                   <DropdownMenuContent align="end">
                     <DropdownMenuLabel>
                       <div className="flex flex-col">
-                        <span>{user?.name}</span>
+                        <span>{profile?.name}</span>
                         <span className="text-xs text-muted-foreground">{user?.email}</span>
                       </div>
                     </DropdownMenuLabel>
@@ -141,7 +140,7 @@ export default function Navbar() {
                     <DropdownMenuItem>
                       <div className="flex items-center gap-2">
                         {getRoleIcon()}
-                        <span className="capitalize">{user?.role}</span>
+                        <span className="capitalize">{profile?.role}</span>
                       </div>
                     </DropdownMenuItem>
                     <DropdownMenuItem>

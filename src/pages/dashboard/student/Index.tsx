@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -19,8 +18,8 @@ import {
 } from 'lucide-react';
 
 export default function StudentDashboard() {
-  const { user } = useAuth();
-  const isB2BStudent = user?.isB2BStudent;
+  const { profile } = useAuth();
+  const isB2BStudent = false; // Default value, can be derived from profile if needed later
   
   useEffect(() => {
     document.title = 'Forefy | Dashboard do Estudante';
@@ -30,7 +29,7 @@ export default function StudentDashboard() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold font-heading">Olá, {user?.name}!</h1>
+          <h1 className="text-3xl font-bold font-heading">Olá, {profile?.name || 'Estudante'}!</h1>
           <p className="text-muted-foreground">
             {isB2BStudent ? 
               'Bem-vindo(a) ao seu painel de estudos do Cursinho XYZ' : 
