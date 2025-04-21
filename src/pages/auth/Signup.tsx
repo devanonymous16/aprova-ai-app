@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -6,39 +5,44 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import * as z from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+
+const signupSchema = z.object({
+  name: z.string().min(2, 'Nome deve ter no mínimo 2 caracteres'),
+  email: z.string().email('Email inválido'),
+  password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
+});
 
 export default function SignupPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [loading, setLoading] = useState(false);
   const { signUp } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    
+  const form = useForm<z.infer<typeof signupSchema>>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+    },
+  });
+
+  const onSubmit = async (values: z.infer<typeof signupSchema>) => {
     try {
-      await signUp(email, password, name);
-      toast({
-        title: "Conta criada com sucesso",
-        description: "Bem-vindo ao Forefy! Redirecionando para o dashboard...",
-      });
-      navigate('/dashboard');
+      await signUp(values.email, values.password, values.name);
     } catch (error) {
-      console.error('Signup error:', error);
-      toast({
-        variant: "destructive",
-        title: "Erro ao criar conta",
-        description: "Verifique seus dados e tente novamente.",
-      });
-    } finally {
-      setLoading(false);
+      // Error handling is done in the signup method
     }
   };
-  
+
   return (
     <div className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-gray-50">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -55,85 +59,63 @@ export default function SignupPage() {
           </Link>
         </p>
       </div>
-
+      
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <Label htmlFor="name">
-                Nome completo
-              </Label>
-              <div className="mt-1">
-                <Input
-                  id="name"
-                  name="name"
-                  type="text"
-                  autoComplete="name"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </div>
-            </div>
-            
-            <div>
-              <Label htmlFor="email">
-                Email
-              </Label>
-              <div className="mt-1">
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-            </div>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome completo</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Senha</FormLabel>
+                    <FormControl>
+                      <Input type="password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <div>
-              <Label htmlFor="password">
-                Senha
-              </Label>
-              <div className="mt-1">
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-              <p className="mt-1 text-xs text-gray-500">
-                A senha deve ter pelo menos 8 caracteres
-              </p>
-            </div>
-
-            <div>
               <Button
                 type="submit"
                 className="w-full bg-primary-900 hover:bg-primary-800"
-                disabled={loading}
+                disabled={form.formState.isSubmitting}
               >
-                {loading ? (
-                  <div className="flex items-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Criando conta...
-                  </div>
-                ) : (
-                  'Criar conta'
-                )}
+                {form.formState.isSubmitting ? 'Criando conta...' : 'Criar conta'}
               </Button>
-            </div>
-          </form>
-          
+            </form>
+          </Form>
+
           <div className="mt-6">
             <p className="text-xs text-gray-500 text-center">
               Ao criar uma conta, você concorda com os{' '}

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -6,11 +5,24 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import * as z from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+
+const loginSchema = z.object({
+  email: z.string().email('Email inválido'),
+  password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
+});
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -23,27 +35,20 @@ export default function LoginPage() {
   const emailPlaceholder = loginType === 'b2b' 
     ? 'aluno.b2b@exemplo.com'
     : 'aluno@exemplo.com';
-  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    
+
+  const form = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
+
+  const onSubmit = async (values: z.infer<typeof loginSchema>) => {
     try {
-      await login(email, password);
-      toast({
-        title: "Login realizado com sucesso",
-        description: "Redirecionando para o dashboard...",
-      });
-      navigate('/dashboard');
+      await login(values.email, values.password);
     } catch (error) {
-      console.error('Login error:', error);
-      toast({
-        variant: "destructive",
-        title: "Erro ao fazer login",
-        description: "Verifique suas credenciais e tente novamente.",
-      });
-    } finally {
-      setLoading(false);
+      // Error handling is done in the login method
     }
   };
   
@@ -90,69 +95,51 @@ export default function LoginPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <Label htmlFor="email">
-                Email
-              </Label>
-              <div className="mt-1">
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  placeholder={emailPlaceholder}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-            </div>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder={emailPlaceholder}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Senha</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <div>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">
-                  Senha
-                </Label>
-                <div className="text-sm">
-                  <Link to="/forgot-password" className="font-medium text-primary-600 hover:text-primary-500">
-                    Esqueceu a senha?
-                  </Link>
-                </div>
-              </div>
-              <div className="mt-1">
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div>
               <Button
                 type="submit"
                 className="w-full bg-primary-900 hover:bg-primary-800"
-                disabled={loading}
+                disabled={form.formState.isSubmitting}
               >
-                {loading ? (
-                  <div className="flex items-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Entrando...
-                  </div>
-                ) : (
-                  'Entrar'
-                )}
+                {form.formState.isSubmitting ? 'Entrando...' : 'Entrar'}
               </Button>
-            </div>
-          </form>
+            </form>
+          </Form>
           
           {/* DEMO: Seção de login rápido para teste (remover em produção) */}
           <div className="mt-8 border-t pt-6">
@@ -196,4 +183,12 @@ export default function LoginPage() {
       </div>
     </div>
   );
+
+  function setEmail(email: string) {
+    form.setValue('email', email);
+  }
+
+  function setPassword(password: string) {
+    form.setValue('password', password);
+  }
 }
