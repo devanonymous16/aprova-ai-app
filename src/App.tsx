@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import MainLayout from "./components/layout/MainLayout";
 import RoleGuard from "./components/RoleGuard";
@@ -27,57 +27,55 @@ const App = () => (
       <AuthProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
-          <MainLayout>
-            <Routes>
-              {/* Rotas públicas */}
-              <Route path="/" element={<HomePage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/signup" element={<SignupPage />} />
-              <Route path="/unauthorized" element={<UnauthorizedPage />} />
-              
-              {/* Rotas protegidas */}
-              <Route 
-                path="/dashboard" 
-                element={
-                  <RoleGuard allowedRoles={["student", "manager", "admin"]}>
-                    <DashboardPage />
-                  </RoleGuard>
-                } 
-              />
-              
-              {/* Rotas específicas de perfil */}
-              <Route 
-                path="/dashboard/admin" 
-                element={
-                  <RoleGuard allowedRoles="admin">
-                    <AdminDashboard />
-                  </RoleGuard>
-                } 
-              />
-              
-              <Route 
-                path="/dashboard/manager" 
-                element={
-                  <RoleGuard allowedRoles="manager">
-                    <ManagerDashboard />
-                  </RoleGuard>
-                } 
-              />
-              
-              <Route 
-                path="/dashboard/student" 
-                element={
-                  <RoleGuard allowedRoles="student">
-                    <StudentDashboard />
-                  </RoleGuard>
-                } 
-              />
-              
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </MainLayout>
-        </BrowserRouter>
+        <MainLayout>
+          <Routes>
+            {/* Rotas públicas */}
+            <Route path="/" element={<HomePage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/unauthorized" element={<UnauthorizedPage />} />
+            
+            {/* Rotas protegidas */}
+            <Route 
+              path="/dashboard" 
+              element={
+                <RoleGuard allowedRoles={["student", "manager", "admin"]}>
+                  <DashboardPage />
+                </RoleGuard>
+              } 
+            />
+            
+            {/* Rotas específicas de perfil */}
+            <Route 
+              path="/dashboard/admin" 
+              element={
+                <RoleGuard allowedRoles="admin">
+                  <AdminDashboard />
+                </RoleGuard>
+              } 
+            />
+            
+            <Route 
+              path="/dashboard/manager" 
+              element={
+                <RoleGuard allowedRoles="manager">
+                  <ManagerDashboard />
+                </RoleGuard>
+              } 
+            />
+            
+            <Route 
+              path="/dashboard/student" 
+              element={
+                <RoleGuard allowedRoles="student">
+                  <StudentDashboard />
+                </RoleGuard>
+              } 
+            />
+            
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </MainLayout>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>

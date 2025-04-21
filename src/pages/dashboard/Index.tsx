@@ -6,14 +6,14 @@ import { useAuth } from '@/contexts/AuthContext';
 // Este componente é um roteador inteligente que direciona o usuário
 // para a dashboard específica com base em seu papel
 export default function DashboardPage() {
-  const { user, loading } = useAuth();
+  const { profile, loading } = useAuth();
   
   useEffect(() => {
     // Exemplo de logging para ajudar a depurar
-    if (user) {
-      console.log(`User role: ${user.role}`);
+    if (profile) {
+      console.log(`User role: ${profile.role}`);
     }
-  }, [user]);
+  }, [profile]);
   
   if (loading) {
     return (
@@ -23,12 +23,12 @@ export default function DashboardPage() {
     );
   }
   
-  if (!user) {
+  if (!profile) {
     return <Navigate to="/login" />;
   }
   
   // Redireciona para a dashboard específica do papel do usuário
-  switch (user.role) {
+  switch (profile.role) {
     case 'admin':
       return <Navigate to="/dashboard/admin" />;
     case 'manager':
