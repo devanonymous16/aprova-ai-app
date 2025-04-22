@@ -20,8 +20,11 @@ interface AuthContextType {
   isAuthenticated: boolean;
   hasRole: (role: UserRole | UserRole[]) => boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<void>;
+  forgotPassword: (email: string) => Promise<void>;
+  resetPassword: (newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -110,6 +113,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const loginWithGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`
+        }
+      });
+      
+      if (error) throw error;
+    } catch (error: any) {
+      toast.error('Erro no login com Google', {
+        description: error.message || 'Tente novamente mais tarde'
+      });
+    }
+  };
+
   const logout = async () => {
     try {
       await supabase.auth.signOut();
@@ -147,6 +167,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const forgotPassword = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      
+      if (error) throw error;
+      
+      return;
+    } catch (error: any) {
+      toast.error('Erro ao enviar email de recuperação', {
+        description: error.message || 'Verifique se o email está correto'
+      });
+      throw error;
+    }
+  };
+
+  const resetPassword = async (newPassword: string) => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+      
+      if (error) throw error;
+      
+      toast.success('Senha alterada com sucesso');
+      navigate('/login');
+      return;
+    } catch (error: any) {
+      toast.error('Erro ao alterar senha', {
+        description: error.message || 'Por favor, tente novamente ou solicite um novo link'
+      });
+      throw error;
+    }
+  };
+
   const hasRole = (role: UserRole | UserRole[]): boolean => {
     if (!profile) return false;
     
@@ -166,8 +222,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated: !!user,
       hasRole,
       login,
+      loginWithGoogle,
       logout,
       signUp,
+      forgotPassword,
+      resetPassword,
     }}>
       {children}
     </AuthContext.Provider>

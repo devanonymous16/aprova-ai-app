@@ -13,6 +13,8 @@ import HomePage from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/auth/Login";
 import SignupPage from "./pages/auth/Signup";
+import ForgotPasswordPage from "./pages/auth/ForgotPassword";
+import ResetPasswordPage from "./pages/auth/ResetPassword";
 import DashboardPage from "./pages/dashboard/Index";
 import AdminDashboard from "./pages/dashboard/admin/Index";
 import ManagerDashboard from "./pages/dashboard/manager/Index";
@@ -33,6 +35,8 @@ const App = () => (
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/unauthorized" element={<UnauthorizedPage />} />
             
             {/* Rotas protegidas */}

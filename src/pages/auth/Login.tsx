@@ -7,6 +7,8 @@ import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import AuthLayout from '@/components/layout/AuthLayout';
+import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
+import { Separator } from '@/components/ui/separator';
 import {
   Form,
   FormControl,
@@ -62,45 +64,68 @@ export default function LoginPage() {
         </>
       }
     >
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Senha</FormLabel>
-                <FormControl>
-                  <Input type="password" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+      <div className="space-y-6">
+        {/* Google Sign In */}
+        <GoogleSignInButton />
+        
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <Separator className="w-full" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-white px-2 text-gray-500">ou continue com</span>
+          </div>
+        </div>
+        
+        {/* Email/Password Form */}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Senha</FormLabel>
+                  <FormControl>
+                    <Input type="password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                  <div className="text-right mt-1">
+                    <Link 
+                      to="/forgot-password"
+                      className="text-sm font-medium text-primary-600 hover:text-primary-500"
+                    >
+                      Esqueceu a senha?
+                    </Link>
+                  </div>
+                </FormItem>
+              )}
+            />
 
-          <Button
-            type="submit"
-            className="w-full bg-primary-900 hover:bg-primary-800"
-            disabled={form.formState.isSubmitting}
-          >
-            {form.formState.isSubmitting ? 'Entrando...' : 'Entrar'}
-          </Button>
-        </form>
-      </Form>
+            <Button
+              type="submit"
+              className="w-full bg-primary-900 hover:bg-primary-800 mt-6"
+              disabled={form.formState.isSubmitting}
+            >
+              {form.formState.isSubmitting ? 'Entrando...' : 'Entrar'}
+            </Button>
+          </form>
+        </Form>
+      </div>
     </AuthLayout>
   );
 }
