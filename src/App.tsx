@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,6 +20,7 @@ import AdminDashboard from "./pages/dashboard/admin/Index";
 import ManagerDashboard from "./pages/dashboard/manager/Index";
 import StudentDashboard from "./pages/dashboard/student/Index";
 import UnauthorizedPage from "./pages/Unauthorized";
+import SupabaseSetupPage from "./pages/admin/SupabaseSetup";
 import { useState } from "react";
 
 function App() {
@@ -39,6 +41,7 @@ function App() {
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/unauthorized" element={<UnauthorizedPage />} />
+              <Route path="/admin/supabase-setup" element={<SupabaseSetupPage />} />
               
               {/* Rotas protegidas */}
               <Route 

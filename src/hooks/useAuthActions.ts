@@ -41,23 +41,6 @@ export const useAuthActions = () => {
     }
   }, []);
 
-  const loginWithApple = useCallback(async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'apple',
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`
-        }
-      });
-      
-      if (error) throw error;
-    } catch (error: any) {
-      toast.error('Erro no login com Apple', {
-        description: error.message || 'Tente novamente mais tarde'
-      });
-    }
-  }, []);
-
   const logout = useCallback(async () => {
     try {
       await supabase.auth.signOut();
@@ -139,7 +122,6 @@ export const useAuthActions = () => {
   return {
     login,
     loginWithGoogle,
-    loginWithApple,
     logout,
     signUp,
     forgotPassword,
