@@ -1,1 +1,5 @@
-project_id = "zkriskjhdrhbblkkwvrw"
+
+# This is your Supabase Project configuration file
+# https://supabase.com/docs/guides/hosting/overview
+
+project_id = "default"
