@@ -1,18 +1,73 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { ShieldX } from 'lucide-react';
+import { ShieldX, RefreshCw } from 'lucide-react';
 import CreateProfileDialog from '@/components/auth/CreateProfileDialog';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/sonner';
 
 export default function UnauthorizedPage() {
   const { profile, logout, user, session, hasRole } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [isChecking, setIsChecking] = useState(false);
+  const [supabaseInfo, setSupabaseInfo] = useState<any>(null);
+  
+  useEffect(() => {
+    const checkSupabaseConnection = async () => {
+      try {
+        const { data, error } = await supabase.from('profiles').select('count()');
+        if (error) {
+          setSupabaseInfo({ error: error.message, status: 'error' });
+        } else {
+          setSupabaseInfo({ 
+            connected: true, 
+            data: data,
+            url: supabase.supabaseUrl,
+            status: 'success'
+          });
+        }
+      } catch (err: any) {
+        setSupabaseInfo({ error: err.message, status: 'exception' });
+      }
+    };
+    
+    checkSupabaseConnection();
+  }, []);
   
   const handleProfileCreated = () => {
     // Recarregar a página após criar o perfil
     window.location.href = '/dashboard';
+  };
+  
+  const handleCheckProfile = async () => {
+    if (!user) return;
+    
+    setIsChecking(true);
+    try {
+      // Verificar perfil diretamente no Supabase
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      if (error) {
+        toast.error(`Erro ao verificar perfil: ${error.message}`);
+      } else if (data) {
+        toast.success(`Perfil encontrado: ${data.name} (${data.role})`);
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 1500);
+      } else {
+        toast.warning("Perfil não encontrado. Tente criá-lo manualmente.");
+      }
+    } catch (err: any) {
+      toast.error(`Erro ao verificar: ${err.message}`);
+    } finally {
+      setIsChecking(false);
+    }
   };
   
   // Função auxiliar para exibir as informações do usuário para depuração
@@ -32,6 +87,16 @@ export default function UnauthorizedPage() {
               <p><span className="font-medium">Admin:</span> {hasRole('admin') ? 'Sim' : 'Não'}</p>
             </>
           )}
+          <div className="mt-3 pt-3 border-t border-gray-200">
+            <p className="font-medium mb-1">Status do Supabase:</p>
+            {supabaseInfo ? (
+              <pre className="text-xs bg-gray-100 p-2 rounded overflow-auto">
+                {JSON.stringify(supabaseInfo, null, 2)}
+              </pre>
+            ) : (
+              <p>Verificando conexão...</p>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -53,12 +118,31 @@ export default function UnauthorizedPage() {
       </p>
       
       {!profile && user && (
-        <div className="mb-8">
+        <div className="mb-8 space-y-4">
           <Button 
             className="bg-green-600 hover:bg-green-700"
             onClick={() => setDialogOpen(true)}
           >
             Criar perfil manualmente
+          </Button>
+          
+          <Button
+            variant="outline"
+            onClick={handleCheckProfile}
+            disabled={isChecking}
+            className="flex items-center gap-2"
+          >
+            {isChecking ? (
+              <>
+                <RefreshCw className="h-4 w-4 animate-spin" />
+                Verificando...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="h-4 w-4" />
+                Verificar perfil no Supabase
+              </>
+            )}
           </Button>
           
           {user && (

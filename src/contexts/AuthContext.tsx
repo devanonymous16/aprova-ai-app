@@ -72,14 +72,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             
           if (insertError) {
             console.error('Erro ao criar perfil padrão:', insertError);
-            return null;
+            
+            // Tentativa alternativa - vamos tentar buscar novamente após um breve atraso
+            // Às vezes o perfil pode ter sido criado por um trigger
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            const { data: retryData, error: retryError } = await supabase
+              .from('profiles')
+              .select('role, name, avatar_url')
+              .eq('id', userId)
+              .single();
+              
+            if (retryError) {
+              console.error('Erro ao buscar perfil novamente:', retryError);
+              return null;
+            }
+            
+            return retryData;
           }
           
           console.log('Perfil padrão criado com sucesso:', newProfileData);
           return newProfileData;
         }
         
-        return null;
+        // Uma tentativa adicional em caso de outras falhas (às vezes há latência)
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const { data: retryData, error: retryError } = await supabase
+          .from('profiles')
+          .select('role, name, avatar_url')
+          .eq('id', userId)
+          .single();
+          
+        if (retryError) {
+          console.error('Erro na tentativa adicional de buscar perfil:', retryError);
+          return null;
+        }
+        
+        return retryData;
       }
 
       console.log('Dados do perfil obtidos:', data);
@@ -116,6 +144,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (currentSession?.user) {
           console.log('Buscando perfil para o usuário após mudança de estado:', currentSession.user.id);
           
+          // Importante: não chame funções do Supabase diretamente dentro do callback do onAuthStateChange
+          // Use setTimeout para evitar deadlocks
           setTimeout(async () => {
             const profileData = await fetchProfile(
               currentSession.user.id, 
@@ -132,6 +162,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             } else {
               console.warn('Nenhum perfil encontrado para o usuário:', currentSession.user.id);
               setProfile(null);
+              
+              // Se o usuário estiver autenticado mas sem perfil, tente criar um perfil novamente
+              // com base no email (isso é para testes e desenvolvimento)
+              if (currentSession.user.email) {
+                console.log('Tentando criar perfil automaticamente baseado no email');
+                let defaultRole: UserRole = 'student';
+                const email = currentSession.user.email.toLowerCase();
+                
+                if (email.includes('admin')) defaultRole = 'admin';
+                else if (email.includes('manager')) defaultRole = 'manager';
+                
+                try {
+                  const { data: newProfile, error: insertError } = await supabase
+                    .from('profiles')
+                    .insert({
+                      id: currentSession.user.id,
+                      email: currentSession.user.email,
+                      name: currentSession.user.email.split('@')[0],
+                      role: defaultRole
+                    })
+                    .select('role, name, avatar_url')
+                    .single();
+                    
+                  if (!insertError && newProfile) {
+                    console.log('Perfil criado automaticamente:', newProfile);
+                    setProfile({
+                      role: newProfile.role,
+                      name: newProfile.name,
+                      avatar_url: newProfile.avatar_url
+                    });
+                  } else {
+                    console.error('Falha ao criar perfil automático:', insertError);
+                  }
+                } catch (err) {
+                  console.error('Erro ao criar perfil automático:', err);
+                }
+              }
             }
             
             setLoading(false);
@@ -211,6 +278,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           navigate('/dashboard');
         } else {
           console.warn('Nenhum perfil encontrado após login para o usuário:', data.user.id);
+          
+          // Tentar criar perfil com base no email
+          let defaultRole: UserRole = 'student';
+          const userEmail = data.user.email?.toLowerCase() || '';
+          
+          if (userEmail.includes('admin')) defaultRole = 'admin';
+          else if (userEmail.includes('manager')) defaultRole = 'manager';
+          
+          try {
+            const { data: newProfile, error: insertError } = await supabase
+              .from('profiles')
+              .insert({
+                id: data.user.id,
+                email: data.user.email || '',
+                name: (data.user.email || '').split('@')[0],
+                role: defaultRole
+              })
+              .select('role, name, avatar_url')
+              .single();
+              
+            if (!insertError && newProfile) {
+              console.log('Perfil criado durante login:', newProfile);
+              setProfile({
+                role: newProfile.role,
+                name: newProfile.name,
+                avatar_url: newProfile.avatar_url
+              });
+              
+              toast.success('Login realizado com sucesso e perfil criado');
+              navigate('/dashboard');
+              return;
+            } else {
+              console.error('Falha ao criar perfil durante login:', insertError);
+            }
+          } catch (err) {
+            console.error('Erro ao criar perfil durante login:', err);
+          }
+          
           toast.warning('Perfil não encontrado', {
             description: 'Você será redirecionado para a página de criação de perfil'
           });

@@ -21,6 +21,7 @@ export default function DashboardPage() {
     }
   }, [profile, user, loading]);
   
+  // Se ainda estiver carregando, mostre o indicador de carregamento
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -29,10 +30,12 @@ export default function DashboardPage() {
     );
   }
   
+  // Se o usuário não estiver autenticado, redirecione para o login
   if (!user) {
     return <Navigate to="/login" />;
   }
   
+  // Se o perfil não for encontrado, redirecione para a página não autorizada
   if (!profile) {
     console.log('Perfil não encontrado, redirecionando para unauthorized');
     return <Navigate to="/unauthorized" />;
