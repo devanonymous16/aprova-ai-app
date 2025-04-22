@@ -2,8 +2,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { ProfileType } from '@/types/user';
+import { UserRole } from '@/types/user';
 import { fetchUserProfile } from '@/utils/authUtils';
+
+// Define the ProfileType interface locally since it's not exported from @/types/user
+interface ProfileType {
+  role: UserRole;
+  name: string;
+  avatar_url?: string | null;
+}
 
 export const useAuthState = () => {
   const [user, setUser] = useState<User | null>(null);

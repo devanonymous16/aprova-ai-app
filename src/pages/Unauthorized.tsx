@@ -7,6 +7,8 @@ import CreateProfileDialog from '@/components/auth/CreateProfileDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/sonner';
 
+const SUPABASE_URL = "https://zkriskjhdrhbblkkwvrw.supabase.co";
+
 export default function UnauthorizedPage() {
   const { profile, logout, user, session, hasRole } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -23,7 +25,7 @@ export default function UnauthorizedPage() {
           setSupabaseInfo({ 
             connected: true, 
             data: data,
-            url: supabase.supabaseUrl,
+            url: SUPABASE_URL,
             status: 'success'
           });
         }
