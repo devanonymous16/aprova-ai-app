@@ -2,38 +2,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/sonner';
 
-// SQL para criação da tabela de perfis
-const CREATE_PROFILES_TABLE = `
-CREATE TABLE IF NOT EXISTS public.profiles (
-  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  email TEXT NOT NULL,
-  name TEXT NOT NULL,
-  role TEXT NOT NULL CHECK (role IN ('student', 'manager', 'admin')),
-  avatar_url TEXT,
-  birth_date TEXT,
-  cpf TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Adicionar políticas de RLS
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-
--- Política para permitir leitura para usuários autenticados
-CREATE POLICY "Usuários autenticados podem ler perfis" ON public.profiles
-  FOR SELECT USING (auth.role() = 'authenticated');
-
--- Política para permitir que usuários atualizem seus próprios perfis
-CREATE POLICY "Usuários podem atualizar seus próprios perfis" ON public.profiles
-  FOR UPDATE USING (auth.uid() = id);
-
--- Política para permitir que admins atualizem qualquer perfil
-CREATE POLICY "Admins podem atualizar qualquer perfil" ON public.profiles
-  FOR ALL USING (
-    auth.jwt() ->> 'role' = 'admin'
-  );
-`;
-
 /**
  * Testa a conexão com o Supabase e verifica se a tabela de perfis existe
  * @returns {Promise<{success: boolean, message: string}>}

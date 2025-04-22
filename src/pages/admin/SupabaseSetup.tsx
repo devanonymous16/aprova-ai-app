@@ -9,6 +9,9 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Play, Copy, Terminal, Server } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 
+// Define the Supabase URL constant
+const SUPABASE_URL = "https://supabase.aprova-ai.com";
+
 export default function SupabaseSetupPage() {
   const [sql, setSql] = useState(
 `-- SQL para criar tabela profiles
@@ -61,8 +64,6 @@ CREATE POLICY "Admins podem atualizar qualquer perfil" ON public.profiles
       toast.error('Erro ao copiar');
     }
   };
-
-  const SUPABASE_URL = "https://supabase.aprova-ai.com";
 
   return (
     <div className="container py-10 space-y-6">

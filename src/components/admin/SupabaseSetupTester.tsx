@@ -7,6 +7,9 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/sonner';
 
+// Define the Supabase URL constant
+const SUPABASE_URL = "https://supabase.aprova-ai.com";
+
 export default function SupabaseSetupTester() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<{
@@ -27,23 +30,21 @@ export default function SupabaseSetupTester() {
       if (error) {
         // If error with profiles table (might not exist yet), try a more basic approach
         try {
-          // Try a raw SQL query via REST
-          const { data: healthData } = await fetch(`${supabase.supabaseUrl}/rest/v1/`, {
-            headers: {
-              'apikey': supabase.supabaseKey,
-              'Content-Type': 'application/json',
-            },
-          });
+          // Try a raw fetch to the API endpoint
+          const response = await fetch(`${SUPABASE_URL}/rest/v1/`);
+          const responseData = await response.json().catch(() => null);
           
           setStatus({
-            success: true,
-            message: 'Conexão bem-sucedida com o Supabase (via REST API)',
-            details: { method: 'rest-api', response: healthData }
+            success: response.ok,
+            message: response.ok 
+              ? 'Conexão bem-sucedida com o Supabase (via REST API)'
+              : `Erro ao acessar o servidor: ${response.statusText}`,
+            details: { method: 'rest-api', response: responseData || response.status }
           });
         } catch (restError: any) {
           // Last try - just check if we can reach the server
           try {
-            const response = await fetch(supabase.supabaseUrl);
+            const response = await fetch(SUPABASE_URL);
             setStatus({
               success: response.ok,
               message: response.ok 
@@ -80,7 +81,7 @@ export default function SupabaseSetupTester() {
   const createProfilesTable = async () => {
     setLoading(true);
     try {
-      // First check if profiles table exists using a more compatible approach
+      // First check if profiles table exists
       const { data, error } = await supabase
         .from('profiles')
         .select('count')
