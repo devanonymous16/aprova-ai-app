@@ -2,7 +2,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import StickyHeader from '@/components/landing/StickyHeader';
+// Remove StickyHeader import since it's already in the layout
 import HeroSection from '@/components/landing/HeroSection';
 import ProblemSolutionSection from '@/components/landing/ProblemSolutionSection';
 import BenefitsSection from '@/components/landing/BenefitsSection';
@@ -29,7 +29,7 @@ export default function HomePage() {
 
   return (
     <>
-      <StickyHeader />
+      {/* Remove StickyHeader from here */}
       <main>
         <HeroSection />
         <ProblemSolutionSection />
