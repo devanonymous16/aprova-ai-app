@@ -28,8 +28,8 @@ function App() {
   
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <AuthProvider>
+      <AuthProvider>
+        <TooltipProvider>
           <Toaster />
           <Sonner />
           <MainLayout>
@@ -83,8 +83,8 @@ function App() {
               <Route path="*" element={<NotFound />} />
             </Routes>
           </MainLayout>
-        </AuthProvider>
-      </TooltipProvider>
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
