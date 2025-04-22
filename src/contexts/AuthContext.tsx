@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
@@ -49,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return null;
       }
 
+      console.log('Profile data fetched:', data);
       return data;
     } catch (error) {
       console.error('Error in fetchProfile:', error);
@@ -61,17 +63,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
         console.log('Auth state changed:', event);
+        
+        // Atualize o estado da sessão e do usuário
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
+        // Se tivermos um usuário logado, busque seu perfil
         if (currentSession?.user) {
+          console.log('Fetching profile for user:', currentSession.user.id);
           const profileData = await fetchProfile(currentSession.user.id);
+          
           if (profileData) {
+            console.log('Setting profile with role:', profileData.role);
             setProfile({
               role: profileData.role,
               name: profileData.name,
               avatar_url: profileData.avatar_url
             });
+          } else {
+            console.warn('No profile found for user:', currentSession.user.id);
+            setProfile(null);
           }
         } else {
           setProfile(null);
@@ -82,24 +93,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     // Depois, verifique a sessão atual
-    supabase.auth.getSession().then(async ({ data: { session: currentSession } }) => {
-      console.log('Initial session check:', currentSession);
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
-      
-      if (currentSession?.user) {
-        const profileData = await fetchProfile(currentSession.user.id);
-        if (profileData) {
-          setProfile({
-            role: profileData.role,
-            name: profileData.name,
-            avatar_url: profileData.avatar_url
-          });
+    const initializeAuth = async () => {
+      try {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        console.log('Initial session check:', currentSession);
+        
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+        
+        if (currentSession?.user) {
+          console.log('Initial profile fetch for user:', currentSession.user.id);
+          const profileData = await fetchProfile(currentSession.user.id);
+          
+          if (profileData) {
+            console.log('Setting initial profile with role:', profileData.role);
+            setProfile({
+              role: profileData.role,
+              name: profileData.name,
+              avatar_url: profileData.avatar_url
+            });
+          } else {
+            console.warn('No initial profile found for user:', currentSession.user.id);
+            setProfile(null);
+          }
         }
+      } catch (error) {
+        console.error('Error during auth initialization:', error);
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
-    });
+    };
+    
+    initializeAuth();
 
     return () => {
       subscription.unsubscribe();
@@ -108,9 +133,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       
       if (error) throw error;
+      
+      if (data.user) {
+        console.log('Login successful, fetching profile for:', data.user.id);
+        const profileData = await fetchProfile(data.user.id);
+        
+        if (profileData) {
+          console.log('Profile found with role:', profileData.role);
+          setProfile({
+            role: profileData.role,
+            name: profileData.name,
+            avatar_url: profileData.avatar_url
+          });
+        } else {
+          console.warn('No profile found after login for user:', data.user.id);
+        }
+      }
       
       toast.success('Login realizado com sucesso');
       navigate('/dashboard');
@@ -143,6 +184,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     try {
       await supabase.auth.signOut();
+      setUser(null);
+      setProfile(null);
+      setSession(null);
       toast.success('Logout realizado com sucesso');
       navigate('/login');
     } catch (error) {
@@ -213,12 +257,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const hasRole = (role: UserRole | UserRole[]): boolean => {
-    if (!profile) return false;
+    if (!profile) {
+      console.warn('hasRole check failed: No profile available');
+      return false;
+    }
     
     if (Array.isArray(role)) {
+      console.log('Checking multiple roles:', role, 'Current role:', profile.role);
       return role.includes(profile.role);
     }
     
+    console.log('Checking single role:', role, 'Current role:', profile.role);
     return profile.role === role;
   };
 

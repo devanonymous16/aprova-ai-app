@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ShieldX } from 'lucide-react';
 
 export default function UnauthorizedPage() {
-  const { user, logout } = useAuth();
+  const { profile, logout } = useAuth();
   
   return (
     <div className="min-h-[80vh] flex flex-col items-center justify-center px-4 py-12">
@@ -19,7 +19,7 @@ export default function UnauthorizedPage() {
       
       <p className="text-center text-lg text-gray-600 mb-8 max-w-md">
         Você não tem permissão para acessar esta página. 
-        {user ? ` Seu perfil atual é: ${user.role}.` : ''}
+        {profile ? ` Seu perfil atual é: ${profile.role}.` : ''}
       </p>
       
       <div className="flex flex-col md:flex-row gap-4">

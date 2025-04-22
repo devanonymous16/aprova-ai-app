@@ -15,7 +15,17 @@ export default function RoleGuard({
   children, 
   redirectTo = '/login' 
 }: RoleGuardProps) {
-  const { isAuthenticated, hasRole, loading } = useAuth();
+  const { isAuthenticated, hasRole, loading, profile } = useAuth();
+  
+  console.log('RoleGuard - Auth State:', {
+    isAuthenticated,
+    loading,
+    profile: profile ? {
+      role: profile.role,
+      name: profile.name
+    } : null,
+    allowedRoles
+  });
   
   // Aguarda o carregamento da autenticação
   if (loading) {
@@ -28,14 +38,17 @@ export default function RoleGuard({
   
   // Se não estiver autenticado, redireciona para o login
   if (!isAuthenticated) {
+    console.log('RoleGuard: User not authenticated, redirecting to login');
     return <Navigate to={redirectTo} />;
   }
   
-  // Se não tiver o papel necessário, redireciona para o dashboard ou página apropriada
+  // Se não tiver o papel necessário, redireciona para a página não autorizada
   if (!hasRole(allowedRoles)) {
+    console.log('RoleGuard: User does not have required role(s), redirecting to unauthorized page');
     return <Navigate to="/unauthorized" />;
   }
   
   // Se tudo estiver ok, renderiza os filhos
+  console.log('RoleGuard: Access granted');
   return <>{children}</>;
 }
