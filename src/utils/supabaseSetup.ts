@@ -40,50 +40,41 @@ CREATE POLICY "Admins podem atualizar qualquer perfil" ON public.profiles
  */
 export const testSupabaseConnection = async () => {
   try {
-    // Testa conexão básica
-    const { data: rpcData, error: rpcError } = await supabase.rpc('get_service_status');
+    // Testa conexão básica consultando informações do schema
+    const { data, error } = await supabase
+      .from('information_schema.tables')
+      .select('table_name')
+      .eq('table_schema', 'public')
+      .limit(1);
     
-    if (rpcError) {
-      console.error('Erro ao conectar com o Supabase:', rpcError);
+    if (error) {
+      console.error('Erro ao conectar com o Supabase:', error);
       return {
         success: false,
-        message: `Erro ao conectar: ${rpcError.message}`
+        message: `Erro ao conectar: ${error.message}`
       };
     }
     
     // Verifica se a tabela profiles existe
     const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
-      .select('count()')
-      .limit(1);
-    
-    if (profileError && profileError.code === '42P01') {
-      console.log('Tabela profiles não existe. Tentando criar...');
-      
-      // Cria a tabela profiles
-      const { error: sqlError } = await supabase.rpc('exec_sql', {
-        sql_query: CREATE_PROFILES_TABLE
-      });
-      
-      if (sqlError) {
-        console.error('Erro ao criar tabela profiles:', sqlError);
-        return {
-          success: false,
-          message: `Erro ao criar tabela: ${sqlError.message}`
-        };
-      }
-      
-      return {
-        success: true,
-        message: 'Conexão bem-sucedida. Tabela profiles criada.'
-      };
-    }
+      .from('information_schema.tables')
+      .select('table_name')
+      .eq('table_schema', 'public')
+      .eq('table_name', 'profiles')
+      .maybeSingle();
     
     if (profileError) {
       console.error('Erro ao verificar tabela profiles:', profileError);
       return {
         success: false,
         message: `Erro ao verificar tabela: ${profileError.message}`
+      };
+    }
+    
+    if (!profileData) {
+      return {
+        success: true,
+        message: 'Conexão bem-sucedida. Tabela profiles não existe.'
       };
     }
     
@@ -101,26 +92,36 @@ export const testSupabaseConnection = async () => {
 };
 
 /**
- * Cria a tabela de perfis no Supabase
+ * Verifica se a tabela de perfis existe no Supabase
  */
 export const setupProfilesTable = async () => {
   try {
-    // Cria a tabela profiles
-    const { error } = await supabase.rpc('exec_sql', {
-      sql_query: CREATE_PROFILES_TABLE
-    });
-    
+    // Verificar se a tabela existe
+    const { data, error } = await supabase
+      .from('information_schema.tables')
+      .select('table_name')
+      .eq('table_schema', 'public')
+      .eq('table_name', 'profiles')
+      .maybeSingle();
+      
     if (error) {
-      toast.error('Erro ao criar tabela de perfis', {
+      toast.error('Erro ao verificar tabela de perfis', {
         description: error.message
       });
       return false;
     }
     
-    toast.success('Tabela de perfis criada com sucesso');
-    return true;
+    if (data?.table_name) {
+      toast.success('Tabela de perfis já existe');
+      return true;
+    } else {
+      toast.error('Tabela de perfis não existe', {
+        description: 'É necessário criar manualmente no Console SQL do Supabase'
+      });
+      return false;
+    }
   } catch (error: any) {
-    toast.error('Erro ao configurar banco de dados', {
+    toast.error('Erro ao verificar tabela de perfis', {
       description: error.message || 'Erro desconhecido'
     });
     return false;

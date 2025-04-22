@@ -3,9 +3,9 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle, CheckCircle2, RefreshCw, Database } from 'lucide-react';
-import { testSupabaseConnection, setupProfilesTable } from '@/utils/supabaseSetup';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/sonner';
 
 export default function SupabaseSetupTester() {
   const [loading, setLoading] = useState(false);
@@ -18,38 +18,128 @@ export default function SupabaseSetupTester() {
   const handleTestConnection = async () => {
     setLoading(true);
     try {
-      const result = await testSupabaseConnection();
-      setStatus(result);
+      // Teste de conexão simples: verificar se conseguimos listar schemas
+      const { data, error } = await supabase
+        .from('pg_catalog.pg_namespace')
+        .select('nspname')
+        .limit(1);
+      
+      if (error) {
+        if (error.code === '42P01') {
+          // Tentar outra abordagem mais simples
+          const { data: versionData, error: versionError } = await supabase
+            .rpc('version')
+            .single();
+            
+          if (versionError) {
+            // Tentar uma consulta simples às tabelas do sistema
+            const { data: tablesData, error: tablesError } = await supabase
+              .from('information_schema.tables')
+              .select('table_name')
+              .eq('table_schema', 'public')
+              .limit(1);
+              
+            if (tablesError) {
+              setStatus({
+                success: false,
+                message: `Erro ao conectar com o Supabase: ${tablesError.message}`,
+                details: tablesError
+              });
+            } else {
+              setStatus({
+                success: true,
+                message: 'Conexão bem-sucedida com o Supabase',
+                details: tablesData
+              });
+            }
+          } else {
+            setStatus({
+              success: true,
+              message: 'Conexão bem-sucedida com o Supabase',
+              details: versionData
+            });
+          }
+        } else {
+          setStatus({
+            success: false,
+            message: `Erro ao conectar com o Supabase: ${error.message}`,
+            details: error
+          });
+        }
+      } else {
+        setStatus({
+          success: true,
+          message: 'Conexão bem-sucedida com o Supabase',
+          details: data
+        });
+      }
     } catch (error: any) {
       setStatus({
         success: false,
-        message: `Erro inesperado: ${error.message || 'Desconhecido'}`
+        message: `Erro ao testar conexão: ${error.message || 'Erro desconhecido'}`,
+        details: error
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSetupTables = async () => {
+  const createProfilesTable = async () => {
     setLoading(true);
     try {
-      const success = await setupProfilesTable();
-      
-      if (success) {
-        setStatus({
-          success: true,
-          message: 'Tabela de perfis criada com sucesso'
+      // Verificar se a tabela profiles já existe
+      const { data: existingTable, error: checkError } = await supabase
+        .from('information_schema.tables')
+        .select('table_name')
+        .eq('table_schema', 'public')
+        .eq('table_name', 'profiles')
+        .maybeSingle();
+
+      if (checkError) {
+        toast.error('Erro ao verificar tabela', {
+          description: checkError.message
         });
-      } else {
         setStatus({
           success: false,
-          message: 'Falha ao criar tabela de perfis'
+          message: `Erro ao verificar tabela: ${checkError.message}`,
+          details: checkError
         });
+        setLoading(false);
+        return;
       }
+
+      // Se a tabela já existe, notificar e sair
+      if (existingTable?.table_name) {
+        toast.success('Tabela profiles já existe');
+        setStatus({
+          success: true,
+          message: 'Tabela profiles já existe',
+          details: existingTable
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Como não podemos executar SQL diretamente via API REST,
+      // orientamos o usuário a executar o SQL no Console SQL do Supabase
+      setStatus({
+        success: false,
+        message: 'Para criar a tabela profiles, é necessário executar o SQL diretamente no Console SQL do Supabase',
+        details: {
+          instruction: 'Acesse o Console SQL do Supabase e execute o SQL fornecido na aba "Criar Tabelas"'
+        }
+      });
+      toast.error('Não é possível criar tabela via API', {
+        description: 'Execute o SQL diretamente no Console SQL do Supabase'
+      });
     } catch (error: any) {
       setStatus({
         success: false,
-        message: `Erro ao criar tabelas: ${error.message || 'Desconhecido'}`
+        message: `Erro: ${error.message || 'Erro desconhecido'}`,
+        details: error
+      });
+      toast.error('Erro ao criar tabela', {
+        description: error.message
       });
     } finally {
       setLoading(false);
@@ -58,34 +148,32 @@ export default function SupabaseSetupTester() {
 
   const handleRunSql = async () => {
     setLoading(true);
-    const sql = `
-      SELECT EXISTS (
-        SELECT FROM information_schema.tables 
-        WHERE table_schema = 'public'
-        AND table_name = 'profiles'
-      );
-    `;
-    
     try {
-      const { data, error } = await supabase.rpc('exec_sql', { sql_query: sql });
+      // Verificar se a tabela profiles existe
+      const { data, error } = await supabase
+        .from('information_schema.tables')
+        .select('table_name')
+        .eq('table_schema', 'public')
+        .eq('table_name', 'profiles')
+        .maybeSingle();
       
       if (error) {
         setStatus({
           success: false,
-          message: `Erro ao executar SQL: ${error.message}`,
+          message: `Erro ao verificar tabela: ${error.message}`,
           details: error
         });
       } else {
         setStatus({
           success: true,
-          message: 'SQL executado com sucesso',
+          message: data?.table_name ? 'A tabela profiles existe!' : 'A tabela profiles não existe',
           details: data
         });
       }
     } catch (error: any) {
       setStatus({
         success: false,
-        message: `Erro ao executar SQL: ${error.message || 'Desconhecido'}`,
+        message: `Erro ao verificar tabela: ${error.message || 'Erro desconhecido'}`,
         details: error
       });
     } finally {
@@ -147,17 +235,17 @@ export default function SupabaseSetupTester() {
           </Button>
           
           <Button 
-            onClick={handleSetupTables} 
+            onClick={createProfilesTable} 
             disabled={loading}
             className="w-full"
           >
             {loading ? (
               <>
                 <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                Criando...
+                Processando...
               </>
             ) : (
-              'Criar Tabelas'
+              'Verificar Tabela'
             )}
           </Button>
         </div>

@@ -5,8 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
-import { Play } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle, Play, Copy, Terminal, Server } from 'lucide-react';
+import { toast } from '@/components/ui/sonner';
 
 export default function SupabaseSetupPage() {
   const [sql, setSql] = useState(
@@ -40,6 +41,10 @@ CREATE POLICY "Admins podem atualizar qualquer perfil" ON public.profiles
     auth.jwt() ->> 'role' = 'admin'
   );`);
   
+  const [sqlConsulta, setSqlConsulta] = useState(
+    "SELECT * FROM information_schema.tables WHERE table_schema = 'public';"
+  );
+  
   const [sqlResult, setSqlResult] = useState<{
     success?: boolean;
     data?: any;
@@ -47,34 +52,13 @@ CREATE POLICY "Admins podem atualizar qualquer perfil" ON public.profiles
   }>({});
   
   const [loading, setLoading] = useState(false);
-
-  const handleRunSql = async () => {
-    if (!sql.trim()) return;
-    
-    setLoading(true);
+  
+  const copyToClipboard = async (text: string) => {
     try {
-      const { data, error } = await supabase.rpc('exec_sql', { 
-        sql_query: sql 
-      });
-      
-      if (error) {
-        setSqlResult({
-          success: false,
-          error
-        });
-      } else {
-        setSqlResult({
-          success: true,
-          data
-        });
-      }
-    } catch (error) {
-      setSqlResult({
-        success: false,
-        error
-      });
-    } finally {
-      setLoading(false);
+      await navigator.clipboard.writeText(text);
+      toast.success('Copiado para a área de transferência');
+    } catch (err) {
+      toast.error('Erro ao copiar');
     }
   };
 
@@ -89,10 +73,22 @@ CREATE POLICY "Admins podem atualizar qualquer perfil" ON public.profiles
         </p>
       </div>
 
+      <Alert variant="warning" className="mb-6">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Atenção</AlertTitle>
+        <AlertDescription>
+          As funções RPC <code>get_service_status</code> e <code>exec_sql</code> não foram encontradas no servidor Supabase.
+          É necessário criar essas funções ou usar abordagens alternativas para administrar o banco de dados.
+        </AlertDescription>
+      </Alert>
+
       <div className="grid md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Status do Servidor</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Server className="h-5 w-5" />
+              Status do Servidor
+            </CardTitle>
             <CardDescription>Informações sobre o servidor Supabase</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -105,13 +101,97 @@ CREATE POLICY "Admins podem atualizar qualquer perfil" ON public.profiles
             </div>
             
             <SupabaseSetupTester />
+
+            <Alert>
+              <Terminal className="h-4 w-4" />
+              <AlertTitle>Instruções para Administradores</AlertTitle>
+              <AlertDescription className="space-y-2">
+                <p>Para criar as funções RPC necessárias no servidor Supabase, execute os seguintes comandos SQL:</p>
+                <div className="bg-gray-100 p-2 rounded text-xs font-mono">
+                  <pre className="whitespace-pre-wrap">
+{`-- Função para status do serviço
+CREATE OR REPLACE FUNCTION public.get_service_status()
+RETURNS json
+LANGUAGE sql
+SECURITY DEFINER
+AS $$
+  SELECT json_build_object(
+    'status', 'ok',
+    'version', version(),
+    'timestamp', now()
+  );
+$$;
+
+-- Função para execução de SQL (restrita a superusuário)
+CREATE OR REPLACE FUNCTION public.exec_sql(sql_query text)
+RETURNS json
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  EXECUTE sql_query;
+  RETURN json_build_object('success', true);
+EXCEPTION WHEN OTHERS THEN
+  RETURN json_build_object('success', false, 'error', SQLERRM);
+END;
+$$;
+
+-- Conceder acesso às funções
+GRANT EXECUTE ON FUNCTION public.get_service_status() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.exec_sql(text) TO anon;
+GRANT EXECUTE ON FUNCTION public.exec_sql(text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.exec_sql(text) TO service_role;
+`}</pre>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-2"
+                  onClick={() => copyToClipboard(`-- Função para status do serviço
+CREATE OR REPLACE FUNCTION public.get_service_status()
+RETURNS json
+LANGUAGE sql
+SECURITY DEFINER
+AS $$
+  SELECT json_build_object(
+    'status', 'ok',
+    'version', version(),
+    'timestamp', now()
+  );
+$$;
+
+-- Função para execução de SQL (restrita a superusuário)
+CREATE OR REPLACE FUNCTION public.exec_sql(sql_query text)
+RETURNS json
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  EXECUTE sql_query;
+  RETURN json_build_object('success', true);
+EXCEPTION WHEN OTHERS THEN
+  RETURN json_build_object('success', false, 'error', SQLERRM);
+END;
+$$;
+
+-- Conceder acesso às funções
+GRANT EXECUTE ON FUNCTION public.get_service_status() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.exec_sql(text) TO anon;
+GRANT EXECUTE ON FUNCTION public.exec_sql(text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.exec_sql(text) TO service_role;`)}
+                >
+                  <Copy className="h-4 w-4 mr-1" />
+                  Copiar SQL
+                </Button>
+              </AlertDescription>
+            </Alert>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
             <CardTitle>Ferramentas de SQL</CardTitle>
-            <CardDescription>Execute comandos SQL no banco de dados</CardDescription>
+            <CardDescription>SQL para criar tabelas no banco de dados</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Tabs defaultValue="create">
@@ -127,53 +207,53 @@ CREATE POLICY "Admins podem atualizar qualquer perfil" ON public.profiles
                   className="font-mono text-sm min-h-[300px]"
                 />
                 
-                <Button 
-                  onClick={handleRunSql}
-                  disabled={loading}
-                  className="w-full"
-                >
-                  {loading ? 'Executando...' : (
-                    <>
-                      <Play className="mr-2 h-4 w-4" />
-                      Executar SQL
-                    </>
-                  )}
-                </Button>
+                <div className="flex justify-between">
+                  <Button 
+                    onClick={() => copyToClipboard(sql)}
+                    variant="outline"
+                  >
+                    <Copy className="mr-2 h-4 w-4" />
+                    Copiar SQL
+                  </Button>
+                  
+                  <span className="text-sm text-muted-foreground">
+                    Execute este SQL no Console SQL do Supabase
+                  </span>
+                </div>
+
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Nota Importante</AlertTitle>
+                  <AlertDescription>
+                    Para criar as tabelas, é necessário acessar o Console SQL do Supabase e executar o SQL acima diretamente.
+                    A função RPC <code>exec_sql</code> não está disponível neste servidor.
+                  </AlertDescription>
+                </Alert>
               </TabsContent>
               
               <TabsContent value="query" className="space-y-4">
                 <Textarea
                   placeholder="Digite uma consulta SQL..."
                   className="font-mono text-sm min-h-[120px]"
-                  value="SELECT * FROM information_schema.tables WHERE table_schema = 'public';"
+                  value={sqlConsulta}
+                  onChange={(e) => setSqlConsulta(e.target.value)}
                 />
                 
-                <Button variant="outline" className="w-full">Executar Consulta</Button>
+                <div className="flex justify-between">
+                  <Button 
+                    onClick={() => copyToClipboard(sqlConsulta)}
+                    variant="outline"
+                  >
+                    <Copy className="mr-2 h-4 w-4" />
+                    Copiar SQL
+                  </Button>
+                  
+                  <span className="text-sm text-muted-foreground">
+                    Execute este SQL no Console SQL do Supabase
+                  </span>
+                </div>
               </TabsContent>
             </Tabs>
-
-            {(sqlResult.data || sqlResult.error) && (
-              <div className="mt-4 border rounded">
-                <div className="p-2 border-b bg-muted font-medium text-sm">
-                  Resultado da Execução
-                </div>
-                <div className="p-2">
-                  {sqlResult.success ? (
-                    <div className="text-green-600">Comando executado com sucesso</div>
-                  ) : (
-                    <div className="text-red-600">
-                      Erro: {sqlResult.error?.message || 'Erro desconhecido'}
-                    </div>
-                  )}
-                  
-                  {(sqlResult.data || sqlResult.error) && (
-                    <pre className="mt-2 p-2 bg-gray-100 rounded overflow-auto text-xs max-h-[200px]">
-                      {JSON.stringify(sqlResult.data || sqlResult.error, null, 2)}
-                    </pre>
-                  )}
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
       </div>
