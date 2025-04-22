@@ -20,69 +20,73 @@ import AdminDashboard from "./pages/dashboard/admin/Index";
 import ManagerDashboard from "./pages/dashboard/manager/Index";
 import StudentDashboard from "./pages/dashboard/student/Index";
 import UnauthorizedPage from "./pages/Unauthorized";
+import { useState } from "react";
 
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AuthProvider>
-        <Toaster />
-        <Sonner />
-        <MainLayout>
-          <Routes>
-            {/* Rotas públicas */}
-            <Route path="/" element={<HomePage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/unauthorized" element={<UnauthorizedPage />} />
-            
-            {/* Rotas protegidas */}
-            <Route 
-              path="/dashboard" 
-              element={
-                <RoleGuard allowedRoles={["student", "manager", "admin"]}>
-                  <DashboardPage />
-                </RoleGuard>
-              } 
-            />
-            
-            {/* Rotas específicas de perfil */}
-            <Route 
-              path="/dashboard/admin" 
-              element={
-                <RoleGuard allowedRoles="admin">
-                  <AdminDashboard />
-                </RoleGuard>
-              } 
-            />
-            
-            <Route 
-              path="/dashboard/manager" 
-              element={
-                <RoleGuard allowedRoles="manager">
-                  <ManagerDashboard />
-                </RoleGuard>
-              } 
-            />
-            
-            <Route 
-              path="/dashboard/student" 
-              element={
-                <RoleGuard allowedRoles="student">
-                  <StudentDashboard />
-                </RoleGuard>
-              } 
-            />
-            
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </MainLayout>
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function App() {
+  // Create a client inside the component
+  const [queryClient] = useState(() => new QueryClient());
+  
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <AuthProvider>
+          <Toaster />
+          <Sonner />
+          <MainLayout>
+            <Routes>
+              {/* Rotas públicas */}
+              <Route path="/" element={<HomePage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignupPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/unauthorized" element={<UnauthorizedPage />} />
+              
+              {/* Rotas protegidas */}
+              <Route 
+                path="/dashboard" 
+                element={
+                  <RoleGuard allowedRoles={["student", "manager", "admin"]}>
+                    <DashboardPage />
+                  </RoleGuard>
+                } 
+              />
+              
+              {/* Rotas específicas de perfil */}
+              <Route 
+                path="/dashboard/admin" 
+                element={
+                  <RoleGuard allowedRoles="admin">
+                    <AdminDashboard />
+                  </RoleGuard>
+                } 
+              />
+              
+              <Route 
+                path="/dashboard/manager" 
+                element={
+                  <RoleGuard allowedRoles="manager">
+                    <ManagerDashboard />
+                  </RoleGuard>
+                } 
+              />
+              
+              <Route 
+                path="/dashboard/student" 
+                element={
+                  <RoleGuard allowedRoles="student">
+                    <StudentDashboard />
+                  </RoleGuard>
+                } 
+              />
+              
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </MainLayout>
+        </AuthProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+}
 
 export default App;
