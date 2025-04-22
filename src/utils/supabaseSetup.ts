@@ -40,41 +40,26 @@ CREATE POLICY "Admins podem atualizar qualquer perfil" ON public.profiles
  */
 export const testSupabaseConnection = async () => {
   try {
-    // Testa conexão básica consultando informações do schema
+    // Testa conexão básica tentando acessar a tabela profiles
     const { data, error } = await supabase
-      .from('information_schema.tables')
-      .select('table_name')
-      .eq('table_schema', 'public')
+      .from('profiles')
+      .select('count')
       .limit(1);
     
     if (error) {
       console.error('Erro ao conectar com o Supabase:', error);
+      
+      if (error.code === 'PGRST204') {
+        // Table doesn't exist, but connection is working
+        return {
+          success: true,
+          message: 'Conexão bem-sucedida. Tabela profiles não existe.'
+        };
+      }
+      
       return {
         success: false,
         message: `Erro ao conectar: ${error.message}`
-      };
-    }
-    
-    // Verifica se a tabela profiles existe
-    const { data: profileData, error: profileError } = await supabase
-      .from('information_schema.tables')
-      .select('table_name')
-      .eq('table_schema', 'public')
-      .eq('table_name', 'profiles')
-      .maybeSingle();
-    
-    if (profileError) {
-      console.error('Erro ao verificar tabela profiles:', profileError);
-      return {
-        success: false,
-        message: `Erro ao verificar tabela: ${profileError.message}`
-      };
-    }
-    
-    if (!profileData) {
-      return {
-        success: true,
-        message: 'Conexão bem-sucedida. Tabela profiles não existe.'
       };
     }
     
@@ -96,30 +81,29 @@ export const testSupabaseConnection = async () => {
  */
 export const setupProfilesTable = async () => {
   try {
-    // Verificar se a tabela existe
-    const { data, error } = await supabase
-      .from('information_schema.tables')
-      .select('table_name')
-      .eq('table_schema', 'public')
-      .eq('table_name', 'profiles')
-      .maybeSingle();
+    // Verificar se a tabela existe tentando selecionar dados dela
+    const { error } = await supabase
+      .from('profiles')
+      .select('count')
+      .limit(1);
       
     if (error) {
+      if (error.code === 'PGRST204') {
+        // Table doesn't exist
+        toast.error('Tabela de perfis não existe', {
+          description: 'É necessário criar manualmente no Console SQL do Supabase'
+        });
+        return false;
+      }
+      
       toast.error('Erro ao verificar tabela de perfis', {
         description: error.message
       });
       return false;
     }
     
-    if (data?.table_name) {
-      toast.success('Tabela de perfis já existe');
-      return true;
-    } else {
-      toast.error('Tabela de perfis não existe', {
-        description: 'É necessário criar manualmente no Console SQL do Supabase'
-      });
-      return false;
-    }
+    toast.success('Tabela de perfis já existe');
+    return true;
   } catch (error: any) {
     toast.error('Erro ao verificar tabela de perfis', {
       description: error.message || 'Erro desconhecido'

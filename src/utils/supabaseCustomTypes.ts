@@ -1,7 +1,7 @@
 
 import { Database as OriginalDatabase } from '@/integrations/supabase/types';
 
-// Extend the Database type to include our custom RPC functions
+// Extended Database type that includes system tables and our custom RPC functions
 export interface Database extends OriginalDatabase {
   public: {
     Tables: OriginalDatabase['public']['Tables'];
@@ -18,6 +18,28 @@ export interface Database extends OriginalDatabase {
     };
     Enums: OriginalDatabase['public']['Enums'];
     CompositeTypes: OriginalDatabase['public']['CompositeTypes'];
+  };
+  // Adding system schema tables
+  information_schema: {
+    Tables: {
+      tables: {
+        Row: {
+          table_name: string;
+          table_schema: string;
+          [key: string]: any;
+        };
+      };
+    };
+  };
+  pg_catalog: {
+    Tables: {
+      pg_namespace: {
+        Row: {
+          nspname: string;
+          [key: string]: any;
+        };
+      };
+    };
   };
 }
 
