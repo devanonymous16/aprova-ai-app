@@ -11,7 +11,7 @@ export const testSupabaseConnection = async () => {
     // Testa conexão básica tentando acessar a tabela profiles
     const { data, error } = await supabase
       .from('profiles')
-      .select('count')
+      .select('id')
       .limit(1);
     
     if (error) {
@@ -52,7 +52,7 @@ export const setupProfilesTable = async () => {
     // Verificar se a tabela existe tentando selecionar dados dela
     const { error } = await supabase
       .from('profiles')
-      .select('count')
+      .select('id')
       .limit(1);
       
     if (error) {

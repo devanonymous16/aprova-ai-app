@@ -61,7 +61,8 @@ export const useAuthActions = () => {
     }
   ) => {
     try {
-      const { error } = await supabase.auth.signUp({
+      // 1. Signup with Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -69,14 +70,42 @@ export const useAuthActions = () => {
             name: metadata.name,
             cpf: metadata.cpf,
             birth_date: metadata.birth_date,
-            role: 'student'
+            role: 'student'  // Default role for all signed up users
           }
         }
       });
       
       if (error) throw error;
+
+      // 2. Create profile record in profiles table
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: data.user.id,
+            email: email,
+            name: metadata.name,
+            role: 'student', // Always student for signup via platform
+            birth_date: metadata.birth_date,
+            cpf: metadata.cpf
+          });
+
+        if (profileError) {
+          console.error('Error creating profile:', profileError);
+          toast.error('Erro ao criar perfil', { 
+            description: profileError.message 
+          });
+        }
+      }
       
-      toast.success('Conta criada com sucesso');
+      toast.success('Conta criada com sucesso', {
+        description: 'Você será redirecionado para a página de login'
+      });
+      
+      // 3. Redirect to login page
+      setTimeout(() => {
+        navigate('/login');
+      }, 1500);
     } catch (error: any) {
       console.error('Signup error:', error);
       toast.error('Erro no cadastro', {
@@ -84,7 +113,7 @@ export const useAuthActions = () => {
       });
       throw error;
     }
-  }, []);
+  }, [navigate]);
 
   const forgotPassword = useCallback(async (email: string) => {
     try {

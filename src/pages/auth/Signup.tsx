@@ -1,5 +1,5 @@
 
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
@@ -44,6 +44,7 @@ const signupSchema = z.object({
 
 export default function SignupPage() {
   const { signUp, loginWithGoogle } = useAuth();
+  const navigate = useNavigate();
   const form = useForm<z.infer<typeof signupSchema>>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -66,6 +67,9 @@ export default function SignupPage() {
         cpf: formattedCpf,
         birth_date: values.birthDate
       });
+      
+      // Reset form after successful signup
+      form.reset();
     } catch (error) {
       // Error handling is done in the signup method
     }

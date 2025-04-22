@@ -15,7 +15,7 @@ export const fetchUserProfile = async (userId: string, userEmail?: string) => {
     if (error) {
       console.error('Error fetching profile:', error);
       
-      if (error.code === 'PGRST116' && userEmail) {
+      if (userEmail) {
         return await createDefaultProfile(userId, userEmail);
       }
       return null;
