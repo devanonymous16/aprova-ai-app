@@ -1,5 +1,4 @@
-
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
@@ -36,9 +35,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Função auxiliar para buscar o perfil do usuário
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = useCallback(async (userId: string) => {
     try {
+      console.log(`Buscando perfil para o usuário: ${userId}`);
+
       const { data, error } = await supabase
         .from('profiles')
         .select('role, name, avatar_url')
@@ -46,79 +46,99 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .single();
 
       if (error) {
-        console.error('Error fetching profile:', error);
+        console.error('Erro ao buscar perfil:', error);
+        
+        // Verificar se a tabela existe
+        if (error.code === '42P01') {
+          console.error('Tabela profiles não existe! Precisamos criá-la primeiro.');
+        }
         return null;
       }
 
-      console.log('Profile data fetched:', data);
+      console.log('Dados do perfil obtidos:', data);
       return data;
     } catch (error) {
-      console.error('Error in fetchProfile:', error);
+      console.error('Erro em fetchProfile:', error);
       return null;
     }
-  };
+  }, []);
+
+  const hasRole = useCallback((role: UserRole | UserRole[]): boolean => {
+    if (!profile) {
+      console.warn('hasRole check failed: No profile available', { user });
+      return false;
+    }
+    
+    if (Array.isArray(role)) {
+      console.log('Verificando múltiplos papéis:', role, 'Papel atual:', profile.role);
+      return role.includes(profile.role);
+    }
+    
+    console.log('Verificando papel único:', role, 'Papel atual:', profile.role);
+    return profile.role === role;
+  }, [profile, user]);
 
   useEffect(() => {
-    // Primeiro, configure o listener de mudança de estado de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
-        console.log('Auth state changed:', event);
+        console.log('Estado de autenticação alterado:', event);
         
-        // Atualize o estado da sessão e do usuário
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
-        // Se tivermos um usuário logado, busque seu perfil
         if (currentSession?.user) {
-          console.log('Fetching profile for user:', currentSession.user.id);
-          const profileData = await fetchProfile(currentSession.user.id);
+          console.log('Buscando perfil para o usuário após mudança de estado:', currentSession.user.id);
           
-          if (profileData) {
-            console.log('Setting profile with role:', profileData.role);
-            setProfile({
-              role: profileData.role,
-              name: profileData.name,
-              avatar_url: profileData.avatar_url
-            });
-          } else {
-            console.warn('No profile found for user:', currentSession.user.id);
-            setProfile(null);
-          }
+          setTimeout(async () => {
+            const profileData = await fetchProfile(currentSession.user.id);
+            
+            if (profileData) {
+              console.log('Definindo perfil com papel:', profileData.role);
+              setProfile({
+                role: profileData.role,
+                name: profileData.name,
+                avatar_url: profileData.avatar_url
+              });
+            } else {
+              console.warn('Nenhum perfil encontrado para o usuário:', currentSession.user.id);
+              setProfile(null);
+            }
+            
+            setLoading(false);
+          }, 0);
         } else {
           setProfile(null);
+          setLoading(false);
         }
-        
-        setLoading(false);
       }
     );
 
-    // Depois, verifique a sessão atual
     const initializeAuth = async () => {
       try {
         const { data: { session: currentSession } } = await supabase.auth.getSession();
-        console.log('Initial session check:', currentSession);
+        console.log('Verificação de sessão inicial:', currentSession);
         
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
         if (currentSession?.user) {
-          console.log('Initial profile fetch for user:', currentSession.user.id);
+          console.log('Busca inicial de perfil para o usuário:', currentSession.user.id);
           const profileData = await fetchProfile(currentSession.user.id);
           
           if (profileData) {
-            console.log('Setting initial profile with role:', profileData.role);
+            console.log('Definindo perfil inicial com papel:', profileData.role);
             setProfile({
               role: profileData.role,
               name: profileData.name,
               avatar_url: profileData.avatar_url
             });
           } else {
-            console.warn('No initial profile found for user:', currentSession.user.id);
+            console.warn('Nenhum perfil inicial encontrado para o usuário:', currentSession.user.id);
             setProfile(null);
           }
         }
       } catch (error) {
-        console.error('Error during auth initialization:', error);
+        console.error('Erro durante inicialização da autenticação:', error);
       } finally {
         setLoading(false);
       }
@@ -129,38 +149,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [fetchProfile]);
 
   const login = async (email: string, password: string) => {
     try {
+      console.log(`Tentando fazer login com o e-mail: ${email}`);
+      setLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       
       if (error) throw error;
       
       if (data.user) {
-        console.log('Login successful, fetching profile for:', data.user.id);
+        console.log('Login bem-sucedido, buscando perfil para:', data.user.id);
         const profileData = await fetchProfile(data.user.id);
         
         if (profileData) {
-          console.log('Profile found with role:', profileData.role);
+          console.log('Perfil encontrado com papel:', profileData.role);
           setProfile({
             role: profileData.role,
             name: profileData.name,
             avatar_url: profileData.avatar_url
           });
         } else {
-          console.warn('No profile found after login for user:', data.user.id);
+          console.warn('Nenhum perfil encontrado após login para o usuário:', data.user.id);
         }
       }
       
       toast.success('Login realizado com sucesso');
       navigate('/dashboard');
     } catch (error: any) {
-      console.error('Login error:', error);
+      console.error('Erro no login:', error);
       toast.error('Erro no login', {
         description: error.message || 'Verifique suas credenciais'
       });
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -254,21 +278,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       throw error;
     }
-  };
-
-  const hasRole = (role: UserRole | UserRole[]): boolean => {
-    if (!profile) {
-      console.warn('hasRole check failed: No profile available');
-      return false;
-    }
-    
-    if (Array.isArray(role)) {
-      console.log('Checking multiple roles:', role, 'Current role:', profile.role);
-      return role.includes(profile.role);
-    }
-    
-    console.log('Checking single role:', role, 'Current role:', profile.role);
-    return profile.role === role;
   };
 
   return (

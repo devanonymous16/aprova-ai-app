@@ -1,5 +1,5 @@
 
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserRole } from '@/types/user';
@@ -15,17 +15,28 @@ export default function RoleGuard({
   children, 
   redirectTo = '/login' 
 }: RoleGuardProps) {
-  const { isAuthenticated, hasRole, loading, profile } = useAuth();
+  const { isAuthenticated, hasRole, loading, profile, user } = useAuth();
   
-  console.log('RoleGuard - Auth State:', {
-    isAuthenticated,
-    loading,
-    profile: profile ? {
-      role: profile.role,
-      name: profile.name
-    } : null,
-    allowedRoles
-  });
+  useEffect(() => {
+    console.log('RoleGuard - Auth State:', {
+      isAuthenticated,
+      loading,
+      user: user ? { id: user.id, email: user.email } : null,
+      profile: profile ? {
+        role: profile.role,
+        name: profile.name
+      } : null,
+      allowedRoles
+    });
+    
+    if (profile) {
+      console.log('Verificando permissão:', {
+        userRole: profile.role,
+        allowedRoles,
+        hasAccess: hasRole(allowedRoles)
+      });
+    }
+  }, [isAuthenticated, loading, profile, user, hasRole, allowedRoles]);
   
   // Aguarda o carregamento da autenticação
   if (loading) {
@@ -42,9 +53,15 @@ export default function RoleGuard({
     return <Navigate to={redirectTo} />;
   }
   
+  // Se o perfil não foi carregado corretamente
+  if (!profile) {
+    console.log('RoleGuard: User profile not loaded, redirecting to unauthorized page');
+    return <Navigate to="/unauthorized" />;
+  }
+  
   // Se não tiver o papel necessário, redireciona para a página não autorizada
   if (!hasRole(allowedRoles)) {
-    console.log('RoleGuard: User does not have required role(s), redirecting to unauthorized page');
+    console.log(`RoleGuard: User does not have required role(s): Current role=${profile.role}, Required=${Array.isArray(allowedRoles) ? allowedRoles.join(', ') : allowedRoles}`);
     return <Navigate to="/unauthorized" />;
   }
   
