@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
@@ -35,10 +36,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const fetchProfile = useCallback(async (userId: string) => {
+  const fetchProfile = useCallback(async (userId: string, userEmail?: string) => {
     try {
       console.log(`Buscando perfil para o usuário: ${userId}`);
 
+      // Primeiro tenta buscar o perfil
       const { data, error } = await supabase
         .from('profiles')
         .select('role, name, avatar_url')
@@ -48,10 +50,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) {
         console.error('Erro ao buscar perfil:', error);
         
-        // Verificar se a tabela existe
-        if (error.code === '42P01') {
-          console.error('Tabela profiles não existe! Precisamos criá-la primeiro.');
+        // Se o erro for que o perfil não existe e temos o email, tentamos criar um perfil padrão
+        if (error.code === 'PGRST116' && userEmail) {
+          console.log('Perfil não encontrado, tentando criar um perfil padrão para:', userId);
+          
+          // Determinar a role com base no email (apenas para demo)
+          let defaultRole: UserRole = 'student';
+          if (userEmail.includes('admin')) defaultRole = 'admin';
+          else if (userEmail.includes('manager')) defaultRole = 'manager';
+          
+          const { data: newProfileData, error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              id: userId,
+              email: userEmail,
+              name: userEmail.split('@')[0],
+              role: defaultRole
+            })
+            .select('role, name, avatar_url')
+            .single();
+            
+          if (insertError) {
+            console.error('Erro ao criar perfil padrão:', insertError);
+            return null;
+          }
+          
+          console.log('Perfil padrão criado com sucesso:', newProfileData);
+          return newProfileData;
         }
+        
         return null;
       }
 
@@ -90,7 +117,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.log('Buscando perfil para o usuário após mudança de estado:', currentSession.user.id);
           
           setTimeout(async () => {
-            const profileData = await fetchProfile(currentSession.user.id);
+            const profileData = await fetchProfile(
+              currentSession.user.id, 
+              currentSession.user.email
+            );
             
             if (profileData) {
               console.log('Definindo perfil com papel:', profileData.role);
@@ -105,7 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
             
             setLoading(false);
-          }, 0);
+          }, 500); // 500ms delay para garantir que a operação seja concluída
         } else {
           setProfile(null);
           setLoading(false);
@@ -123,7 +153,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         if (currentSession?.user) {
           console.log('Busca inicial de perfil para o usuário:', currentSession.user.id);
-          const profileData = await fetchProfile(currentSession.user.id);
+          const profileData = await fetchProfile(
+            currentSession.user.id,
+            currentSession.user.email
+          );
           
           if (profileData) {
             console.log('Definindo perfil inicial com papel:', profileData.role);
@@ -161,7 +194,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (data.user) {
         console.log('Login bem-sucedido, buscando perfil para:', data.user.id);
-        const profileData = await fetchProfile(data.user.id);
+        const profileData = await fetchProfile(data.user.id, data.user.email);
         
         if (profileData) {
           console.log('Perfil encontrado com papel:', profileData.role);
@@ -170,13 +203,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             name: profileData.name,
             avatar_url: profileData.avatar_url
           });
+          
+          // Espere um pouco para garantir que o perfil seja definido
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          toast.success('Login realizado com sucesso');
+          navigate('/dashboard');
         } else {
           console.warn('Nenhum perfil encontrado após login para o usuário:', data.user.id);
+          toast.warning('Perfil não encontrado', {
+            description: 'Você será redirecionado para a página de criação de perfil'
+          });
+          navigate('/unauthorized');
         }
       }
-      
-      toast.success('Login realizado com sucesso');
-      navigate('/dashboard');
     } catch (error: any) {
       console.error('Erro no login:', error);
       toast.error('Erro no login', {

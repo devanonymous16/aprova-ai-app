@@ -2,6 +2,7 @@
 import { useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from '@/components/ui/sonner';
 
 // Este componente é um roteador inteligente que direciona o usuário
 // para a dashboard específica com base em seu papel
@@ -12,10 +13,13 @@ export default function DashboardPage() {
     // Exemplo de logging para ajudar a depurar
     if (profile) {
       console.log(`Papel do usuário: ${profile.role}`);
-    } else {
+    } else if (!loading && user) {
       console.log('Perfil não encontrado no DashboardPage', { user });
+      toast.warning('Perfil de usuário não encontrado', {
+        description: 'Você será redirecionado para criar seu perfil'
+      });
     }
-  }, [profile, user]);
+  }, [profile, user, loading]);
   
   if (loading) {
     return (

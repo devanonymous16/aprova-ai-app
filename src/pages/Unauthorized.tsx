@@ -1,11 +1,19 @@
 
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { ShieldX } from 'lucide-react';
+import CreateProfileDialog from '@/components/auth/CreateProfileDialog';
 
 export default function UnauthorizedPage() {
   const { profile, logout, user, session, hasRole } = useAuth();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  
+  const handleProfileCreated = () => {
+    // Recarregar a página após criar o perfil
+    window.location.href = '/dashboard';
+  };
   
   // Função auxiliar para exibir as informações do usuário para depuração
   const renderDebugInfo = () => {
@@ -43,6 +51,27 @@ export default function UnauthorizedPage() {
         Você não tem permissão para acessar esta página. 
         {profile ? ` Seu perfil atual é: ${profile.role}.` : ' Seu perfil não foi carregado corretamente.'}
       </p>
+      
+      {!profile && user && (
+        <div className="mb-8">
+          <Button 
+            className="bg-green-600 hover:bg-green-700"
+            onClick={() => setDialogOpen(true)}
+          >
+            Criar perfil manualmente
+          </Button>
+          
+          {user && (
+            <CreateProfileDialog
+              open={dialogOpen}
+              onOpenChange={setDialogOpen}
+              userId={user.id}
+              email={user.email || ''}
+              onComplete={handleProfileCreated}
+            />
+          )}
+        </div>
+      )}
       
       {renderDebugInfo()}
       

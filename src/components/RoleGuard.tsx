@@ -1,8 +1,9 @@
 
 import { ReactNode, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserRole } from '@/types/user';
+import { toast } from '@/components/ui/sonner';
 
 interface RoleGuardProps {
   allowedRoles: UserRole | UserRole[];
@@ -16,6 +17,7 @@ export default function RoleGuard({
   redirectTo = '/login' 
 }: RoleGuardProps) {
   const { isAuthenticated, hasRole, loading, profile, user } = useAuth();
+  const navigate = useNavigate();
   
   useEffect(() => {
     console.log('RoleGuard - Auth State:', {
@@ -36,7 +38,21 @@ export default function RoleGuard({
         hasAccess: hasRole(allowedRoles)
       });
     }
-  }, [isAuthenticated, loading, profile, user, hasRole, allowedRoles]);
+    
+    // Se o usuário está autenticado mas o perfil não foi carregado após 3 segundos,
+    // redirecionar para a página de criação de perfil
+    if (isAuthenticated && !profile && !loading) {
+      const timer = setTimeout(() => {
+        console.log('Perfil não carregado após timeout, redirecionando para criar perfil');
+        toast.warning('Perfil não encontrado', {
+          description: 'Redirecionando para a página de criação de perfil'
+        });
+        navigate('/unauthorized');
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthenticated, loading, profile, user, hasRole, allowedRoles, navigate]);
   
   // Aguarda o carregamento da autenticação
   if (loading) {
