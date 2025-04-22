@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
@@ -36,58 +35,71 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  // Função auxiliar para buscar o perfil do usuário
+  const fetchProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role, name, avatar_url')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error in fetchProfile:', error);
+      return null;
+    }
+  };
+
   useEffect(() => {
-    // Initial session check
-    const checkSession = async () => {
-      const { data: { session: currentSession } } = await supabase.auth.getSession();
+    // Primeiro, configure o listener de mudança de estado de autenticação
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, currentSession) => {
+        console.log('Auth state changed:', event);
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+        
+        if (currentSession?.user) {
+          const profileData = await fetchProfile(currentSession.user.id);
+          if (profileData) {
+            setProfile({
+              role: profileData.role,
+              name: profileData.name,
+              avatar_url: profileData.avatar_url
+            });
+          }
+        } else {
+          setProfile(null);
+        }
+        
+        setLoading(false);
+      }
+    );
+
+    // Depois, verifique a sessão atual
+    supabase.auth.getSession().then(async ({ data: { session: currentSession } }) => {
+      console.log('Initial session check:', currentSession);
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
       
-      if (currentSession) {
-        // Fetch user profile
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('role, name, avatar_url')
-          .eq('id', currentSession.user.id)
-          .single();
-
-        if (data) {
+      if (currentSession?.user) {
+        const profileData = await fetchProfile(currentSession.user.id);
+        if (profileData) {
           setProfile({
-            role: data.role,
-            name: data.name,
-            avatar_url: data.avatar_url
+            role: profileData.role,
+            name: profileData.name,
+            avatar_url: profileData.avatar_url
           });
         }
       }
       
       setLoading(false);
-    };
-
-    checkSession();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, currentSession) => {
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        
-        if (currentSession) {
-          const { data } = await supabase
-            .from('profiles')
-            .select('role, name, avatar_url')
-            .eq('id', currentSession.user.id)
-            .single();
-
-          setProfile(data ? {
-            role: data.role,
-            name: data.name,
-            avatar_url: data.avatar_url
-          } : null);
-        } else {
-          setProfile(null);
-        }
-      }
-    );
+    });
 
     return () => {
       subscription.unsubscribe();
@@ -95,7 +107,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    setLoading(true);
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       
@@ -104,12 +115,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       toast.success('Login realizado com sucesso');
       navigate('/dashboard');
     } catch (error: any) {
+      console.error('Login error:', error);
       toast.error('Erro no login', {
         description: error.message || 'Verifique suas credenciais'
       });
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -141,14 +151,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, name: string) => {
-    setLoading(true);
     try {
-      const { error, data } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
-            name
+            name,
+            role: 'student' // Default role for new users
           }
         }
       });
@@ -156,14 +166,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
       
       toast.success('Conta criada com sucesso');
-      navigate('/dashboard');
+      // Note: Não navegamos automaticamente após o signup devido à confirmação de email
     } catch (error: any) {
+      console.error('Signup error:', error);
       toast.error('Erro no cadastro', {
         description: error.message || 'Não foi possível criar a conta'
       });
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
 
