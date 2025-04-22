@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -37,7 +36,6 @@ export default function UnauthorizedPage() {
   }, []);
   
   const handleProfileCreated = () => {
-    // Recarregar a página após criar o perfil
     window.location.href = '/dashboard';
   };
   
@@ -46,7 +44,6 @@ export default function UnauthorizedPage() {
     
     setIsChecking(true);
     try {
-      // Verificar perfil diretamente no Supabase
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -70,7 +67,6 @@ export default function UnauthorizedPage() {
     }
   };
   
-  // Função auxiliar para exibir as informações do usuário para depuração
   const renderDebugInfo = () => {
     return (
       <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200 text-left text-sm max-w-xl mx-auto">
