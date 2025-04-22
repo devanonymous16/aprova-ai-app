@@ -13,6 +13,7 @@ interface AuthContextType {
   hasRole: (role: UserRole | UserRole[]) => boolean;
   login: ReturnType<typeof useAuthActions>['login'];
   loginWithGoogle: ReturnType<typeof useAuthActions>['loginWithGoogle'];
+  loginWithApple: ReturnType<typeof useAuthActions>['loginWithApple'];
   logout: ReturnType<typeof useAuthActions>['logout'];
   signUp: ReturnType<typeof useAuthActions>['signUp'];
   forgotPassword: ReturnType<typeof useAuthActions>['forgotPassword'];
@@ -33,6 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const {
     login,
     loginWithGoogle,
+    loginWithApple,
     logout,
     signUp,
     forgotPassword,
@@ -64,6 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       hasRole,
       login,
       loginWithGoogle,
+      loginWithApple,
       logout,
       signUp,
       forgotPassword,
