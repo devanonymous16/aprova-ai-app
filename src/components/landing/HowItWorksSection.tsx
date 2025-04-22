@@ -12,17 +12,17 @@ export default function HowItWorksSection() {
     {
       icon: Map,
       title: "Plano Personalizado",
-      description: "Criamos um roteiro de estudos adaptado às suas necessidades específicas e ao concurso almejado."
+      description: "Receba um roteiro de estudos semanal que evolui junto com você. A cada semana, seu plano é recalculado com base no seu desempenho recente, priorizando áreas que necessitam mais atenção."
     },
     {
       icon: PenSquare,
       title: "Prática Focada",
-      description: "Exercite-se com questões selecionadas para seus pontos fracos e no estilo da banca do seu concurso."
+      description: "Tenha acesso a questões exclusivas, desenvolvidas por nossa IA para simular com precisão o estilo e padrão da banca examinadora do seu concurso específico, garantindo familiaridade máxima no dia da prova."
     },
     {
       icon: MessageCircle,
       title: "Feedback Contínuo",
-      description: "Receba análises detalhadas sobre seu desempenho e orientações para melhorar continuamente."
+      description: "Obtenha explicações detalhadas sobre cada questão respondida, com esclarecimentos específicos sobre conceitos-chave e correção de possíveis interpretações equivocadas, acelerando seu processo de aprendizado."
     },
     {
       icon: PieChart,

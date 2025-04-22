@@ -49,7 +49,7 @@ export default function HeroSection() {
               asChild
               variant="outline"
               size="lg"
-              className="border-white text-white hover:bg-white/10 text-base font-medium px-8"
+              className="border-white text-white hover:bg-white/10 text-base font-medium px-8 hover:text-white"
             >
               <Link to="/login">Já tenho uma conta</Link>
             </Button>
