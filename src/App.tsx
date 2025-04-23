@@ -23,6 +23,15 @@ import UnauthorizedPage from "./pages/Unauthorized";
 import SupabaseSetupPage from "./pages/admin/SupabaseSetup";
 import { useState } from "react";
 
+// Student Pages
+import StudentExams from "./pages/student/Exams";
+import StudentExamDetail from "./pages/student/ExamDetail";
+import StudentAutoDiagnosis from "./pages/student/AutoDiagnosis";
+import StudentStudyPlan from "./pages/student/StudyPlan";
+import StudentSolveQuestion from "./pages/student/SolveQuestion";
+import StudentSimulado from "./pages/student/Simulado";
+import StudentProfile from "./pages/student/Profile";
+
 function App() {
   const [queryClient] = useState(() => new QueryClient());
   
@@ -77,6 +86,79 @@ function App() {
                 element={
                   <RoleGuard allowedRoles="student">
                     <StudentDashboard />
+                  </RoleGuard>
+                } 
+              />
+              
+              {/* Rotas específicas para o fluxo do estudante */}
+              <Route 
+                path="/student/dashboard" 
+                element={
+                  <RoleGuard allowedRoles="student">
+                    <StudentDashboard />
+                  </RoleGuard>
+                } 
+              />
+              
+              <Route 
+                path="/student/exams" 
+                element={
+                  <RoleGuard allowedRoles="student">
+                    <StudentExams />
+                  </RoleGuard>
+                } 
+              />
+              
+              <Route 
+                path="/student/exams/:id" 
+                element={
+                  <RoleGuard allowedRoles="student">
+                    <StudentExamDetail />
+                  </RoleGuard>
+                } 
+              />
+              
+              <Route 
+                path="/student/autodiagnosis/:examPositionId" 
+                element={
+                  <RoleGuard allowedRoles="student">
+                    <StudentAutoDiagnosis />
+                  </RoleGuard>
+                } 
+              />
+              
+              <Route 
+                path="/student/study-plan" 
+                element={
+                  <RoleGuard allowedRoles="student">
+                    <StudentStudyPlan />
+                  </RoleGuard>
+                } 
+              />
+              
+              <Route 
+                path="/student/solve/:subtopicId" 
+                element={
+                  <RoleGuard allowedRoles="student">
+                    <StudentSolveQuestion />
+                  </RoleGuard>
+                } 
+              />
+              
+              <Route 
+                path="/student/simulado/:simuladoId" 
+                element={
+                  <RoleGuard allowedRoles="student">
+                    <StudentSimulado />
+                  </RoleGuard>
+                } 
+              />
+              
+              <Route 
+                path="/student/profile" 
+                element={
+                  <RoleGuard allowedRoles="student">
+                    <StudentProfile />
                   </RoleGuard>
                 } 
               />
