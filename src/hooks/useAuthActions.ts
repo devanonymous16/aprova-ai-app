@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { supabase, checkSupabaseConnection } from '@/integrations/supabase/client';
+import { supabase, checkSupabaseConnection, forceLogout } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/components/ui/sonner';
 
@@ -74,24 +74,52 @@ export const useAuthActions = () => {
 
   const logout = useCallback(async () => {
     try {
-      console.log('Fazendo logout');
-      const { error } = await supabase.auth.signOut();
+      console.log('Fazendo logout normal');
+      const { error } = await supabase.auth.signOut({ scope: 'local' });
       
       if (error) {
         console.error('Erro ao fazer logout:', error);
-        toast.error('Erro ao fazer logout', {
-          description: error.message || 'Tente novamente mais tarde'
-        });
-        return;
+        
+        // Se houver erro, tenta o logout forçado
+        console.log('Tentando logout forçado após erro');
+        const forceSuccess = await forceLogout();
+        
+        if (!forceSuccess) {
+          toast.error('Erro ao fazer logout', {
+            description: 'Tente recarregar a página e tentar novamente'
+          });
+          return false;
+        }
+      } else {
+        toast.success('Logout realizado com sucesso');
       }
       
-      toast.success('Logout realizado com sucesso');
+      // Limpa dados adicionais do localStorage
+      try {
+        localStorage.removeItem('supabase.auth.token');
+      } catch (e) {
+        console.log('Erro ao limpar localStorage:', e);
+      }
+      
+      // Sempre navega para login após logout, independente do resultado
       navigate('/login', { replace: true });
+      return true;
     } catch (error: any) {
       console.error('Erro no logout:', error);
+      
+      // Se houver exceção, tenta o logout forçado
+      console.log('Tentando logout forçado após exceção');
+      const forceSuccess = await forceLogout();
+      
+      if (forceSuccess) {
+        navigate('/login', { replace: true });
+        return true;
+      }
+      
       toast.error('Erro no logout', {
-        description: error.message || 'Tente novamente mais tarde'
+        description: 'Por favor, recarregue a página e tente novamente'
       });
+      return false;
     }
   }, [navigate]);
 
