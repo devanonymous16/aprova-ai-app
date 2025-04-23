@@ -17,6 +17,7 @@ export const useAuthState = () => {
   const [profile, setProfile] = useState<ProfileType | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
 
   const updateProfile = useCallback(async (currentUser: User) => {
     try {
@@ -53,6 +54,7 @@ export const useAuthState = () => {
     const initializeAuth = async () => {
       setLoading(true);
       try {
+        console.log('Inicializando estado de autenticação');
         const { data: { session: currentSession } } = await supabase.auth.getSession();
         
         if (!isMounted) return;
@@ -61,8 +63,10 @@ export const useAuthState = () => {
         setUser(currentSession?.user ?? null);
         
         if (currentSession?.user) {
+          console.log('Usuário encontrado na sessão, buscando perfil');
           await updateProfile(currentSession.user);
         } else {
+          console.log('Nenhum usuário na sessão');
           setLoading(false);
         }
       } catch (error) {
@@ -97,12 +101,34 @@ export const useAuthState = () => {
       }
     );
     
+    // Implement a safety timeout to prevent indefinite loading
+    const safetyTimeout = setTimeout(() => {
+      if (isMounted && loading) {
+        console.warn('Auth state loading timeout - forcing load completion');
+        setLoading(false);
+      }
+    }, 10000); // 10 segundos de timeout
+    
     // Cleanup subscription on unmount
     return () => {
       isMounted = false;
       subscription.unsubscribe();
+      clearTimeout(safetyTimeout);
     };
   }, [updateProfile]);
+
+  // Add a retry mechanism for profile loading
+  useEffect(() => {
+    if (user && !profile && !loading && retryCount < 3) {
+      console.log(`Tentativa ${retryCount + 1} de carregar perfil...`);
+      const retryTimer = setTimeout(() => {
+        setRetryCount(prev => prev + 1);
+        updateProfile(user);
+      }, 2000); // Tenta novamente após 2 segundos
+      
+      return () => clearTimeout(retryTimer);
+    }
+  }, [user, profile, loading, retryCount, updateProfile]);
 
   return {
     user,

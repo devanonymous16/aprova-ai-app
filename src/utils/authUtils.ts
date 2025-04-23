@@ -19,6 +19,7 @@ export const fetchUserProfile = async (userId: string, userEmail?: string) => {
       
       if (userEmail) {
         // Attempt to create a default profile if there was an error fetching
+        console.log('Tentando criar perfil padrão após erro na busca');
         toast.loading('Criando perfil padrão...');
         return await createDefaultProfile(userId, userEmail);
       }
@@ -28,6 +29,7 @@ export const fetchUserProfile = async (userId: string, userEmail?: string) => {
     if (!data) {
       console.log('No profile found, creating default profile');
       if (userEmail) {
+        console.log('Criando perfil padrão para usuário novo');
         toast.loading('Criando perfil padrão...');
         // Create default profile if none exists
         return await createDefaultProfile(userId, userEmail);
@@ -54,11 +56,16 @@ export const createDefaultProfile = async (userId: string, email: string) => {
   
   try {
     // First check if profile already exists to avoid duplicate entries
+    console.log('Verificando se perfil já existe');
     const { data: existingProfile, error: checkError } = await supabase
       .from('profiles')
-      .select('id')
+      .select('id, role, name, avatar_url')
       .eq('id', userId)
       .single();
+      
+    if (checkError) {
+      console.log('Perfil não encontrado, criando um novo:', checkError.message);
+    }
       
     if (existingProfile) {
       console.log('Profile already exists, updating instead of creating');
@@ -74,6 +81,7 @@ export const createDefaultProfile = async (userId: string, email: string) => {
         .single();
         
       if (error) {
+        console.error('Erro ao atualizar perfil:', error);
         throw error;
       }
       
@@ -82,6 +90,7 @@ export const createDefaultProfile = async (userId: string, email: string) => {
     }
   
     // If no profile exists, create a new one
+    console.log('Criando novo perfil');
     const { data, error } = await supabase
       .from('profiles')
       .insert({
@@ -113,6 +122,7 @@ export const ensureUserProfile = async (user: User | null) => {
   if (!user) return null;
   
   try {
+    console.log('Ensuring user profile exists for:', user.id);
     const profile = await fetchUserProfile(user.id, user.email);
     return profile;
   } catch (error) {

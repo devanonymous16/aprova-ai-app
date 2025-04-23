@@ -35,10 +35,13 @@ export default function UnauthorizedPage() {
 
     const checkSupabaseConnection = async () => {
       try {
+        console.log('Verificando conexão com Supabase...');
         const { data, error } = await supabase.from('profiles').select('id').limit(1);
         if (error) {
+          console.error('Erro na conexão com Supabase:', error);
           setSupabaseInfo({ error: error.message, status: 'error' });
         } else {
+          console.log('Conexão com Supabase bem-sucedida!');
           setSupabaseInfo({
             connected: true,
             data: data,
@@ -47,6 +50,7 @@ export default function UnauthorizedPage() {
           });
         }
       } catch (err: any) {
+        console.error('Exceção ao conectar com Supabase:', err);
         setSupabaseInfo({ error: err.message, status: 'exception' });
       }
     };
@@ -55,6 +59,7 @@ export default function UnauthorizedPage() {
   }, [profile, navigate]);
 
   const handleProfileCreated = () => {
+    console.log('Perfil criado, redirecionando para dashboard');
     window.location.href = '/dashboard';
   };
 
@@ -63,6 +68,7 @@ export default function UnauthorizedPage() {
 
     setIsChecking(true);
     try {
+      console.log('Verificando perfil para usuário:', user.id);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -70,16 +76,20 @@ export default function UnauthorizedPage() {
         .single();
 
       if (error) {
+        console.error('Erro ao verificar perfil:', error);
         toast.error(`Erro ao verificar perfil: ${error.message}`);
       } else if (data) {
+        console.log('Perfil encontrado:', data);
         toast.success(`Perfil encontrado: ${data.name} (${data.role})`);
         setTimeout(() => {
           navigate('/dashboard');
         }, 1500);
       } else {
+        console.log('Perfil não encontrado');
         toast.warning("Perfil não encontrado. Tente criá-lo manualmente.");
       }
     } catch (err: any) {
+      console.error('Exceção ao verificar perfil:', err);
       toast.error(`Erro ao verificar: ${err.message}`);
     } finally {
       setIsChecking(false);

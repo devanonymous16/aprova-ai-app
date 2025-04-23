@@ -1,3 +1,4 @@
+
 import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -8,10 +9,15 @@ export const useAuthActions = () => {
 
   const login = useCallback(async (email: string, password: string) => {
     try {
+      console.log('Tentando fazer login para:', email);
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Erro no login:', error);
+        throw error;
+      }
       
+      console.log('Login bem-sucedido:', data);
       toast.success('Login realizado com sucesso');
       
       // Redirect directly to dashboard without delay - will let auth context handle proper redirection
@@ -28,6 +34,7 @@ export const useAuthActions = () => {
 
   const loginWithGoogle = useCallback(async () => {
     try {
+      console.log('Iniciando login com Google');
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -37,6 +44,7 @@ export const useAuthActions = () => {
       
       if (error) throw error;
     } catch (error: any) {
+      console.error('Erro no login com Google:', error);
       toast.error('Erro no login com Google', {
         description: error.message || 'Tente novamente mais tarde'
       });
@@ -45,10 +53,12 @@ export const useAuthActions = () => {
 
   const logout = useCallback(async () => {
     try {
+      console.log('Fazendo logout');
       await supabase.auth.signOut();
       toast.success('Logout realizado com sucesso');
       navigate('/login', { replace: true });
     } catch (error: any) {
+      console.error('Erro no logout:', error);
       toast.error('Erro no logout', {
         description: error.message || 'Tente novamente mais tarde'
       });
@@ -65,6 +75,8 @@ export const useAuthActions = () => {
     }
   ) => {
     try {
+      console.log('Iniciando cadastro para:', email);
+      
       // 1. Signup with Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -79,10 +91,16 @@ export const useAuthActions = () => {
         }
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Erro no cadastro (auth):', error);
+        throw error;
+      }
 
+      console.log('Cadastro de auth bem-sucedido:', data);
+      
       // 2. Create profile record in profiles table
       if (data.user) {
+        console.log('Criando registro de perfil para:', data.user.id);
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
@@ -95,10 +113,14 @@ export const useAuthActions = () => {
           });
 
         if (profileError) {
-          console.error('Error creating profile:', profileError);
+          console.error('Erro ao criar perfil:', profileError);
           toast.error('Erro ao criar perfil', { 
             description: profileError.message 
           });
+          
+          // Continue even with profile error - we'll try to create it later
+        } else {
+          console.log('Perfil criado com sucesso');
         }
       }
       
@@ -111,7 +133,7 @@ export const useAuthActions = () => {
         navigate('/login');
       }, 1500);
     } catch (error: any) {
-      console.error('Signup error:', error);
+      console.error('Erro no cadastro:', error);
       toast.error('Erro no cadastro', {
         description: error.message || 'Não foi possível criar a conta'
       });
@@ -121,12 +143,16 @@ export const useAuthActions = () => {
 
   const forgotPassword = useCallback(async (email: string) => {
     try {
+      console.log('Enviando email de recuperação para:', email);
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
       
       if (error) throw error;
+      
+      console.log('Email de recuperação enviado com sucesso');
     } catch (error: any) {
+      console.error('Erro ao enviar email de recuperação:', error);
       toast.error('Erro ao enviar email de recuperação', {
         description: error.message || 'Verifique se o email está correto'
       });
@@ -136,15 +162,18 @@ export const useAuthActions = () => {
 
   const resetPassword = useCallback(async (newPassword: string) => {
     try {
+      console.log('Tentando alterar senha');
       const { error } = await supabase.auth.updateUser({
         password: newPassword
       });
       
       if (error) throw error;
       
+      console.log('Senha alterada com sucesso');
       toast.success('Senha alterada com sucesso');
       navigate('/login');
     } catch (error: any) {
+      console.error('Erro ao alterar senha:', error);
       toast.error('Erro ao alterar senha', {
         description: error.message || 'Por favor, tente novamente ou solicite um novo link'
       });
