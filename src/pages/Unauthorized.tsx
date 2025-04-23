@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/sonner';
+import { UserRole } from '@/types/user';
 
 import UnauthorizedHeader from '@/components/unauthorized/UnauthorizedHeader';
 import UnauthorizedActions from '@/components/unauthorized/UnauthorizedActions';
