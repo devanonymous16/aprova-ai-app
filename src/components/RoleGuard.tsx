@@ -3,7 +3,6 @@ import { ReactNode, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserRole } from '@/types/user';
-import { toast } from '@/components/ui/sonner';
 
 interface RoleGuardProps {
   allowedRoles: UserRole | UserRole[];
@@ -39,11 +38,12 @@ export default function RoleGuard({
     }
   }, [isAuthenticated, loading, profile, user, hasRole, allowedRoles]);
   
-  // Aguarda o carregamento da autenticação
+  // Aguarda o carregamento da autenticação com um indicador visual melhor
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-900"></div>
+      <div className="flex flex-col justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-900 mb-4"></div>
+        <p className="text-center text-muted-foreground">Verificando suas permissões...</p>
       </div>
     );
   }

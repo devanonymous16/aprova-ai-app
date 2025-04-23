@@ -48,6 +48,7 @@ export const useAuthState = () => {
   }, []);
 
   useEffect(() => {
+    // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
         console.log('Auth state changed:', event);
@@ -56,7 +57,7 @@ export const useAuthState = () => {
         setUser(currentSession?.user ?? null);
         
         if (currentSession?.user) {
-          // Fetch profile immediately, not with setTimeout
+          // Fetch profile when auth state changes
           await updateProfile(currentSession.user);
         } else {
           setProfile(null);
@@ -65,7 +66,9 @@ export const useAuthState = () => {
       }
     );
 
+    // Initialize auth state
     const initializeAuth = async () => {
+      setLoading(true); // Ensure loading is true at the start
       try {
         const { data: { session: currentSession } } = await supabase.auth.getSession();
         
@@ -83,7 +86,10 @@ export const useAuthState = () => {
       }
     };
     
+    // Initialize auth immediately
     initializeAuth();
+    
+    // Cleanup subscription on unmount
     return () => subscription.unsubscribe();
   }, [updateProfile]);
 

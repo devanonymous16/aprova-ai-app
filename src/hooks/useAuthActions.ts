@@ -14,7 +14,12 @@ export const useAuthActions = () => {
       if (error) throw error;
       
       toast.success('Login realizado com sucesso');
-      navigate('/dashboard');
+      
+      // Important: Use a timeout to ensure the auth state has time to propagate
+      setTimeout(() => {
+        navigate('/dashboard', { replace: true });
+      }, 100);
+      
     } catch (error: any) {
       console.error('Login error:', error);
       toast.error('Erro no login', {
