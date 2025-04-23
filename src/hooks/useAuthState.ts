@@ -1,9 +1,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, checkSupabaseConnection } from '@/integrations/supabase/client';
 import { UserRole } from '@/types/user';
 import { fetchUserProfile } from '@/utils/authUtils';
+import { toast } from '@/components/ui/sonner';
 
 // Define the ProfileType interface locally since it's not exported from @/types/user
 interface ProfileType {
@@ -18,10 +19,20 @@ export const useAuthState = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
+  const [connectionError, setConnectionError] = useState(false);
 
   const updateProfile = useCallback(async (currentUser: User) => {
     try {
       console.log('Fetching profile for user:', currentUser.id);
+      
+      // Verifica a conexão antes de buscar o perfil
+      const isConnected = await checkSupabaseConnection();
+      if (!isConnected) {
+        console.error('Sem conexão com o Supabase ao tentar carregar perfil');
+        setConnectionError(true);
+        return;
+      }
+      
       const profileData = await fetchUserProfile(
         currentUser.id,
         currentUser.email
@@ -34,6 +45,7 @@ export const useAuthState = () => {
           name: profileData.name,
           avatar_url: profileData.avatar_url
         });
+        setConnectionError(false);
       } else {
         console.error('No profile data returned for user:', currentUser.id);
         setProfile(null);
@@ -55,7 +67,28 @@ export const useAuthState = () => {
       setLoading(true);
       try {
         console.log('Inicializando estado de autenticação');
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        
+        // Verifica a conexão primeiro
+        const isConnected = await checkSupabaseConnection();
+        if (!isConnected && isMounted) {
+          console.error('Sem conexão com o Supabase durante inicialização');
+          setConnectionError(true);
+          setLoading(false);
+          return;
+        }
+        
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Erro ao obter sessão:', error);
+          if (isMounted) {
+            toast.error('Erro ao carregar sessão', {
+              description: error.message
+            });
+            setLoading(false);
+          }
+          return;
+        }
         
         if (!isMounted) return;
         
@@ -106,6 +139,13 @@ export const useAuthState = () => {
       if (isMounted && loading) {
         console.warn('Auth state loading timeout - forcing load completion');
         setLoading(false);
+        
+        // Se ainda estiver carregando após o timeout, provavelmente há um problema de conexão
+        if (!profile && user) {
+          toast.error('Tempo esgotado ao carregar perfil', {
+            description: 'Possível problema de conexão com o servidor'
+          });
+        }
       }
     }, 10000); // 10 segundos de timeout
     
@@ -117,24 +157,59 @@ export const useAuthState = () => {
     };
   }, [updateProfile]);
 
-  // Add a retry mechanism for profile loading
+  // Add a retry mechanism for profile loading with exponential backoff
   useEffect(() => {
     if (user && !profile && !loading && retryCount < 3) {
       console.log(`Tentativa ${retryCount + 1} de carregar perfil...`);
+      
+      // Calcula o tempo de espera com backoff exponencial (2s, 4s, 8s)
+      const delay = Math.pow(2, retryCount) * 2000;
+      
       const retryTimer = setTimeout(() => {
         setRetryCount(prev => prev + 1);
         updateProfile(user);
-      }, 2000); // Tenta novamente após 2 segundos
+      }, delay);
       
       return () => clearTimeout(retryTimer);
     }
+    
+    // Se chegou ao limite de tentativas, mostra um aviso
+    if (user && !profile && retryCount >= 3) {
+      toast.error('Não foi possível carregar seu perfil', {
+        description: 'Tente recarregar a página ou verificar sua conexão'
+      });
+    }
   }, [user, profile, loading, retryCount, updateProfile]);
+
+  // Adiciona verificação periódica de conexão quando houver erro
+  useEffect(() => {
+    let intervalId: number | undefined;
+    
+    if (connectionError) {
+      intervalId = setInterval(async () => {
+        const isConnected = await checkSupabaseConnection();
+        if (isConnected) {
+          setConnectionError(false);
+          clearInterval(intervalId);
+          // Recarrega o perfil se houver usuário
+          if (user) {
+            updateProfile(user);
+          }
+        }
+      }, 30000) as unknown as number; // Verifica a cada 30 segundos
+    }
+    
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [connectionError, user, updateProfile]);
 
   return {
     user,
     profile,
     session,
     loading,
+    connectionError,
     isAuthenticated: !!user
   };
 };

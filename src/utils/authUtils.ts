@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, checkSupabaseConnection } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { UserRole } from '@/types/user';
 import { toast } from '@/components/ui/sonner';
@@ -7,6 +7,17 @@ import { toast } from '@/components/ui/sonner';
 export const fetchUserProfile = async (userId: string, userEmail?: string) => {
   try {
     console.log(`Fetching profile for user: ${userId}`);
+    
+    // Verifica a conexão primeiro
+    const isConnected = await checkSupabaseConnection();
+    if (!isConnected) {
+      console.error('Sem conexão com o Supabase ao tentar carregar perfil');
+      toast.error('Erro de conexão', { 
+        description: 'Não foi possível carregar seu perfil. Verifique sua conexão.' 
+      });
+      return null;
+    }
+    
     const { data, error } = await supabase
       .from('profiles')
       .select('role, name, avatar_url')
@@ -50,6 +61,16 @@ export const fetchUserProfile = async (userId: string, userEmail?: string) => {
 export const createDefaultProfile = async (userId: string, email: string) => {
   console.log('Creating default profile for:', userId);
   
+  // Verifica a conexão primeiro
+  const isConnected = await checkSupabaseConnection();
+  if (!isConnected) {
+    console.error('Sem conexão com o Supabase ao tentar criar perfil');
+    toast.error('Erro de conexão', { 
+      description: 'Não foi possível criar seu perfil. Verifique sua conexão.' 
+    });
+    return null;
+  }
+  
   let defaultRole: UserRole = 'student';
   if (email.includes('admin')) defaultRole = 'admin';
   else if (email.includes('manager')) defaultRole = 'manager';
@@ -82,6 +103,7 @@ export const createDefaultProfile = async (userId: string, email: string) => {
         
       if (error) {
         console.error('Erro ao atualizar perfil:', error);
+        toast.error('Erro ao atualizar perfil', { description: error.message });
         throw error;
       }
       
