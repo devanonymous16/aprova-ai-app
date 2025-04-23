@@ -37,9 +37,13 @@ export const useAuthState = () => {
         console.error('No profile data returned for user:', currentUser.id);
         setProfile(null);
       }
+      // Important: Set loading to false here to ensure we don't get stuck in loading state
+      setLoading(false);
     } catch (error) {
       console.error('Error in updateProfile:', error);
       setProfile(null);
+      // Important: Set loading to false on error to avoid stuck in loading
+      setLoading(false);
     }
   }, []);
 
@@ -56,6 +60,7 @@ export const useAuthState = () => {
           await updateProfile(currentSession.user);
         } else {
           setProfile(null);
+          setLoading(false); // Ensure loading is set to false when no user
         }
       }
     );
@@ -69,11 +74,12 @@ export const useAuthState = () => {
         
         if (currentSession?.user) {
           await updateProfile(currentSession.user);
+        } else {
+          setLoading(false); // Important: Set loading to false if no user found
         }
       } catch (error) {
         console.error('Error during auth initialization:', error);
-      } finally {
-        setLoading(false);
+        setLoading(false); // Important: Set loading to false on error
       }
     };
     
