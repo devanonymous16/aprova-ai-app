@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { ShieldX, RefreshCw } from 'lucide-react';
@@ -7,18 +8,35 @@ import CreateProfileDialog from '@/components/auth/CreateProfileDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/sonner';
 
-const SUPABASE_URL = "https://zkriskjhdrhbblkkwvrw.supabase.co";
+const SUPABASE_URL = "https://supabase.aprova-ai.com";
 
 export default function UnauthorizedPage() {
   const { profile, logout, user, session, hasRole } = useAuth();
+  const navigate = useNavigate();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
   const [supabaseInfo, setSupabaseInfo] = useState<any>(null);
   
   useEffect(() => {
+    // Tentar redirecionar para o dashboard apropriado se o perfil estiver disponível
+    if (profile) {
+      const redirectToDashboard = () => {
+        if (profile.role === 'admin') {
+          navigate('/dashboard/admin');
+        } else if (profile.role === 'manager') {
+          navigate('/dashboard/manager');
+        } else if (profile.role === 'student') {
+          navigate('/dashboard/student');
+        }
+      };
+      
+      // Tentar redirecionar apenas uma vez quando a página carrega
+      redirectToDashboard();
+    }
+    
     const checkSupabaseConnection = async () => {
       try {
-        const { data, error } = await supabase.from('profiles').select('count()');
+        const { data, error } = await supabase.from('profiles').select('id').limit(1);
         if (error) {
           setSupabaseInfo({ error: error.message, status: 'error' });
         } else {
@@ -35,7 +53,7 @@ export default function UnauthorizedPage() {
     };
     
     checkSupabaseConnection();
-  }, []);
+  }, [profile, navigate]);
   
   const handleProfileCreated = () => {
     window.location.href = '/dashboard';
@@ -57,7 +75,7 @@ export default function UnauthorizedPage() {
       } else if (data) {
         toast.success(`Perfil encontrado: ${data.name} (${data.role})`);
         setTimeout(() => {
-          window.location.href = '/dashboard';
+          navigate('/dashboard');
         }, 1500);
       } else {
         toast.warning("Perfil não encontrado. Tente criá-lo manualmente.");

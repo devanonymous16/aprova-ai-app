@@ -19,18 +19,26 @@ export const useAuthState = () => {
   const [loading, setLoading] = useState(true);
 
   const updateProfile = useCallback(async (currentUser: User) => {
-    const profileData = await fetchUserProfile(
-      currentUser.id,
-      currentUser.email
-    );
-    
-    if (profileData) {
-      setProfile({
-        role: profileData.role,
-        name: profileData.name,
-        avatar_url: profileData.avatar_url
-      });
-    } else {
+    try {
+      console.log('Fetching profile for user:', currentUser.id);
+      const profileData = await fetchUserProfile(
+        currentUser.id,
+        currentUser.email
+      );
+      
+      if (profileData) {
+        console.log('Profile loaded successfully:', profileData);
+        setProfile({
+          role: profileData.role,
+          name: profileData.name,
+          avatar_url: profileData.avatar_url
+        });
+      } else {
+        console.error('No profile data returned for user:', currentUser.id);
+        setProfile(null);
+      }
+    } catch (error) {
+      console.error('Error in updateProfile:', error);
       setProfile(null);
     }
   }, []);
@@ -44,9 +52,8 @@ export const useAuthState = () => {
         setUser(currentSession?.user ?? null);
         
         if (currentSession?.user) {
-          setTimeout(() => {
-            updateProfile(currentSession.user);
-          }, 500);
+          // Fetch profile immediately, not with setTimeout
+          await updateProfile(currentSession.user);
         } else {
           setProfile(null);
         }

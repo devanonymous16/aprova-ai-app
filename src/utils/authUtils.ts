@@ -21,6 +21,15 @@ export const fetchUserProfile = async (userId: string, userEmail?: string) => {
       return null;
     }
 
+    if (!data) {
+      console.log('No profile found, creating default profile');
+      if (userEmail) {
+        return await createDefaultProfile(userId, userEmail);
+      }
+      return null;
+    }
+
+    console.log('Profile found:', data);
     return data;
   } catch (error) {
     console.error('Error in fetchUserProfile:', error);
