@@ -42,7 +42,7 @@ export default function DashboardPage() {
     return <Navigate to="/login" />;
   }
   
-  // If the profile is not found but we're done loading, redirect to create profile
+  // If the profile is not found but we're done loading, redirect to unauthorized
   if (!profile && !loading) {
     console.log('Profile not found, redirecting to unauthorized');
     return <Navigate to="/unauthorized" />;
@@ -67,7 +67,7 @@ export default function DashboardPage() {
     }
   }
   
-  // Fallback to prevent looping - this should never be reached
+  // This should never be reached, but providing a fallback UI just in case
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="text-center">

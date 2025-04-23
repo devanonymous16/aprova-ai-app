@@ -38,6 +38,12 @@ export default function RoleGuard({
     }
   }, [isAuthenticated, loading, profile, user, hasRole, allowedRoles]);
   
+  // Se não estiver autenticado, redireciona para o login
+  if (!isAuthenticated) {
+    console.log('RoleGuard: User not authenticated, redirecting to login');
+    return <Navigate to={redirectTo} />;
+  }
+  
   // Aguarda o carregamento da autenticação com um indicador visual melhor
   if (loading) {
     return (
@@ -46,12 +52,6 @@ export default function RoleGuard({
         <p className="text-center text-muted-foreground">Verificando suas permissões...</p>
       </div>
     );
-  }
-  
-  // Se não estiver autenticado, redireciona para o login
-  if (!isAuthenticated) {
-    console.log('RoleGuard: User not authenticated, redirecting to login');
-    return <Navigate to={redirectTo} />;
   }
   
   // Se o perfil não foi carregado corretamente

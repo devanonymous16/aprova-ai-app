@@ -37,12 +37,11 @@ export const useAuthState = () => {
         console.error('No profile data returned for user:', currentUser.id);
         setProfile(null);
       }
-      // Important: Set loading to false here to ensure we don't get stuck in loading state
-      setLoading(false);
     } catch (error) {
       console.error('Error in updateProfile:', error);
       setProfile(null);
-      // Important: Set loading to false on error to avoid stuck in loading
+    } finally {
+      // Always set loading to false after attempting to load the profile
       setLoading(false);
     }
   }, []);

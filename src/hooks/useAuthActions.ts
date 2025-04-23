@@ -1,4 +1,3 @@
-
 import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -15,10 +14,9 @@ export const useAuthActions = () => {
       
       toast.success('Login realizado com sucesso');
       
-      // Important: Use a timeout to ensure the auth state has time to propagate
-      setTimeout(() => {
-        navigate('/dashboard', { replace: true });
-      }, 100);
+      // Navigate directly to dashboard after successful login
+      // This is important to trigger the proper authentication flow
+      navigate('/dashboard', { replace: true });
       
     } catch (error: any) {
       console.error('Login error:', error);
