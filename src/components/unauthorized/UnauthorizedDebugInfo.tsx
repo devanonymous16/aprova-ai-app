@@ -1,8 +1,10 @@
 
+import { UserRole } from "@/types/user";
+
 interface UnauthorizedDebugInfoProps {
   user: any;
   profile: any;
-  hasRole: (role: string) => boolean;
+  hasRole: (role: UserRole | UserRole[]) => boolean;
   supabaseInfo: any;
 }
 
