@@ -1,11 +1,13 @@
 
 import { useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/components/ui/sonner';
+import { Progress } from '@/components/ui/progress';
 
 export default function DashboardPage() {
   const { profile, loading, user } = useAuth();
+  const location = useLocation();
   
   useEffect(() => {
     // Logging to debug authentication state
@@ -13,25 +15,31 @@ export default function DashboardPage() {
       loading, 
       user: user ? { id: user.id, email: user.email } : null, 
       profile,
-      hasProfile: !!profile
+      hasProfile: !!profile,
+      currentPath: location.pathname
     });
     
-    if (profile) {
-      console.log(`User role detected: ${profile.role}`);
-    } else if (!loading && user) {
+    // If we have a profile that has been loaded, show a welcome toast
+    if (profile && !loading) {
+      toast.success(`Bem-vindo, ${profile.name}!`, {
+        description: `Você está logado como ${profile.role}`
+      });
+    } else if (!loading && user && !profile) {
       console.log('Profile not found in DashboardPage, but user exists');
       toast.warning('Carregando seu perfil de usuário', {
         description: 'Por favor, aguarde enquanto configuramos seu acesso'
       });
     }
-  }, [profile, user, loading]);
+  }, [profile, user, loading, location.pathname]);
   
-  // If still loading, show a more informative loading indicator
+  // If still loading, show a more informative loading indicator with progress
   if (loading) {
     return (
-      <div className="flex flex-col justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-900 mb-4"></div>
-        <p className="text-center text-muted-foreground">Carregando seu perfil...</p>
+      <div className="fixed inset-0 flex flex-col justify-center items-center bg-white z-50">
+        <div className="w-full max-w-md px-4">
+          <Progress value={50} className="h-2 mb-4" />
+          <p className="text-center text-muted-foreground">Carregando seu perfil...</p>
+        </div>
       </div>
     );
   }

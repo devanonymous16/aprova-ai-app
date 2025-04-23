@@ -1,8 +1,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import React from "react";
 import { BarChart3, Clock } from "lucide-react";
+import { useEffect } from "react";
 
 interface ExamDetailsDialogProps {
   open: boolean;
@@ -21,11 +21,19 @@ export default function ExamDetailsDialog({ open, onClose, type }: ExamDetailsDi
       onClose();
     }
   };
+  
+  // Log when dialog opens or closes for debugging
+  useEffect(() => {
+    console.log(`ExamDetailsDialog ${open ? 'opened' : 'closed'} with type: ${type}`);
+  }, [open, type]);
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => {
-      if (!isOpen) handleClose();
-    }}>
+    <Dialog 
+      open={open} 
+      onOpenChange={(isOpen) => {
+        if (!isOpen) handleClose();
+      }}
+    >
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">

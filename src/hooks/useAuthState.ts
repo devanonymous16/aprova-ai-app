@@ -47,11 +47,15 @@ export const useAuthState = () => {
   }, []);
 
   useEffect(() => {
+    let isMounted = true;
+    
     // Initialize auth state
     const initializeAuth = async () => {
       setLoading(true);
       try {
         const { data: { session: currentSession } } = await supabase.auth.getSession();
+        
+        if (!isMounted) return;
         
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
@@ -63,7 +67,9 @@ export const useAuthState = () => {
         }
       } catch (error) {
         console.error('Error during auth initialization:', error);
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
     
@@ -74,6 +80,8 @@ export const useAuthState = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
         console.log('Auth state changed:', event);
+        
+        if (!isMounted) return;
         
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
@@ -90,7 +98,10 @@ export const useAuthState = () => {
     );
     
     // Cleanup subscription on unmount
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, [updateProfile]);
 
   return {
