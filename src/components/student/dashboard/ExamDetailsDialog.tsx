@@ -15,8 +15,17 @@ export default function ExamDetailsDialog({ open, onClose, type }: ExamDetailsDi
     ? "Ranking de acertos por tópico" 
     : "Tempo praticando por tópico";
 
+  // Helper function to handle dialog close
+  const handleClose = () => {
+    if (onClose) {
+      onClose();
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      if (!isOpen) handleClose();
+    }}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -54,7 +63,7 @@ export default function ExamDetailsDialog({ open, onClose, type }: ExamDetailsDi
         </div>
         
         <DialogFooter>
-          <Button onClick={onClose}>Fechar</Button>
+          <Button onClick={handleClose}>Fechar</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

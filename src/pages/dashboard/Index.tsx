@@ -39,13 +39,13 @@ export default function DashboardPage() {
   // If the user is not authenticated, redirect to login
   if (!user) {
     console.log('User not authenticated, redirecting to login');
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   }
   
   // If the profile is not found but we're done loading, redirect to unauthorized
   if (!profile && !loading) {
     console.log('Profile not found, redirecting to unauthorized');
-    return <Navigate to="/unauthorized" />;
+    return <Navigate to="/unauthorized" replace />;
   }
   
   // If we have a profile, redirect to the role-specific dashboard
@@ -53,17 +53,17 @@ export default function DashboardPage() {
     switch (profile.role) {
       case 'admin':
         console.log('Redirecting to admin dashboard');
-        return <Navigate to="/dashboard/admin" />;
+        return <Navigate to="/dashboard/admin" replace />;
       case 'manager':
         console.log('Redirecting to manager dashboard');
-        return <Navigate to="/dashboard/manager" />;
+        return <Navigate to="/dashboard/manager" replace />;
       case 'student':
         console.log('Redirecting to student dashboard');
-        return <Navigate to="/dashboard/student" />;
+        return <Navigate to="/dashboard/student" replace />;
       default:
         // Unexpected role
         console.warn('Unexpected role:', profile.role);
-        return <Navigate to="/unauthorized" />;
+        return <Navigate to="/unauthorized" replace />;
     }
   }
   

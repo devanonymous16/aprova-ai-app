@@ -47,27 +47,9 @@ export const useAuthState = () => {
   }, []);
 
   useEffect(() => {
-    // Subscribe to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, currentSession) => {
-        console.log('Auth state changed:', event);
-        
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        
-        if (currentSession?.user) {
-          // Fetch profile when auth state changes
-          await updateProfile(currentSession.user);
-        } else {
-          setProfile(null);
-          setLoading(false); // Ensure loading is set to false when no user
-        }
-      }
-    );
-
     // Initialize auth state
     const initializeAuth = async () => {
-      setLoading(true); // Ensure loading is true at the start
+      setLoading(true);
       try {
         const { data: { session: currentSession } } = await supabase.auth.getSession();
         
@@ -77,16 +59,35 @@ export const useAuthState = () => {
         if (currentSession?.user) {
           await updateProfile(currentSession.user);
         } else {
-          setLoading(false); // Important: Set loading to false if no user found
+          setLoading(false);
         }
       } catch (error) {
         console.error('Error during auth initialization:', error);
-        setLoading(false); // Important: Set loading to false on error
+        setLoading(false);
       }
     };
     
     // Initialize auth immediately
     initializeAuth();
+    
+    // Subscribe to auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, currentSession) => {
+        console.log('Auth state changed:', event);
+        
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+        
+        if (currentSession?.user) {
+          // When auth state changes and we get a user, update the profile
+          await updateProfile(currentSession.user);
+        } else {
+          // When signing out or no session, clear profile and set loading to false
+          setProfile(null);
+          setLoading(false);
+        }
+      }
+    );
     
     // Cleanup subscription on unmount
     return () => subscription.unsubscribe();

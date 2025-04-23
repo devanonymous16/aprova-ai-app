@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { UserRole } from '@/types/user';
+import { toast } from '@/components/ui/sonner';
 
 export const fetchUserProfile = async (userId: string, userEmail?: string) => {
   try {
@@ -14,8 +15,10 @@ export const fetchUserProfile = async (userId: string, userEmail?: string) => {
 
     if (error) {
       console.error('Error fetching profile:', error);
+      toast.error('Erro ao carregar perfil', { description: error.message });
       
       if (userEmail) {
+        // Attempt to create a default profile if there was an error fetching
         return await createDefaultProfile(userId, userEmail);
       }
       return null;
@@ -24,15 +27,18 @@ export const fetchUserProfile = async (userId: string, userEmail?: string) => {
     if (!data) {
       console.log('No profile found, creating default profile');
       if (userEmail) {
+        // Create default profile if none exists
         return await createDefaultProfile(userId, userEmail);
       }
+      toast.warning('Perfil não encontrado');
       return null;
     }
 
     console.log('Profile found:', data);
     return data;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in fetchUserProfile:', error);
+    toast.error('Erro ao carregar perfil', { description: error.message });
     return null;
   }
 };
@@ -58,12 +64,15 @@ export const createDefaultProfile = async (userId: string, email: string) => {
       
     if (error) {
       console.error('Error creating default profile:', error);
+      toast.error('Erro ao criar perfil padrão', { description: error.message });
       return null;
     }
     
+    toast.success('Perfil criado com sucesso');
     return data;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in createDefaultProfile:', error);
+    toast.error('Erro ao criar perfil padrão', { description: error.message });
     return null;
   }
 };

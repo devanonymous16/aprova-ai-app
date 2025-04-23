@@ -38,13 +38,7 @@ export default function RoleGuard({
     }
   }, [isAuthenticated, loading, profile, user, hasRole, allowedRoles]);
   
-  // Se não estiver autenticado, redireciona para o login
-  if (!isAuthenticated) {
-    console.log('RoleGuard: User not authenticated, redirecting to login');
-    return <Navigate to={redirectTo} />;
-  }
-  
-  // Aguarda o carregamento da autenticação com um indicador visual melhor
+  // If authentication is still loading, show the loading indicator
   if (loading) {
     return (
       <div className="flex flex-col justify-center items-center h-screen">
@@ -54,19 +48,25 @@ export default function RoleGuard({
     );
   }
   
-  // Se o perfil não foi carregado corretamente
+  // If not authenticated, redirect to login
+  if (!isAuthenticated) {
+    console.log('RoleGuard: User not authenticated, redirecting to login');
+    return <Navigate to={redirectTo} replace />;
+  }
+  
+  // If the profile is not loaded
   if (!profile) {
     console.log('RoleGuard: User profile not loaded, redirecting to unauthorized page');
-    return <Navigate to="/unauthorized" />;
+    return <Navigate to="/unauthorized" replace />;
   }
   
-  // Se não tiver o papel necessário, redireciona para a página não autorizada
+  // If the user doesn't have the required role
   if (!hasRole(allowedRoles)) {
     console.log(`RoleGuard: User does not have required role(s): Current role=${profile.role}, Required=${Array.isArray(allowedRoles) ? allowedRoles.join(', ') : allowedRoles}`);
-    return <Navigate to="/unauthorized" />;
+    return <Navigate to="/unauthorized" replace />;
   }
   
-  // Se tudo estiver ok, renderiza os filhos
+  // If everything is fine, render the children
   console.log('RoleGuard: Access granted');
   return <>{children}</>;
 }
