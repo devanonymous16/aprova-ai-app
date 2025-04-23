@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -17,6 +16,7 @@ import {
 import SearchBar from '@/components/student/SearchBar';
 import ExamCard from '@/components/student/ExamCard';
 import TopicPerformanceChart from '@/components/student/TopicPerformanceChart';
+import DashboardMetrics from "@/components/student/DashboardMetrics";
 import { 
   fetchStudentExams, 
   fetchSuggestedExams, 
@@ -24,6 +24,7 @@ import {
   mockStudentExams 
 } from '@/services/mockStudentData';
 import { StudentExam, ExamPosition } from '@/types/student';
+import { toast } from "@/hooks/use-toast";
 
 export default function StudentDashboard() {
   const { profile, user } = useAuth();
@@ -33,7 +34,15 @@ export default function StudentDashboard() {
   const [suggestedExams, setSuggestedExams] = useState<ExamPosition[]>([]);
   const [overallProgress, setOverallProgress] = useState(0);
   const [loading, setLoading] = useState(true);
-  
+  const [resolvedQuestions, setResolvedQuestions] = useState(210);
+  const [correctQuestions, setCorrectQuestions] = useState(157);
+  const [daysPracticed, setDaysPracticed] = useState(29);
+  const [totalDays, setTotalDays] = useState(45);
+  const [timePracticedMinutes, setTimePracticedMinutes] = useState(1415);
+  const [ranking, setRanking] = useState({ globalRank: 5, totalStudents: 124 });
+  const [showRankingDetails, setShowRankingDetails] = useState(false);
+  const [showTimeDetails, setShowTimeDetails] = useState(false);
+
   useEffect(() => {
     document.title = 'Forefy | Dashboard do Estudante';
     
@@ -60,7 +69,6 @@ export default function StudentDashboard() {
     loadData();
   }, [user]);
   
-  // Filter exams based on search query
   const filteredSubscribedExams = subscribedExams.filter(exam => 
     exam.exam_position.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     exam.exam_position.organization.toLowerCase().includes(searchQuery.toLowerCase())
@@ -78,6 +86,8 @@ export default function StudentDashboard() {
       navigate(`/student/exams/${examId}`);
     }
   };
+  
+  const performance = resolvedQuestions > 0 ? Math.round((correctQuestions / resolvedQuestions) * 100) : 0;
   
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -103,68 +113,50 @@ export default function StudentDashboard() {
         </div>
       </div>
       
-      {/* Progresso geral */}
-      <Card className="mb-8">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex justify-between">
-            <span>Progresso Geral</span>
-            {overallProgress > 30 && (
-              <span className="text-sm bg-green-100 text-green-800 px-2 py-1 rounded-full flex items-center">
-                <TrendingUp className="h-3 w-3 mr-1" />
-                Bom progresso
-              </span>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pb-2">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="bg-gray-50 rounded-lg p-4 flex items-center gap-4">
-              <div className="bg-blue-100 p-3 rounded-full">
-                <BookOpen className="h-5 w-5 text-blue-700" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Concursos ativos</p>
-                <p className="text-xl font-bold">{subscribedExams.length}</p>
-              </div>
-            </div>
-            
-            <div className="bg-gray-50 rounded-lg p-4 flex items-center gap-4">
-              <div className="bg-purple-100 p-3 rounded-full">
-                <BarChart2 className="h-5 w-5 text-purple-700" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Média de desempenho</p>
-                <p className="text-xl font-bold">68%</p>
-              </div>
-            </div>
-            
-            <div className="bg-gray-50 rounded-lg p-4 flex items-center gap-4">
-              <div className="bg-amber-100 p-3 rounded-full">
-                <AlertTriangle className="h-5 w-5 text-amber-700" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Tópicos críticos</p>
-                <p className="text-xl font-bold">3</p>
-              </div>
-            </div>
+      <DashboardMetrics 
+        resolvedQuestions={resolvedQuestions}
+        correctQuestions={correctQuestions}
+        daysPracticed={daysPracticed}
+        totalDays={totalDays}
+        performance={performance}
+        ranking={ranking}
+        timePracticedMinutes={timePracticedMinutes}
+        onRankingClick={() => setShowRankingDetails(true)}
+        onTimeClick={() => setShowTimeDetails(true)}
+      />
+
+      {showRankingDetails && (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
+          <div className="bg-white p-8 rounded-md shadow-lg w-full max-w-lg">
+            <h3 className="text-lg font-bold mb-2">Ranking de acertos por tópico</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              (Visualização detalhada do ranking por tópicos será exibida aqui...)
+            </p>
+            <Button onClick={() => setShowRankingDetails(false)} className="mt-4">
+              Fechar
+            </Button>
           </div>
-          
-          <div>
-            <div className="flex justify-between text-sm mb-1">
-              <span>Progresso geral</span>
-              <span>{Math.round(overallProgress)}% concluído</span>
-            </div>
-            <Progress value={overallProgress} className="h-2" />
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      )}
       
-      {/* Search bar */}
+      {showTimeDetails && (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
+          <div className="bg-white p-8 rounded-md shadow-lg w-full max-w-lg">
+            <h3 className="text-lg font-bold mb-2">Tempo praticando por tópico</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              (Visualização detalhada do tempo praticado por tópico será exibida aqui...)
+            </p>
+            <Button onClick={() => setShowTimeDetails(false)} className="mt-4">
+              Fechar
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="mb-6">
         <SearchBar value={searchQuery} onChange={setSearchQuery} />
       </div>
       
-      {/* Concursos inscritos */}
       <div className="mb-10">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Meus Concursos</h2>
@@ -203,7 +195,6 @@ export default function StudentDashboard() {
         )}
       </div>
       
-      {/* Concursos sugeridos */}
       {suggestedExams.length > 0 && (
         <div className="mb-10">
           <div className="flex justify-between items-center mb-4">
@@ -228,7 +219,6 @@ export default function StudentDashboard() {
         </div>
       )}
       
-      {/* Performance por tópico */}
       {subscribedExams.length > 0 && (
         <TopicPerformanceChart 
           studentId={user?.id || "current-user-id"} 
