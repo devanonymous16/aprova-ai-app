@@ -3,7 +3,22 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const fetchUserProfile = async (userId: string, userEmail?: string | null) => {
   try {
-    console.log(`Fetching profile for user: ${userId}, email: ${userEmail || 'not provided'}`);
+    console.log('[DIAGNÓSTICO] Buscando perfil para usuário:', userId, 'email:', userEmail || 'não fornecido');
+    console.log('[DIAGNÓSTICO] URL do Supabase:', supabase.supabaseUrl);
+    
+    // Teste de conexão antes de buscar perfil
+    try {
+      const { error: pingError } = await supabase
+        .from('profiles')
+        .select('count')
+        .limit(1);
+      console.log('[DIAGNÓSTICO] Teste de conexão antes de buscar perfil:', pingError ? 'ERRO' : 'OK');
+      if (pingError) {
+        console.error('[DIAGNÓSTICO] Erro no teste de conexão:', pingError);
+      }
+    } catch (pingEx) {
+      console.error('[DIAGNÓSTICO] Exceção no teste de conexão:', pingEx);
+    }
     
     const { data, error } = await supabase
       .from('profiles')
@@ -12,41 +27,46 @@ export const fetchUserProfile = async (userId: string, userEmail?: string | null
       .maybeSingle();
 
     if (error) {
-      console.error('Error fetching profile:', error);
-      console.error('Error details:', { code: error.code, message: error.message });
+      console.error('[DIAGNÓSTICO] Erro ao buscar perfil:', error);
+      console.error('[DIAGNÓSTICO] Detalhes do erro:', { 
+        code: error.code, 
+        message: error.message,
+        hint: error.hint || 'Sem dica',
+        details: error.details || 'Sem detalhes'
+      });
       
       if (userEmail) {
-        console.log('No profile found, creating default profile');
+        console.log('[DIAGNÓSTICO] Perfil não encontrado, criando perfil padrão');
         return await createDefaultProfile(userId, userEmail);
       }
       return null;
     }
 
     if (!data) {
-      console.log('No profile found, creating default profile');
+      console.log('[DIAGNÓSTICO] Perfil não encontrado, criando perfil padrão');
       if (userEmail) {
         return await createDefaultProfile(userId, userEmail);
       }
       return null;
     }
 
-    console.log('Profile found:', data);
+    console.log('[DIAGNÓSTICO] Perfil encontrado:', data);
     return data;
   } catch (error) {
-    console.error('Error in fetchUserProfile:', error);
+    console.error('[DIAGNÓSTICO] Erro em fetchUserProfile:', error);
     return null;
   }
 };
 
 export const createDefaultProfile = async (userId: string, email: string) => {
-  console.log('Creating default profile for:', userId, 'with email:', email);
+  console.log('[DIAGNÓSTICO] Criando perfil padrão para:', userId, 'com email:', email);
   
   let defaultRole: 'student' | 'manager' | 'admin' = 'student';
   if (email.includes('admin')) defaultRole = 'admin';
   else if (email.includes('manager')) defaultRole = 'manager';
   
   try {
-    console.log('Default role assigned based on email pattern:', defaultRole);
+    console.log('[DIAGNÓSTICO] Papel padrão atribuído com base no padrão de email:', defaultRole);
     
     const profileData = {
       id: userId,
@@ -55,7 +75,7 @@ export const createDefaultProfile = async (userId: string, email: string) => {
       role: defaultRole
     };
     
-    console.log('Profile data to insert:', profileData);
+    console.log('[DIAGNÓSTICO] Dados do perfil para inserir:', profileData);
     
     const { data, error } = await supabase
       .from('profiles')
@@ -64,15 +84,20 @@ export const createDefaultProfile = async (userId: string, email: string) => {
       .single();
       
     if (error) {
-      console.error('Error creating default profile:', error);
-      console.error('Error details:', { code: error.code, message: error.message });
+      console.error('[DIAGNÓSTICO] Erro ao criar perfil padrão:', error);
+      console.error('[DIAGNÓSTICO] Detalhes do erro:', { 
+        code: error.code, 
+        message: error.message,
+        hint: error.hint || 'Sem dica',
+        details: error.details || 'Sem detalhes'
+      });
       return null;
     }
     
-    console.log('Default profile created successfully:', data);
+    console.log('[DIAGNÓSTICO] Perfil padrão criado com sucesso:', data);
     return data;
   } catch (error) {
-    console.error('Error in createDefaultProfile:', error);
+    console.error('[DIAGNÓSTICO] Erro em createDefaultProfile:', error);
     return null;
   }
 };

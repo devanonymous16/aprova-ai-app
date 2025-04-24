@@ -21,8 +21,12 @@ export default defineConfig(({ mode }) => ({
     },
   },
   define: {
-    // Provide global variables to the app with explicit values
+    // Fornecer variáveis globais ao aplicativo com valores explícitos
+    // Usando VITE_ prefix para que estejam disponíveis no cliente através de import.meta.env
     'import.meta.env.SUPABASE_URL': JSON.stringify('https://supabase.aprova-ai.com'),
-    'import.meta.env.SUPABASE_ANON_KEY': JSON.stringify('eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTcyMjc0ODQ0MCwiZXhwIjo0ODc4NDIyMDQwLCJyb2xlIjoiYW5vbiJ9.ozSzs-WV4AU67whaN9d5b01ZaJcNPqcYyQFrHWu3gAQ')
+    'import.meta.env.SUPABASE_ANON_KEY': JSON.stringify('eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTcyMjc0ODQ0MCwiZXhwIjo0ODc4NDIyMDQwLCJyb2xlIjoiYW5vbiJ9.ozSzs-WV4AU67whaN9d5b01ZaJcNPqcYyQFrHWu3gAQ'),
+    // Versões com prefixo VITE_ para garantir acesso pelo import.meta.env
+    'import.meta.env.VITE_SUPABASE_URL': JSON.stringify('https://supabase.aprova-ai.com'),
+    'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify('eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTcyMjc0ODQ0MCwiZXhwIjo0ODc4NDIyMDQwLCJyb2xlIjoiYW5vbiJ9.ozSzs-WV4AU67whaN9d5b01ZaJcNPqcYyQFrHWu3gAQ')
   }
 }));

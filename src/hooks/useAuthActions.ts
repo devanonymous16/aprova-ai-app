@@ -9,14 +9,26 @@ export const useAuthActions = () => {
 
   const login = useCallback(async (email: string, password: string) => {
     try {
-      console.log('Login attempt with email:', email);
+      console.log('[DIAGNÓSTICO] Tentativa de login com email:', email);
+      console.log('[DIAGNÓSTICO] URL do Supabase:', supabase.supabaseUrl);
       
       if (!email || !password) {
-        console.error('Missing email or password');
+        console.error('[DIAGNÓSTICO] Email ou senha ausentes');
         throw new Error('Email e senha são obrigatórios');
       }
       
-      console.log('Calling supabase.auth.signInWithPassword...');
+      console.log('[DIAGNÓSTICO] Chamando supabase.auth.signInWithPassword...');
+      
+      // Teste de conexão antes de tentar login
+      try {
+        const { error: pingError } = await supabase.from('profiles').select('count').limit(1);
+        console.log('[DIAGNÓSTICO] Teste de conexão antes do login:', pingError ? 'ERRO' : 'OK');
+        if (pingError) {
+          console.error('[DIAGNÓSTICO] Erro no teste de conexão:', pingError);
+        }
+      } catch (pingEx) {
+        console.error('[DIAGNÓSTICO] Exceção no teste de conexão:', pingEx);
+      }
       
       const { data, error } = await supabase.auth.signInWithPassword({ 
         email, 
@@ -24,8 +36,12 @@ export const useAuthActions = () => {
       });
       
       if (error) {
-        console.error('Login error:', error);
-        console.error('Login error details:', { code: error.code, message: error.message });
+        console.error('[DIAGNÓSTICO] Erro no login:', error);
+        console.error('[DIAGNÓSTICO] Detalhes do erro:', { 
+          code: error.code, 
+          message: error.message,
+          status: error.status
+        });
         
         if (error.message.includes('Invalid login credentials')) {
           throw new Error('Email ou senha inválidos');
@@ -34,13 +50,13 @@ export const useAuthActions = () => {
       }
       
       if (!data.user) {
-        console.error('No user returned after successful login');
+        console.error('[DIAGNÓSTICO] Nenhum usuário retornado após login bem-sucedido');
         throw new Error('Erro ao processar login');
       }
       
-      console.log('Login successful:', data.user.email);
-      console.log('Session established:', !!data.session);
-      console.log('User details:', {
+      console.log('[DIAGNÓSTICO] Login bem-sucedido:', data.user.email);
+      console.log('[DIAGNÓSTICO] Sessão estabelecida:', !!data.session);
+      console.log('[DIAGNÓSTICO] Detalhes do usuário:', {
         id: data.user.id,
         email: data.user.email,
         sessionExpiry: data.session?.expires_at
@@ -49,7 +65,7 @@ export const useAuthActions = () => {
       toast.success('Login realizado com sucesso');
       
       // Determine o papel do usuário e redirecione para o dashboard correspondente
-      console.log('Fetching user profile for role-based redirection...');
+      console.log('[DIAGNÓSTICO] Buscando perfil do usuário para redirecionamento baseado em papel...');
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('role')
@@ -57,7 +73,13 @@ export const useAuthActions = () => {
         .single();
         
       if (profileError) {
-        console.error('Error fetching user profile:', profileError);
+        console.error('[DIAGNÓSTICO] Erro ao buscar perfil do usuário:', profileError);
+        console.error('[DIAGNÓSTICO] Detalhes do erro do perfil:', {
+          code: profileError.code,
+          message: profileError.message,
+          hint: profileError.hint || 'Sem dica',
+          details: profileError.details || 'Sem detalhes'
+        });
         toast.error('Perfil de usuário não encontrado', {
           description: 'Redirecionando para dashboard padrão'
         });
@@ -65,7 +87,7 @@ export const useAuthActions = () => {
         return;
       }
         
-      console.log('User role:', profileData?.role);
+      console.log('[DIAGNÓSTICO] Papel do usuário:', profileData?.role);
       
       if (profileData?.role === 'student') {
         navigate('/dashboard/student');
@@ -77,7 +99,7 @@ export const useAuthActions = () => {
         navigate('/dashboard');
       }
     } catch (error: any) {
-      console.error('Login error:', error);
+      console.error('[DIAGNÓSTICO] Erro no login:', error);
       toast.error('Erro no login', {
         description: error.message || 'Verifique suas credenciais'
       });
@@ -140,16 +162,32 @@ export const useAuthActions = () => {
     }
   ) => {
     try {
-      console.log('Registering new user:', email);
-      console.log('Registration data:', { name: metadata.name, birth_date: metadata.birth_date, cpf: 'hidden for privacy' });
+      console.log('[DIAGNÓSTICO] Registrando novo usuário:', email);
+      console.log('[DIAGNÓSTICO] Dados de registro:', { 
+        name: metadata.name, 
+        birth_date: metadata.birth_date, 
+        cpf: 'oculto por privacidade'
+      });
+      console.log('[DIAGNÓSTICO] URL do Supabase:', supabase.supabaseUrl);
       
       if (!email || !password) {
-        console.error('Missing email or password');
+        console.error('[DIAGNÓSTICO] Email ou senha ausentes');
         throw new Error('Email e senha são obrigatórios');
       }
       
-      // 1. Signup with Supabase Auth
-      console.log('Calling supabase.auth.signUp...');
+      // Teste de conexão antes de tentar cadastro
+      try {
+        const { error: pingError } = await supabase.from('profiles').select('count').limit(1);
+        console.log('[DIAGNÓSTICO] Teste de conexão antes do cadastro:', pingError ? 'ERRO' : 'OK');
+        if (pingError) {
+          console.error('[DIAGNÓSTICO] Erro no teste de conexão:', pingError);
+        }
+      } catch (pingEx) {
+        console.error('[DIAGNÓSTICO] Exceção no teste de conexão:', pingEx);
+      }
+      
+      // 1. Signup com Supabase Auth
+      console.log('[DIAGNÓSTICO] Chamando supabase.auth.signUp...');
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -158,49 +196,65 @@ export const useAuthActions = () => {
             name: metadata.name,
             cpf: metadata.cpf,
             birth_date: metadata.birth_date,
-            role: 'student'  // Default role for all signed up users
+            role: 'student'  // Papel padrão para todos os usuários cadastrados
           },
           emailRedirectTo: `${window.location.origin}/login`
         }
       });
       
       if (error) {
-        console.error('Signup error:', error);
-        console.error('Error details:', { code: error.code, message: error.message });
+        console.error('[DIAGNÓSTICO] Erro no cadastro:', error);
+        console.error('[DIAGNÓSTICO] Detalhes do erro:', { 
+          code: error.code, 
+          message: error.message,
+          status: error.status
+        });
         throw error;
       }
 
       if (!data.user) {
-        console.error('No user returned after successful signup');
+        console.error('[DIAGNÓSTICO] Nenhum usuário retornado após cadastro bem-sucedido');
         throw new Error('Erro ao processar cadastro');
       }
 
-      console.log('User registered successfully:', data.user.id);
+      console.log('[DIAGNÓSTICO] Usuário registrado com sucesso:', data.user.id);
 
-      // 2. Create profile record in profiles table
-      console.log('Creating profile for user:', data.user.id);
+      // 2. Criar registro de perfil na tabela profiles
+      console.log('[DIAGNÓSTICO] Criando perfil para usuário:', data.user.id);
       
-      const { data: profileData, error: profileError } = await supabase
+      const profileData = {
+        id: data.user.id,
+        email: email,
+        name: metadata.name,
+        role: 'student', // Sempre estudante para cadastro via plataforma
+        birth_date: metadata.birth_date,
+        cpf: metadata.cpf
+      };
+      
+      console.log('[DIAGNÓSTICO] Dados do perfil a inserir:', {
+        ...profileData,
+        cpf: 'oculto por privacidade'
+      });
+      
+      const { data: insertedProfile, error: profileError } = await supabase
         .from('profiles')
-        .insert({
-          id: data.user.id,
-          email: email,
-          name: metadata.name,
-          role: 'student', // Always student for signup via platform
-          birth_date: metadata.birth_date,
-          cpf: metadata.cpf
-        })
+        .insert(profileData)
         .select()
         .single();
 
       if (profileError) {
-        console.error('Error creating profile:', profileError);
-        console.error('Profile error details:', { code: profileError.code, message: profileError.message });
+        console.error('[DIAGNÓSTICO] Erro ao criar perfil:', profileError);
+        console.error('[DIAGNÓSTICO] Detalhes do erro do perfil:', {
+          code: profileError.code,
+          message: profileError.message,
+          hint: profileError.hint || 'Sem dica',
+          details: profileError.details || 'Sem detalhes'
+        });
         toast.error('Erro ao criar perfil', { 
           description: profileError.message 
         });
       } else {
-        console.log('Profile created successfully:', profileData);
+        console.log('[DIAGNÓSTICO] Perfil criado com sucesso:', insertedProfile);
       }
       
       toast.success('Conta criada com sucesso', {
@@ -212,7 +266,7 @@ export const useAuthActions = () => {
         navigate('/login');
       }, 1500);
     } catch (error: any) {
-      console.error('Signup error:', error);
+      console.error('[DIAGNÓSTICO] Erro no cadastro:', error);
       toast.error('Erro no cadastro', {
         description: error.message || 'Não foi possível criar a conta'
       });

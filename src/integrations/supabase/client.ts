@@ -2,16 +2,16 @@
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '@/utils/supabaseCustomTypes';
 
-// Explicitly define Supabase URL and key for clarity
-const SUPABASE_URL = 'https://supabase.aprova-ai.com';
-const SUPABASE_ANON_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTcyMjc0ODQ0MCwiZXhwIjo0ODc4NDIyMDQwLCJyb2xlIjoiYW5vbiJ9.ozSzs-WV4AU67whaN9d5b01ZaJcNPqcYyQFrHWu3gAQ';
+// Obter URL e chave do Supabase das variáveis de ambiente do Vite
+const SUPABASE_URL = import.meta.env.SUPABASE_URL || 'https://supabase.aprova-ai.com';
+const SUPABASE_ANON_KEY = import.meta.env.SUPABASE_ANON_KEY || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTcyMjc0ODQ0MCwiZXhwIjo0ODc4NDIyMDQwLCJyb2xlIjoiYW5vbiJ9.ozSzs-WV4AU67whaN9d5b01ZaJcNPqcYyQFrHWu3gAQ';
 
-console.log('Initializing Supabase client with:', {
+console.log('[DIAGNÓSTICO] Inicializando cliente Supabase com:', {
   url: SUPABASE_URL,
-  anonKey: SUPABASE_ANON_KEY.substring(0, 10) + '...' // Show partial key for debugging
+  anonKey: SUPABASE_ANON_KEY.substring(0, 10) + '...' // Exibir parcialmente por segurança
 });
 
-// Initialize Supabase client with explicit values
+// Inicializar cliente Supabase
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     persistSession: true,
@@ -27,19 +27,50 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, 
   }
 });
 
+// Testar conexão com Supabase e log detalhado
+export const testConnection = async () => {
+  try {
+    console.log('[DIAGNÓSTICO] Testando conexão com Supabase URL:', SUPABASE_URL);
+    
+    const { data, error } = await supabase.auth.getSession();
+    
+    if (error) {
+      console.error('[DIAGNÓSTICO] ERRO na conexão Supabase:', error);
+      console.error('[DIAGNÓSTICO] Detalhes do erro:', { 
+        code: error.code, 
+        message: error.message,
+        status: error.status,
+        name: error.name
+      });
+      return { success: false, error };
+    }
+    
+    console.log('[DIAGNÓSTICO] Conexão Supabase OK:', !!data.session);
+    return { success: true, data };
+  } catch (error) {
+    console.error('[DIAGNÓSTICO] Exceção na conexão Supabase:', error);
+    return { success: false, error };
+  }
+};
+
 // Get current session
 export const getCurrentSession = async () => {
   try {
-    console.log('Getting stored session...');
+    console.log('[DIAGNÓSTICO] Obtendo sessão armazenada...');
     const { data, error } = await supabase.auth.getSession();
     if (error) {
-      console.error("Error getting session:", error);
+      console.error("[DIAGNÓSTICO] Erro ao obter sessão:", error);
+      console.error("[DIAGNÓSTICO] Detalhes do erro:", { 
+        code: error.code, 
+        message: error.message,
+        status: error.status
+      });
       throw error;
     }
-    console.log('Session retrieved:', data.session ? 'Session exists' : 'No session');
+    console.log('[DIAGNÓSTICO] Sessão recuperada:', data.session ? 'Sessão existe' : 'Sem sessão');
     return { data };
   } catch (error) {
-    console.error("Exception getting session:", error);
+    console.error("[DIAGNÓSTICO] Exceção ao obter sessão:", error);
     throw error;
   }
 };
@@ -47,83 +78,30 @@ export const getCurrentSession = async () => {
 // Get current user
 export const getCurrentUser = async () => {
   try {
-    console.log('Getting current user...');
+    console.log('[DIAGNÓSTICO] Obtendo usuário atual...');
     const { data, error } = await supabase.auth.getUser();
     if (error) {
-      console.error("Error getting user:", error);
+      console.error("[DIAGNÓSTICO] Erro ao obter usuário:", error);
+      console.error("[DIAGNÓSTICO] Detalhes do erro:", { 
+        code: error.code, 
+        message: error.message,
+        status: error.status
+      });
       throw error;
     }
-    console.log('User retrieved:', data?.user?.email || 'No user');
+    console.log('[DIAGNÓSTICO] Usuário recuperado:', data?.user?.email || 'Nenhum usuário');
     return data?.user;
   } catch (error) {
-    console.error("Exception getting user:", error);
+    console.error("[DIAGNÓSTICO] Exceção ao obter usuário:", error);
     throw error;
   }
 };
 
-// Test Supabase connection
-export const testSupabaseConnection = async () => {
-  try {
-    console.log('Testando conexão com Supabase URL:', SUPABASE_URL);
-    
-    // Primeiro, tentamos uma operação simples de autenticação
-    const { data: authData, error: authError } = await supabase.auth.getSession();
-    
-    if (authError) {
-      console.error('Erro na autenticação:', authError);
-      return {
-        success: false,
-        message: `Erro na autenticação: ${authError.message}`,
-        details: authError
-      };
-    }
-    
-    console.log('Autenticação bem-sucedida:', authData);
-    
-    // Agora tentamos acessar uma tabela para confirmar o acesso ao banco de dados
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('id')
-      .limit(1);
-    
-    if (error) {
-      console.error('Erro ao acessar tabela profiles:', error);
-      
-      // Verifica se o erro é de permissão ou de tabela inexistente
-      if (error.code === '42P01') {
-        return {
-          success: false,
-          message: 'A tabela profiles não existe. É necessário criar a tabela.',
-          details: error
-        };
-      } else if (error.code === 'PGRST204') {
-        // Se o erro for PGRST204, a tabela existe mas está vazia ou temos permissão
-        return {
-          success: true,
-          message: 'Conexão bem-sucedida. Tabela profiles existe mas pode estar vazia.',
-          details: error
-        };
-      } else {
-        return {
-          success: false,
-          message: `Erro ao acessar dados: ${error.message}`,
-          details: error
-        };
-      }
-    }
-    
-    // Se chegou aqui, a conexão foi bem-sucedida
-    return {
-      success: true,
-      message: 'Conexão bem-sucedida com o Supabase',
-      details: data
-    };
-  } catch (error: any) {
-    console.error('Erro ao testar conexão com Supabase:', error);
-    return {
-      success: false,
-      message: `Erro geral: ${error.message || 'Desconhecido'}`,
-      details: error
-    };
-  }
-};
+// Exportando as funções existentes
+export { testSupabaseConnection } from '@/utils/supabaseSetup';
+
+// Chamar teste de conexão automaticamente na inicialização 
+// para verificar se a configuração está correta
+testConnection().then(result => {
+  console.log('[DIAGNÓSTICO] Teste de conexão inicial:', result.success ? 'OK' : 'FALHOU');
+});
