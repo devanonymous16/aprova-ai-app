@@ -1,4 +1,3 @@
-
 import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -217,53 +216,12 @@ export const useAuthActions = () => {
       }
 
       console.log('[DIAGNÓSTICO] Usuário registrado com sucesso:', data.user.id);
-
-      // 2. Criar registro de perfil na tabela profiles
-      console.log('[DIAGNÓSTICO] Criando perfil para usuário:', data.user.id);
-      
-      // Usamos uma constante com o tipo correto que o Supabase espera
-      const userRole: "student" | "manager" | "admin" = "student";
-      
-      const profileData = {
-        id: data.user.id,
-        email: email,
-        name: metadata.name,
-        role: userRole, // Usando o valor tipado corretamente
-        birth_date: metadata.birth_date,
-        cpf: metadata.cpf
-      };
-      
-      console.log('[DIAGNÓSTICO] Dados do perfil a inserir:', {
-        ...profileData,
-        cpf: 'oculto por privacidade'
-      });
-      
-      const { data: insertedProfile, error: profileError } = await supabase
-        .from('profiles')
-        .insert(profileData)
-        .select()
-        .single();
-
-      if (profileError) {
-        console.error('[DIAGNÓSTICO] Erro ao criar perfil:', profileError);
-        console.error('[DIAGNÓSTICO] Detalhes do erro do perfil:', {
-          code: profileError.code,
-          message: profileError.message,
-          hint: profileError.hint || 'Sem dica',
-          details: profileError.details || 'Sem detalhes'
-        });
-        toast.error('Erro ao criar perfil', { 
-          description: profileError.message 
-        });
-      } else {
-        console.log('[DIAGNÓSTICO] Perfil criado com sucesso:', insertedProfile);
-      }
       
       toast.success('Conta criada com sucesso', {
-        description: 'Você será redirecionado para a página de login'
+        description: 'Verifique seu email para confirmar o cadastro'
       });
       
-      // 3. Redirect to login page
+      // Redirect to login page após breve delay
       setTimeout(() => {
         navigate('/login');
       }, 1500);
