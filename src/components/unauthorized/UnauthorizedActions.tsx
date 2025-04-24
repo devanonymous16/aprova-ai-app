@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import CreateProfileDialog from "@/components/auth/CreateProfileDialog";
@@ -83,8 +82,12 @@ export default function UnauthorizedActions({
         <Button 
           variant="ghost" 
           onClick={async () => {
-            await logout();
-            window.location.href = '/login';
+            try {
+              await logout();
+              window.location.href = '/login';
+            } catch (error) {
+              console.error('Error during logout:', error);
+            }
           }}
         >
           Sair e entrar com outra conta
