@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase, getCurrentSession, getCurrentUser } from '@/integrations/supabase/client';
 import { UserRole } from '@/types/user';
-import { fetchUserProfile } from '@/utils/authUtils';
+import { fetchUserProfile } from '@/utils/auth';
 
 // Define the ProfileType interface locally since it's not exported from @/types/user
 interface ProfileType {
@@ -108,3 +108,4 @@ export const useAuthState = () => {
     isAuthenticated: !!user
   };
 };
+
