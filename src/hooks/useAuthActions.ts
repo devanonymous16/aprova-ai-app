@@ -51,15 +51,22 @@ export const useAuthActions = () => {
 
   const loginWithGoogle = useCallback(async () => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      console.log('Iniciando login com Google...');
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/dashboard`
         }
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Erro no login com Google:', error);
+        throw error;
+      }
+      
+      console.log('Login com Google iniciado:', data);
     } catch (error: any) {
+      console.error('Erro ao iniciar login com Google:', error);
       toast.error('Erro no login com Google', {
         description: error.message || 'Tente novamente mais tarde'
       });
@@ -69,13 +76,20 @@ export const useAuthActions = () => {
   const logout = useCallback(async () => {
     try {
       console.log('Logging out...');
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Erro no logout:', error);
+        throw error;
+      }
+      
       console.log('Logout successful');
       toast.success('Logout realizado com sucesso');
       navigate('/login');
     } catch (error: any) {
       console.error('Logout error:', error);
-      toast.error('Erro no logout');
+      toast.error('Erro no logout', {
+        description: error.message || 'Tente novamente'
+      });
     }
   }, [navigate]);
 
@@ -89,6 +103,8 @@ export const useAuthActions = () => {
     }
   ) => {
     try {
+      console.log('Registrando novo usuário:', email);
+      
       // 1. Signup with Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -103,10 +119,16 @@ export const useAuthActions = () => {
         }
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Erro no cadastro:', error);
+        throw error;
+      }
+
+      console.log('Usuário registrado com sucesso:', data);
 
       // 2. Create profile record in profiles table
       if (data.user) {
+        console.log('Criando perfil para usuário:', data.user.id);
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
@@ -123,6 +145,8 @@ export const useAuthActions = () => {
           toast.error('Erro ao criar perfil', { 
             description: profileError.message 
           });
+        } else {
+          console.log('Perfil criado com sucesso');
         }
       }
       
@@ -145,12 +169,19 @@ export const useAuthActions = () => {
 
   const forgotPassword = useCallback(async (email: string) => {
     try {
+      console.log('Enviando email de recuperação para:', email);
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao enviar email de recuperação:', error);
+        throw error;
+      }
+      
+      console.log('Email de recuperação enviado com sucesso');
     } catch (error: any) {
+      console.error('Erro no processo de recuperação de senha:', error);
       toast.error('Erro ao enviar email de recuperação', {
         description: error.message || 'Verifique se o email está correto'
       });
@@ -160,15 +191,21 @@ export const useAuthActions = () => {
 
   const resetPassword = useCallback(async (newPassword: string) => {
     try {
+      console.log('Alterando senha...');
       const { error } = await supabase.auth.updateUser({
         password: newPassword
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao alterar senha:', error);
+        throw error;
+      }
       
+      console.log('Senha alterada com sucesso');
       toast.success('Senha alterada com sucesso');
       navigate('/login');
     } catch (error: any) {
+      console.error('Erro no processo de alteração de senha:', error);
       toast.error('Erro ao alterar senha', {
         description: error.message || 'Por favor, tente novamente ou solicite um novo link'
       });

@@ -24,13 +24,32 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, 
 
 // Função para verificar estado da sessão atual
 export const getCurrentSession = async () => {
-  return await supabase.auth.getSession();
+  try {
+    const { data, error } = await supabase.auth.getSession();
+    if (error) {
+      console.error("Erro ao obter sessão:", error);
+      throw error;
+    }
+    return { data };
+  } catch (error) {
+    console.error("Exceção ao obter sessão:", error);
+    throw error;
+  }
 };
 
 // Função para verificar usuário atual
 export const getCurrentUser = async () => {
-  const { data } = await supabase.auth.getUser();
-  return data?.user;
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    if (error) {
+      console.error("Erro ao obter usuário:", error);
+      throw error;
+    }
+    return data?.user;
+  } catch (error) {
+    console.error("Exceção ao obter usuário:", error);
+    throw error;
+  }
 };
 
 // Função para testar explicitamente a conexão com o Supabase

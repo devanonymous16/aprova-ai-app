@@ -20,7 +20,7 @@ export const useAuthState = () => {
 
   const updateProfile = useCallback(async (currentUser: User) => {
     try {
-      console.log('Fetching profile for user:', currentUser.id);
+      console.log('Fetching profile for user:', currentUser.id, 'Email:', currentUser.email);
       const profileData = await fetchUserProfile(
         currentUser.id,
         currentUser.email
@@ -49,7 +49,7 @@ export const useAuthState = () => {
     // 1. Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
-        console.log('Auth state changed:', event, 'Session:', currentSession ? 'exists' : 'null');
+        console.log('Auth state changed. Event:', event, 'Session:', currentSession ? 'exists' : 'null');
         
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
@@ -58,6 +58,7 @@ export const useAuthState = () => {
           console.log('User authenticated, fetching profile...');
           await updateProfile(currentSession.user);
         } else {
+          console.log('User signed out or session expired');
           setProfile(null);
         }
       }
@@ -84,6 +85,8 @@ export const useAuthState = () => {
         }
       } catch (error) {
         console.error('Error during auth initialization:', error);
+        setUser(null);
+        setProfile(null);
       } finally {
         setLoading(false);
         console.log('Auth initialization complete');
