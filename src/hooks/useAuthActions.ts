@@ -221,11 +221,14 @@ export const useAuthActions = () => {
       // 2. Criar registro de perfil na tabela profiles
       console.log('[DIAGNÓSTICO] Criando perfil para usuário:', data.user.id);
       
+      // Usamos uma constante com o tipo correto que o Supabase espera
+      const userRole: "student" | "manager" | "admin" = "student";
+      
       const profileData = {
         id: data.user.id,
         email: email,
         name: metadata.name,
-        role: 'student' as UserRole, // Explicitamente tipado como UserRole
+        role: userRole, // Usando o valor tipado corretamente
         birth_date: metadata.birth_date,
         cpf: metadata.cpf
       };

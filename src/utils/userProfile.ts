@@ -61,9 +61,10 @@ export const fetchUserProfile = async (userId: string, userEmail?: string | null
 export const createDefaultProfile = async (userId: string, email: string) => {
   console.log('[DIAGNÓSTICO] Criando perfil padrão para:', userId, 'com email:', email);
   
-  let defaultRole: UserRole = 'student';
-  if (email.includes('admin')) defaultRole = 'admin';
-  else if (email.includes('manager')) defaultRole = 'manager';
+  // Definimos diretamente como o tipo esperado pelo Supabase
+  let defaultRole: "student" | "manager" | "admin" = "student";
+  if (email.includes('admin')) defaultRole = "admin";
+  else if (email.includes('manager')) defaultRole = "manager";
   
   try {
     console.log('[DIAGNÓSTICO] Papel padrão atribuído com base no padrão de email:', defaultRole);
