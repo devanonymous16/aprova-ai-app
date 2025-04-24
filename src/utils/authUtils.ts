@@ -102,7 +102,10 @@ export const createTestUsers = async () => {
       }
       
       // Now TypeScript knows this is an array with email property
-      const userExists = existingUsers.users.find(u => u.email === user.email);
+      // Fix: Explicitly type the user object from the find method to ensure TypeScript knows it has an email property
+      const userExists = existingUsers.users.find((u): u is { email: string } & typeof u => 
+        typeof u.email === 'string' && u.email === user.email
+      );
       
       if (userExists) {
         console.log(`Usuário ${user.email} já existe, pulando...`);
@@ -124,6 +127,8 @@ export const createTestUsers = async () => {
         console.error(`Erro ao criar usuário ${user.email}:`, error);
         continue;
       }
+      
+      console.log('Usuário registrado com sucesso:', data);
       
       // Criar perfil
       if (data.user) {
