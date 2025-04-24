@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { UserRole } from '@/types/user';
@@ -90,6 +91,7 @@ export const createTestUsers = async () => {
   console.log('Criando usuários de teste...');
   
   for (const user of testUsers) {
+    const currentUserEmail = user.email;
     try {
       // Verificar se o usuário já existe
       const { data: existingUsers, error: listError } = await supabase.auth.admin.listUsers();
@@ -109,17 +111,17 @@ export const createTestUsers = async () => {
       // Now TypeScript knows this is an array with email property
       // Fix: Explicitly type the user object from the find method to ensure TypeScript knows it has an email property
       const userExists = existingUsers.users.find((u): u is { email: string } & typeof u => 
-        typeof u.email === 'string' && u.email === user.email
+        typeof u.email === 'string' && u.email === currentUserEmail
       );
       
       if (userExists) {
-        console.log(`Usuário ${user.email} já existe, pulando...`);
+        console.log(`Usuário ${currentUserEmail} já existe, pulando...`);
         continue;
       }
       
       // Criar o usuário
       const { data, error } = await supabase.auth.signUp({
-        email: user.email,
+        email: currentUserEmail,
         password: user.password,
         options: {
           data: {
@@ -129,7 +131,7 @@ export const createTestUsers = async () => {
       });
       
       if (error) {
-        console.error(`Erro ao criar usuário ${user.email}:`, error);
+        console.error(`Erro ao criar usuário ${currentUserEmail}:`, error);
         continue;
       }
       
@@ -142,19 +144,19 @@ export const createTestUsers = async () => {
           .from('profiles')
           .insert({
             id: data.user.id,
-            email: user.email,
-            name: user.email.split('@')[0],
+            email: currentUserEmail,
+            name: currentUserEmail.split('@')[0],
             role: user.role // Already typed as 'student' | 'manager' | 'admin'
           });
           
         if (profileError) {
-          console.error(`Erro ao criar perfil para ${user.email}:`, profileError);
+          console.error(`Erro ao criar perfil para ${currentUserEmail}:`, profileError);
         } else {
-          console.log(`Usuário e perfil criados com sucesso: ${user.email}`);
+          console.log(`Usuário e perfil criados com sucesso: ${currentUserEmail}`);
         }
       }
     } catch (error: any) {
-      console.error(`Erro ao processar usuário ${user.email}:`, error);
+      console.error(`Erro ao processar usuário ${currentUserEmail}:`, error);
     }
   }
 };
