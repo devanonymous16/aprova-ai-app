@@ -1,10 +1,10 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { UserRole } from '@/types/user';
 
 export const fetchUserProfile = async (userId: string, userEmail?: string | null) => {
   try {
     console.log('[DIAGNÓSTICO] Buscando perfil para usuário:', userId, 'email:', userEmail || 'não fornecido');
-    console.log('[DIAGNÓSTICO] URL do Supabase:', supabase.supabaseUrl);
     
     // Teste de conexão antes de buscar perfil
     try {
@@ -61,7 +61,7 @@ export const fetchUserProfile = async (userId: string, userEmail?: string | null
 export const createDefaultProfile = async (userId: string, email: string) => {
   console.log('[DIAGNÓSTICO] Criando perfil padrão para:', userId, 'com email:', email);
   
-  let defaultRole: 'student' | 'manager' | 'admin' = 'student';
+  let defaultRole: UserRole = 'student';
   if (email.includes('admin')) defaultRole = 'admin';
   else if (email.includes('manager')) defaultRole = 'manager';
   

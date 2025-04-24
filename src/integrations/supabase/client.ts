@@ -3,8 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import { Database } from '@/utils/supabaseCustomTypes';
 
 // Obter URL e chave do Supabase das variáveis de ambiente do Vite
-const SUPABASE_URL = import.meta.env.SUPABASE_URL || 'https://supabase.aprova-ai.com';
-const SUPABASE_ANON_KEY = import.meta.env.SUPABASE_ANON_KEY || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTcyMjc0ODQ0MCwiZXhwIjo0ODc4NDIyMDQwLCJyb2xlIjoiYW5vbiJ9.ozSzs-WV4AU67whaN9d5b01ZaJcNPqcYyQFrHWu3gAQ';
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://supabase.aprova-ai.com';
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTcyMjc0ODQ0MCwiZXhwIjo0ODc4NDIyMDQwLCJyb2xlIjoiYW5vbiJ9.ozSzs-WV4AU67whaN9d5b01ZaJcNPqcYyQFrHWu3gAQ';
 
 console.log('[DIAGNÓSTICO] Inicializando cliente Supabase com:', {
   url: SUPABASE_URL,

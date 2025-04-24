@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/components/ui/sonner';
+import { UserRole } from '@/types/user';
 
 export const useAuthActions = () => {
   const navigate = useNavigate();
@@ -10,7 +11,6 @@ export const useAuthActions = () => {
   const login = useCallback(async (email: string, password: string) => {
     try {
       console.log('[DIAGNÓSTICO] Tentativa de login com email:', email);
-      console.log('[DIAGNÓSTICO] URL do Supabase:', supabase.supabaseUrl);
       
       if (!email || !password) {
         console.error('[DIAGNÓSTICO] Email ou senha ausentes');
@@ -168,7 +168,6 @@ export const useAuthActions = () => {
         birth_date: metadata.birth_date, 
         cpf: 'oculto por privacidade'
       });
-      console.log('[DIAGNÓSTICO] URL do Supabase:', supabase.supabaseUrl);
       
       if (!email || !password) {
         console.error('[DIAGNÓSTICO] Email ou senha ausentes');
@@ -226,7 +225,7 @@ export const useAuthActions = () => {
         id: data.user.id,
         email: email,
         name: metadata.name,
-        role: 'student', // Sempre estudante para cadastro via plataforma
+        role: 'student' as UserRole, // Explicitamente tipado como UserRole
         birth_date: metadata.birth_date,
         cpf: metadata.cpf
       };
