@@ -30,15 +30,33 @@ export default function Navbar() {
     setMobileMenuOpen(!mobileMenuOpen);
   };
   
-  const handleLogout = async (e) => {
+  const handleLogout = async (e: React.MouseEvent<HTMLElement>) => {
     e.preventDefault();
+    e.stopPropagation();
+
     console.log('[DIAGNÓSTICO LOGOUT] Botão Sair clicado');
+    
     try {
-      await logout();
-      console.log('[DIAGNÓSTICO LOGOUT] Função logout foi chamada e completada');
+      document.body.style.cursor = 'wait';
+      console.log('[DIAGNÓSTICO LOGOUT] Chamando função logout...');
+      
+      setTimeout(async () => {
+        try {
+          await logout();
+          console.log('[DIAGNÓSTICO LOGOUT] Função logout foi concluída');
+        } catch (error) {
+          console.error('[DIAGNÓSTICO LOGOUT] Erro capturado no handleLogout:', error);
+          window.location.href = '/login';
+        } finally {
+          document.body.style.cursor = 'default';
+        }
+      }, 0);
     } catch (error) {
-      console.error('[DIAGNÓSTICO LOGOUT] Erro capturado no handleLogout:', error);
+      console.error('[DIAGNÓSTICO LOGOUT] Erro no handler de logout:', error);
+      document.body.style.cursor = 'default';
     }
+    
+    return false;
   };
   
   const getInitials = (name: string) => {
@@ -162,7 +180,7 @@ export default function Navbar() {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onSelect={(e) => {
                       e.preventDefault();
-                      handleLogout(e);
+                      handleLogout(e as unknown as React.MouseEvent<HTMLElement>);
                     }}>
                       <div className="flex items-center gap-2">
                         <LogOut className="h-4 w-4" />
@@ -242,7 +260,7 @@ export default function Navbar() {
                   Perfil
                 </Link>
                 <button
-                  onClick={handleLogout}
+                  onClick={(e) => handleLogout(e)}
                   className="block w-full text-left pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:bg-gray-50 hover:border-primary-500 hover:text-gray-900"
                 >
                   Sair

@@ -47,9 +47,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await authActionsLogout();
       console.log('[DIAGNÓSTICO LOGOUT] authActionsLogout concluído com sucesso');
+      
+      // Força um redirecionamento direto aqui no contexto como fallback
+      // caso o redirecionamento no useAuthActions falhe
+      console.log('[DIAGNÓSTICO LOGOUT] Verificando se ainda está na mesma página após logout');
+      setTimeout(() => {
+        console.log('[DIAGNÓSTICO LOGOUT] Verificando redirecionamento após 100ms');
+        if (window.location.pathname !== '/login') {
+          console.log('[DIAGNÓSTICO LOGOUT] Forçando redirecionamento direto para /login');
+          window.location.href = '/login';
+        }
+      }, 100);
     } catch (error) {
       console.error('[DIAGNÓSTICO LOGOUT] Erro no AuthContext.logout:', error);
-      throw error;
+      
+      // Tenta limpar manualmente o localStorage e forçar navegação em caso de erro
+      console.log('[DIAGNÓSTICO LOGOUT] Tentando limpeza manual do localStorage');
+      localStorage.removeItem('sb-supabase-auth-token');
+      localStorage.removeItem('supabase.auth.token');
+      
+      console.log('[DIAGNÓSTICO LOGOUT] Forçando redirecionamento após erro');
+      window.location.href = '/login';
     }
   }, [authActionsLogout, isAuthenticated, user, session, profile]);
 
