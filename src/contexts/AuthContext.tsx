@@ -33,11 +33,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const {
     login,
     loginWithGoogle,
-    logout,
+    logout: authActionsLogout,
     signUp,
     forgotPassword,
     resetPassword
   } = useAuthActions();
+
+  // Wrapper para adicionar logs no logout
+  const logout = useCallback(async () => {
+    console.log('[DIAGNÓSTICO LOGOUT] AuthContext.logout chamado, autenticado =', isAuthenticated);
+    console.log('[DIAGNÓSTICO LOGOUT] Estado antes do logout:', { user: !!user, session: !!session, profile: !!profile });
+    
+    try {
+      await authActionsLogout();
+      console.log('[DIAGNÓSTICO LOGOUT] authActionsLogout concluído com sucesso');
+    } catch (error) {
+      console.error('[DIAGNÓSTICO LOGOUT] Erro no AuthContext.logout:', error);
+      throw error;
+    }
+  }, [authActionsLogout, isAuthenticated, user, session, profile]);
 
   const hasRole = useCallback((role: UserRole | UserRole[]): boolean => {
     if (!profile) {

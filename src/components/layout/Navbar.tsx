@@ -30,12 +30,17 @@ export default function Navbar() {
     setMobileMenuOpen(!mobileMenuOpen);
   };
   
-  const handleLogout = async () => {
-    await logout();
-    window.location.href = '/';
+  const handleLogout = async (e) => {
+    e.preventDefault();
+    console.log('[DIAGNÓSTICO LOGOUT] Botão Sair clicado');
+    try {
+      await logout();
+      console.log('[DIAGNÓSTICO LOGOUT] Função logout foi chamada e completada');
+    } catch (error) {
+      console.error('[DIAGNÓSTICO LOGOUT] Erro capturado no handleLogout:', error);
+    }
   };
   
-  // Função para pegar iniciais do nome
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -44,7 +49,6 @@ export default function Navbar() {
       .toUpperCase();
   };
   
-  // Determina a cor do avatar e ícone baseado no papel do usuário
   const getRoleColor = () => {
     if (!profile) return 'bg-gray-400';
     
@@ -156,7 +160,10 @@ export default function Navbar() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogout}>
+                    <DropdownMenuItem onSelect={(e) => {
+                      e.preventDefault();
+                      handleLogout(e);
+                    }}>
                       <div className="flex items-center gap-2">
                         <LogOut className="h-4 w-4" />
                         Sair
@@ -193,7 +200,6 @@ export default function Navbar() {
         </div>
       </div>
       
-      {/* Mobile menu */}
       {mobileMenuOpen && (
         <div className="md:hidden">
           <div className="pt-2 pb-4 space-y-1">

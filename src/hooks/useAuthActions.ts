@@ -133,23 +133,46 @@ export const useAuthActions = () => {
 
   const logout = useCallback(async () => {
     try {
-      console.log('Logging out...');
-      const { error } = await supabase.auth.signOut();
+      console.log('[DIAGNÓSTICO LOGOUT] Iniciando função logout...');
+      
+      // Verifica sessão atual antes de tentar logout
+      const { data: sessionData } = await supabase.auth.getSession();
+      console.log('[DIAGNÓSTICO LOGOUT] Sessão atual antes do logout:', 
+        sessionData.session ? 'Existe sessão' : 'Sem sessão');
+      
+      console.log('[DIAGNÓSTICO LOGOUT] Chamando supabase.auth.signOut()...');
+      const { error } = await supabase.auth.signOut({
+        scope: 'global' // Força a remoção de todas as sessões
+      });
+      
+      console.log('[DIAGNÓSTICO LOGOUT] Resultado de signOut:', { error });
+      
       if (error) {
-        console.error('Erro no logout:', error);
+        console.error('[DIAGNÓSTICO LOGOUT] Erro no logout:', error);
         throw error;
       }
       
-      console.log('Logout successful');
+      // Verifica se a sessão foi realmente limpa
+      const { data: checkSession } = await supabase.auth.getSession();
+      console.log('[DIAGNÓSTICO LOGOUT] Verificação da sessão após logout:', 
+        checkSession.session ? 'Ainda existe sessão (ERRO!)' : 'Sessão removida com sucesso');
+      
+      console.log('[DIAGNÓSTICO LOGOUT] Logout bem-sucedido, redirecionando...');
       toast.success('Logout realizado com sucesso');
-      navigate('/login');
+      
+      // Forçar limpar localStorage diretamente para garantir
+      localStorage.removeItem('supabase.auth.token');
+      console.log('[DIAGNÓSTICO LOGOUT] LocalStorage limpo');
+      
+      // Força a navegação com reload para garantir reset completo do estado
+      window.location.href = '/login';
     } catch (error: any) {
-      console.error('Logout error:', error);
+      console.error('[DIAGNÓSTICO LOGOUT] Erro detalhado no logout:', error);
       toast.error('Erro no logout', {
         description: error.message || 'Tente novamente'
       });
     }
-  }, [navigate]);
+  }, []);
 
   const signUp = useCallback(async (
     email: string, 
