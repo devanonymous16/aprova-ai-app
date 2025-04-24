@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useCallback, ReactNode } from 'react';
 import { useAuthState } from '@/hooks/useAuthState';
 import { useAuthActions } from '@/hooks/useAuthActions';
@@ -39,37 +38,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     resetPassword
   } = useAuthActions();
 
-  // Wrapper para adicionar logs no logout
   const logout = useCallback(async () => {
-    console.log('[DIAGNÓSTICO LOGOUT] AuthContext.logout chamado, autenticado =', isAuthenticated);
-    console.log('[DIAGNÓSTICO LOGOUT] Estado antes do logout:', { user: !!user, session: !!session, profile: !!profile });
+    console.log('[DIAGNÓSTICO LOGOUT] AuthContext.logout chamado');
+    console.log('[DIAGNÓSTICO LOGOUT] Estado antes do logout:', { 
+      user: !!user, 
+      session: !!session, 
+      profile: !!profile, 
+      isAuthenticated 
+    });
     
     try {
+      console.log('[DIAGNÓSTICO LOGOUT] Delegando para authActionsLogout');
       await authActionsLogout();
-      console.log('[DIAGNÓSTICO LOGOUT] authActionsLogout concluído com sucesso');
-      
-      // Força um redirecionamento direto aqui no contexto como fallback
-      // caso o redirecionamento no useAuthActions falhe
-      console.log('[DIAGNÓSTICO LOGOUT] Verificando se ainda está na mesma página após logout');
-      setTimeout(() => {
-        console.log('[DIAGNÓSTICO LOGOUT] Verificando redirecionamento após 100ms');
-        if (window.location.pathname !== '/login') {
-          console.log('[DIAGNÓSTICO LOGOUT] Forçando redirecionamento direto para /login');
-          window.location.href = '/login';
-        }
-      }, 100);
+      console.log('[DIAGNÓSTICO LOGOUT] authActionsLogout concluído, verifique se redirecionou');
     } catch (error) {
       console.error('[DIAGNÓSTICO LOGOUT] Erro no AuthContext.logout:', error);
-      
-      // Tenta limpar manualmente o localStorage e forçar navegação em caso de erro
-      console.log('[DIAGNÓSTICO LOGOUT] Tentando limpeza manual do localStorage');
-      localStorage.removeItem('sb-supabase-auth-token');
-      localStorage.removeItem('supabase.auth.token');
-      
-      console.log('[DIAGNÓSTICO LOGOUT] Forçando redirecionamento após erro');
+      console.log('[DIAGNÓSTICO LOGOUT] Forçando redirecionamento mesmo após erro');
       window.location.href = '/login';
     }
-  }, [authActionsLogout, isAuthenticated, user, session, profile]);
+  }, [authActionsLogout, user, session, profile, isAuthenticated]);
 
   const hasRole = useCallback((role: UserRole | UserRole[]): boolean => {
     if (!profile) {

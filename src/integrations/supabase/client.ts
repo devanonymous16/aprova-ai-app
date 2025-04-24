@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '@/utils/supabaseCustomTypes';
 
@@ -11,14 +10,15 @@ console.log('[DIAGNÓSTICO] Inicializando cliente Supabase com:', {
   anonKey: SUPABASE_ANON_KEY.substring(0, 10) + '...' // Exibir parcialmente por segurança
 });
 
-// Inicializar cliente Supabase
+// Inicializar cliente Supabase com configurações otimizadas para autenticação
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
     storage: localStorage,
     detectSessionInUrl: true,
-    flowType: 'implicit'
+    flowType: 'implicit',
+    debug: true // Ativar debug para logs detalhados
   },
   global: {
     headers: {
@@ -26,6 +26,40 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, 
     }
   }
 });
+
+// Adicionar uma função explícita para testar se o logout está funcionando
+export const testLogout = async () => {
+  try {
+    console.log('[DIAGNÓSTICO] Testando logout direto do cliente Supabase');
+    
+    // Verificar sessão antes do logout
+    const beforeSession = await supabase.auth.getSession();
+    console.log('[DIAGNÓSTICO] Sessão antes do logout:', 
+      beforeSession.data.session ? 'Existe' : 'Não existe');
+    
+    // Realizar logout
+    const { error } = await supabase.auth.signOut({ scope: 'global' });
+    
+    if (error) {
+      console.error('[DIAGNÓSTICO] Erro no testLogout:', error);
+      return { success: false, error };
+    }
+    
+    // Verificar sessão após logout
+    const afterSession = await supabase.auth.getSession();
+    console.log('[DIAGNÓSTICO] Sessão após logout:', 
+      afterSession.data.session ? 'Ainda existe (ERRO)' : 'Removida com sucesso');
+    
+    return { 
+      success: !afterSession.data.session,
+      beforeHadSession: !!beforeSession.data.session,
+      afterHasSession: !!afterSession.data.session
+    };
+  } catch (error) {
+    console.error('[DIAGNÓSTICO] Exceção no testLogout:', error);
+    return { success: false, error };
+  }
+};
 
 // Testar conexão com Supabase e log detalhado
 export const testConnection = async () => {

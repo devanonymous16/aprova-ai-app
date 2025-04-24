@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -34,26 +35,28 @@ export default function Navbar() {
     e.preventDefault();
     e.stopPropagation();
 
-    console.log('[DIAGNÓSTICO LOGOUT] Botão Sair clicado');
+    console.log('[DIAGNÓSTICO LOGOUT] Botão Sair clicado na Navbar');
+    document.body.style.cursor = 'wait';
     
     try {
-      document.body.style.cursor = 'wait';
-      console.log('[DIAGNÓSTICO LOGOUT] Chamando função logout...');
+      // Chamar logout diretamente, sem setTimeout
+      console.log('[DIAGNÓSTICO LOGOUT] Chamando função logout do AuthContext...');
+      await logout();
+      console.log('[DIAGNÓSTICO LOGOUT] Função logout concluída na Navbar');
       
-      setTimeout(async () => {
-        try {
-          await logout();
-          console.log('[DIAGNÓSTICO LOGOUT] Função logout foi concluída');
-        } catch (error) {
-          console.error('[DIAGNÓSTICO LOGOUT] Erro capturado no handleLogout:', error);
-          window.location.href = '/login';
-        } finally {
-          document.body.style.cursor = 'default';
+      // Se ainda estiver na mesma página após 500ms, forçar redirecionamento
+      setTimeout(() => {
+        if (document.body) document.body.style.cursor = 'default';
+        if (window.location.pathname !== '/login') {
+          console.log('[DIAGNÓSTICO LOGOUT] Redirecionamento de emergência na Navbar');
+          window.location.replace('/login');
         }
-      }, 0);
+      }, 500);
     } catch (error) {
-      console.error('[DIAGNÓSTICO LOGOUT] Erro no handler de logout:', error);
+      console.error('[DIAGNÓSTICO LOGOUT] Erro no handleLogout da Navbar:', error);
       document.body.style.cursor = 'default';
+      // Forçar redirecionamento em caso de erro
+      window.location.href = '/login';
     }
     
     return false;

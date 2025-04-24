@@ -133,9 +133,9 @@ export const useAuthActions = () => {
 
   const logout = useCallback(async () => {
     try {
-      console.log('[DIAGNÓSTICO LOGOUT] Iniciando função logout...');
+      console.log('[DIAGNÓSTICO LOGOUT] Iniciando logout completo (useAuthActions)');
       
-      // Verifica sessão atual antes de tentar logout
+      // 1. Verificar sessão atual antes de tentar logout
       const { data: sessionData } = await supabase.auth.getSession();
       console.log('[DIAGNÓSTICO LOGOUT] Sessão atual antes do logout:', 
         sessionData.session ? 'Existe sessão' : 'Sem sessão');
@@ -145,32 +145,65 @@ export const useAuthActions = () => {
         scope: 'global' // Força a remoção de todas as sessões
       });
       
-      console.log('[DIAGNÓSTICO LOGOUT] Resultado de signOut:', { error });
-      
       if (error) {
-        console.error('[DIAGNÓSTICO LOGOUT] Erro no logout:', error);
+        console.error('[DIAGNÓSTICO LOGOUT] Erro no signOut:', error);
         throw error;
       }
       
-      // Verifica se a sessão foi realmente limpa
+      console.log('[DIAGNÓSTICO LOGOUT] signOut concluído, limpando localStorage...');
+      
+      // 2. Limpar TODOS os possíveis tokens e dados do Supabase no localStorage
+      const supabaseKeys = Object.keys(localStorage).filter(key => 
+        key.includes('supabase') || 
+        key.includes('sb-') || 
+        key.includes('auth')
+      );
+      
+      console.log('[DIAGNÓSTICO LOGOUT] Chaves do Supabase encontradas:', supabaseKeys);
+      
+      // Remover cada chave encontrada
+      supabaseKeys.forEach(key => {
+        console.log('[DIAGNÓSTICO LOGOUT] Removendo chave:', key);
+        localStorage.removeItem(key);
+      });
+      
+      // 3. Limpar explicitamente as chaves mais comuns
+      localStorage.removeItem('sb-supabase-auth-token');
+      localStorage.removeItem('supabase.auth.token');
+      
+      // 4. Verificar se a sessão foi realmente limpa
       const { data: checkSession } = await supabase.auth.getSession();
       console.log('[DIAGNÓSTICO LOGOUT] Verificação da sessão após logout:', 
-        checkSession.session ? 'Ainda existe sessão (ERRO!)' : 'Sessão removida com sucesso');
+        checkSession.session ? 'ERRO: Ainda existe sessão!' : 'OK: Sessão removida');
       
-      console.log('[DIAGNÓSTICO LOGOUT] Logout bem-sucedido, redirecionando...');
+      if (checkSession.session) {
+        console.error('[DIAGNÓSTICO LOGOUT] ALERTA: Sessão ainda existe após logout! Forçando limpeza...');
+        // Ultima tentativa: forçar limpeza de estado local e redirecionamento
+        window.localStorage.clear(); // Limpeza radical
+      }
+      
+      // 5. Notificar sucesso
+      console.log('[DIAGNÓSTICO LOGOUT] Logout completo, redirecionando...');
       toast.success('Logout realizado com sucesso');
       
-      // Forçar limpar localStorage diretamente para garantir
-      localStorage.removeItem('supabase.auth.token');
-      console.log('[DIAGNÓSTICO LOGOUT] LocalStorage limpo');
-      
-      // Força a navegação com reload para garantir reset completo do estado
+      // 6. Forçar navegação com recarregamento completo para garantir a limpeza de todo o estado
+      console.log('[DIAGNÓSTICO LOGOUT] Forçando navegação para /login com reload completo');
       window.location.href = '/login';
+      
     } catch (error: any) {
       console.error('[DIAGNÓSTICO LOGOUT] Erro detalhado no logout:', error);
-      toast.error('Erro no logout', {
+      
+      // Fallback: limpar localStorage e forçar redirecionamento mesmo em caso de erro
+      console.log('[DIAGNÓSTICO LOGOUT] Executando limpeza de emergência do localStorage');
+      localStorage.clear();
+      
+      toast.error('Erro no logout, mas redirecionando mesmo assim', {
         description: error.message || 'Tente novamente'
       });
+      
+      // Forçar redirecionamento com reload mesmo em caso de erro
+      console.log('[DIAGNÓSTICO LOGOUT] Redirecionamento de emergência para /login');
+      window.location.replace('/login');
     }
   }, []);
 

@@ -43,23 +43,57 @@ export const useAuthState = () => {
     }
   }, []);
 
+  // Limpa todo o estado de autenticação
+  const clearAuthState = useCallback(() => {
+    console.log('[DIAGNÓSTICO LOGOUT] Limpando estado de autenticação explicitamente');
+    setUser(null);
+    setSession(null);
+    setProfile(null);
+  }, []);
+
   useEffect(() => {
-    console.log('Initializing auth state...');
+    console.log('Inicializando auth state...');
     
-    // 1. Set up auth state change listener
+    // 1. Set up auth state change listener with detailed logging
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
-        console.log('Auth state changed. Event:', event, 'Session:', currentSession ? 'exists' : 'null');
+        console.log('[onAuthStateChange] Evento recebido:', event);
+        console.log('[onAuthStateChange] Sessão recebida:', currentSession ? 'Existe sessão' : 'Sem sessão');
         
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        
-        if (currentSession?.user) {
-          console.log('User authenticated, fetching profile...');
-          await updateProfile(currentSession.user);
-        } else {
-          console.log('User signed out or session expired');
+        if (event === 'SIGNED_OUT') {
+          console.log('[onAuthStateChange] Evento SIGNED_OUT detectado, limpando estado...');
+          setUser(null);
+          setSession(null);
           setProfile(null);
+        } else if (event === 'SIGNED_IN') {
+          console.log('[onAuthStateChange] Evento SIGNED_IN detectado');
+          setSession(currentSession);
+          setUser(currentSession?.user ?? null);
+          
+          if (currentSession?.user) {
+            console.log('[onAuthStateChange] Atualizando perfil após login');
+            await updateProfile(currentSession.user);
+          }
+        } else if (event === 'TOKEN_REFRESHED') {
+          console.log('[onAuthStateChange] Evento TOKEN_REFRESHED detectado');
+          setSession(currentSession);
+          setUser(currentSession?.user ?? null);
+        } else if (event === 'USER_UPDATED') {
+          console.log('[onAuthStateChange] Evento USER_UPDATED detectado');
+          if (currentSession?.user) {
+            setUser(currentSession.user);
+            await updateProfile(currentSession.user);
+          }
+        } else {
+          console.log('[onAuthStateChange] Outro evento detectado:', event);
+          setSession(currentSession);
+          setUser(currentSession?.user ?? null);
+          
+          if (currentSession?.user) {
+            await updateProfile(currentSession.user);
+          } else {
+            setProfile(null);
+          }
         }
       }
     );
@@ -98,7 +132,7 @@ export const useAuthState = () => {
       console.log('Cleaning up auth subscription');
       subscription.unsubscribe();
     };
-  }, [updateProfile]);
+  }, [updateProfile, clearAuthState]);
 
   return {
     user,
