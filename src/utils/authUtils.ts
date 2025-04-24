@@ -1,7 +1,13 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { UserRole } from '@/types/user';
+
+// New interface to explicitly type test users
+interface TestUser {
+  email: string;
+  password: string;
+  role: 'student' | 'manager' | 'admin';
+}
 
 export const fetchUserProfile = async (userId: string, userEmail?: string | null) => {
   try {
@@ -74,12 +80,11 @@ export const createDefaultProfile = async (userId: string, email: string) => {
 
 // Função para criar manualmente os usuários de teste se necessário
 export const createTestUsers = async () => {
-  // Define test users with proper types
-  // Use explicit database-compatible role types
-  const testUsers = [
-    { email: 'student@forefy.com', password: 'Teste123', role: 'student' as const },
-    { email: 'manager@forefy.com', password: 'Teste123', role: 'manager' as const },
-    { email: 'admin@forefy.com', password: 'Teste123', role: 'admin' as const },
+  // Define test users with explicit TestUser type
+  const testUsers: TestUser[] = [
+    { email: 'student@forefy.com', password: 'Teste123', role: 'student' },
+    { email: 'manager@forefy.com', password: 'Teste123', role: 'manager' },
+    { email: 'admin@forefy.com', password: 'Teste123', role: 'admin' },
   ];
   
   console.log('Criando usuários de teste...');
