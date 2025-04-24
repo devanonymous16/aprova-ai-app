@@ -6,8 +6,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, Play, Copy, Terminal, Server } from 'lucide-react';
+import { AlertCircle, Play, Copy, Terminal, Server, ShieldCheck } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
+import { testSupabaseConnection } from '@/integrations/supabase/client';
 
 // Define the Supabase URL constant
 const SUPABASE_URL = "https://supabase.aprova-ai.com";
@@ -48,11 +49,11 @@ CREATE POLICY "Admins podem atualizar qualquer perfil" ON public.profiles
     "SELECT * FROM information_schema.tables WHERE table_schema = 'public';"
   );
   
-  const [sqlResult, setSqlResult] = useState<{
+  const [connectionStatus, setConnectionStatus] = useState<{
+    checked: boolean;
     success?: boolean;
-    data?: any;
-    error?: any;
-  }>({});
+    message?: string;
+  }>({ checked: false });
   
   const [loading, setLoading] = useState(false);
   
@@ -65,6 +66,40 @@ CREATE POLICY "Admins podem atualizar qualquer perfil" ON public.profiles
     }
   };
 
+  const checkConnection = async () => {
+    setLoading(true);
+    try {
+      const result = await testSupabaseConnection();
+      setConnectionStatus({
+        checked: true,
+        success: result.success,
+        message: result.message
+      });
+      
+      if (result.success) {
+        toast.success('Conexão com Supabase estabelecida', {
+          description: result.message
+        });
+      } else {
+        toast.error('Falha na conexão com Supabase', {
+          description: result.message
+        });
+      }
+    } catch (error: any) {
+      setConnectionStatus({
+        checked: true,
+        success: false,
+        message: error.message || 'Erro desconhecido'
+      });
+      
+      toast.error('Erro ao verificar conexão', {
+        description: error.message || 'Erro desconhecido'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="container py-10 space-y-6">
       <div className="flex flex-col space-y-2">
@@ -72,16 +107,35 @@ CREATE POLICY "Admins podem atualizar qualquer perfil" ON public.profiles
         <p className="text-muted-foreground">
           Esta página permite testar e configurar a conexão com o Supabase self-hosted.
         </p>
+        
+        <div className="flex items-center gap-2 mt-2">
+          <Button
+            onClick={checkConnection}
+            disabled={loading}
+            variant="outline"
+            size="sm"
+          >
+            {loading ? (
+              <><RefreshCw className="mr-2 h-4 w-4 animate-spin" /> Verificando...</>
+            ) : (
+              <><ShieldCheck className="mr-2 h-4 w-4" /> Verificar Status</>
+            )}
+          </Button>
+          
+          {connectionStatus.checked && (
+            <Alert variant={connectionStatus.success ? "default" : "destructive"} className="p-2 h-auto">
+              <AlertTitle className="text-sm flex items-center gap-1">
+                {connectionStatus.success ? (
+                  <><CheckCircle2 className="h-4 w-4" /> Conectado</>
+                ) : (
+                  <><AlertCircle className="h-4 w-4" /> Desconectado</>
+                )}
+              </AlertTitle>
+              <AlertDescription className="text-xs">{connectionStatus.message}</AlertDescription>
+            </Alert>
+          )}
+        </div>
       </div>
-
-      <Alert variant="destructive" className="mb-6">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Atenção</AlertTitle>
-        <AlertDescription>
-          As funções RPC <code>get_service_status</code> e <code>exec_sql</code> não foram encontradas no servidor Supabase.
-          É necessário criar essas funções ou usar abordagens alternativas para administrar o banco de dados.
-        </AlertDescription>
-      </Alert>
 
       <div className="grid md:grid-cols-2 gap-6">
         <Card>
@@ -93,14 +147,6 @@ CREATE POLICY "Admins podem atualizar qualquer perfil" ON public.profiles
             <CardDescription>Informações sobre o servidor Supabase</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-2">
-              <div className="text-sm font-medium">URL:</div>
-              <div className="text-sm">{SUPABASE_URL}</div>
-              
-              <div className="text-sm font-medium">Projeto:</div>
-              <div className="text-sm">default</div>
-            </div>
-            
             <SupabaseSetupTester />
 
             <Alert>
