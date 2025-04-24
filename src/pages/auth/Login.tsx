@@ -1,5 +1,5 @@
 
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
@@ -9,6 +9,7 @@ import { useForm } from 'react-hook-form';
 import AuthLayout from '@/components/layout/AuthLayout';
 import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import { Separator } from '@/components/ui/separator';
+import { toast } from '@/components/ui/sonner';
 import {
   Form,
   FormControl,
@@ -27,6 +28,7 @@ export default function LoginPage() {
   const { login } = useAuth();
   const [searchParams] = useSearchParams();
   const loginType = searchParams.get('type') || 'b2c';
+  const navigate = useNavigate();
   
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -39,8 +41,36 @@ export default function LoginPage() {
   const onSubmit = async (values: z.infer<typeof loginSchema>) => {
     try {
       await login(values.email, values.password);
+      // Redirecionamento é tratado no hook de login
     } catch (error) {
       // Error handling is done in the login method
+    }
+  };
+  
+  const handleTestLogin = async (role: string) => {
+    try {
+      let email = '';
+      let password = 'Teste123';
+      
+      switch(role) {
+        case 'student':
+          email = 'student@forefy.com';
+          break;
+        case 'manager':
+          email = 'manager@forefy.com';
+          break;
+        case 'admin':
+          email = 'admin@forefy.com';
+          break;
+      }
+      
+      toast.info(`Fazendo login como ${role}...`, {
+        description: `Email: ${email}, Senha: ${password}`
+      });
+      
+      await login(email, password);
+    } catch (error: any) {
+      toast.error(`Erro no login de teste: ${error.message}`);
     }
   };
 
@@ -125,6 +155,40 @@ export default function LoginPage() {
             </Button>
           </form>
         </Form>
+        
+        {/* Botões de login de teste (apenas para desenvolvimento) */}
+        <div className="mt-8 border-t pt-4">
+          <p className="text-sm text-gray-500 mb-2 text-center">Acessos para teste:</p>
+          <div className="flex flex-col gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => handleTestLogin('student')}
+              className="w-full"
+            >
+              Login como Estudante
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => handleTestLogin('manager')}
+              className="w-full"
+            >
+              Login como Gerente
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => handleTestLogin('admin')}
+              className="w-full"
+            >
+              Login como Admin
+            </Button>
+          </div>
+          <p className="text-xs text-gray-400 mt-2 text-center">
+            Senha padrão para todos: Teste123
+          </p>
+        </div>
       </div>
     </AuthLayout>
   );

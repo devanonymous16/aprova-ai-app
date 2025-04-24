@@ -29,18 +29,11 @@ export default function RoleGuard({
       } : null,
       allowedRoles
     });
-    
-    if (profile) {
-      console.log('Verificando permissão:', {
-        userRole: profile.role,
-        allowedRoles,
-        hasAccess: hasRole(allowedRoles)
-      });
-    }
-  }, [isAuthenticated, loading, profile, user, hasRole, allowedRoles]);
+  }, [isAuthenticated, loading, profile, user, allowedRoles]);
   
   // Aguarda o carregamento da autenticação
   if (loading) {
+    console.log('RoleGuard: Still loading auth state...');
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-900"></div>
@@ -57,12 +50,18 @@ export default function RoleGuard({
   // Se o perfil não foi carregado corretamente
   if (!profile) {
     console.log('RoleGuard: User profile not loaded, redirecting to unauthorized page');
+    toast.warning('Perfil não encontrado', {
+      description: 'Faça login novamente para continuar'
+    });
     return <Navigate to="/unauthorized" />;
   }
   
   // Se não tiver o papel necessário, redireciona para a página não autorizada
   if (!hasRole(allowedRoles)) {
     console.log(`RoleGuard: User does not have required role(s): Current role=${profile.role}, Required=${Array.isArray(allowedRoles) ? allowedRoles.join(', ') : allowedRoles}`);
+    toast.error('Acesso negado', {
+      description: 'Você não tem permissão para acessar esta página'
+    });
     return <Navigate to="/unauthorized" />;
   }
   

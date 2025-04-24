@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, getCurrentSession, getCurrentUser } from '@/integrations/supabase/client';
 import { UserRole } from '@/types/user';
 import { fetchUserProfile } from '@/utils/authUtils';
 
@@ -44,15 +44,18 @@ export const useAuthState = () => {
   }, []);
 
   useEffect(() => {
+    console.log('Initializing auth state...');
+    
+    // 1. Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
-        console.log('Auth state changed:', event);
+        console.log('Auth state changed:', event, 'Session:', currentSession ? 'exists' : 'null');
         
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
         if (currentSession?.user) {
-          // Fetch profile immediately, not with setTimeout
+          console.log('User authenticated, fetching profile...');
           await updateProfile(currentSession.user);
         } else {
           setProfile(null);
@@ -60,25 +63,38 @@ export const useAuthState = () => {
       }
     );
 
+    // 2. Initialize auth state from stored session
     const initializeAuth = async () => {
       try {
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        console.log('Getting stored session...');
+        const { data } = await getCurrentSession();
+        const currentSession = data.session;
         
+        console.log('Retrieved session:', currentSession ? 'exists' : 'null');
         setSession(currentSession);
-        setUser(currentSession?.user ?? null);
         
         if (currentSession?.user) {
+          console.log('User from stored session:', currentSession.user.email);
+          setUser(currentSession.user);
           await updateProfile(currentSession.user);
+        } else {
+          console.log('No stored session found');
+          setUser(null);
+          setProfile(null);
         }
       } catch (error) {
         console.error('Error during auth initialization:', error);
       } finally {
         setLoading(false);
+        console.log('Auth initialization complete');
       }
     };
     
     initializeAuth();
-    return () => subscription.unsubscribe();
+    return () => {
+      console.log('Cleaning up auth subscription');
+      subscription.unsubscribe();
+    };
   }, [updateProfile]);
 
   return {

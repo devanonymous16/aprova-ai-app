@@ -9,12 +9,37 @@ export const useAuthActions = () => {
 
   const login = useCallback(async (email: string, password: string) => {
     try {
+      console.log('Login attempt with email:', email);
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Login error:', error);
+        throw error;
+      }
+      
+      console.log('Login successful:', data.user?.email);
+      console.log('Session established:', !!data.session);
       
       toast.success('Login realizado com sucesso');
-      navigate('/dashboard');
+      
+      // Determine o papel do usuário e redirecione para o dashboard correspondente
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user?.id)
+        .single();
+        
+      console.log('User role:', profileData?.role);
+      
+      if (profileData?.role === 'student') {
+        navigate('/dashboard/student');
+      } else if (profileData?.role === 'manager') {
+        navigate('/dashboard/manager');
+      } else if (profileData?.role === 'admin') {
+        navigate('/dashboard/admin');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (error: any) {
       console.error('Login error:', error);
       toast.error('Erro no login', {
@@ -43,10 +68,13 @@ export const useAuthActions = () => {
 
   const logout = useCallback(async () => {
     try {
+      console.log('Logging out...');
       await supabase.auth.signOut();
+      console.log('Logout successful');
       toast.success('Logout realizado com sucesso');
       navigate('/login');
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Logout error:', error);
       toast.error('Erro no logout');
     }
   }, [navigate]);
