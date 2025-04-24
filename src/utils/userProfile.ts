@@ -3,7 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const fetchUserProfile = async (userId: string, userEmail?: string | null) => {
   try {
-    console.log(`Fetching profile for user: ${userId}`);
+    console.log(`Fetching profile for user: ${userId}, email: ${userEmail || 'not provided'}`);
+    
     const { data, error } = await supabase
       .from('profiles')
       .select('role, name, avatar_url')
@@ -38,7 +39,7 @@ export const fetchUserProfile = async (userId: string, userEmail?: string | null
 };
 
 export const createDefaultProfile = async (userId: string, email: string) => {
-  console.log('Creating default profile for:', userId);
+  console.log('Creating default profile for:', userId, 'with email:', email);
   
   let defaultRole: 'student' | 'manager' | 'admin' = 'student';
   if (email.includes('admin')) defaultRole = 'admin';
@@ -46,7 +47,6 @@ export const createDefaultProfile = async (userId: string, email: string) => {
   
   try {
     console.log('Default role assigned based on email pattern:', defaultRole);
-    console.log('Inserting profile data into profiles table...');
     
     const profileData = {
       id: userId,

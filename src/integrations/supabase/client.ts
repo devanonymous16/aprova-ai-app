@@ -2,23 +2,23 @@
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '@/utils/supabaseCustomTypes';
 
-// Credenciais do Supabase - definidas diretamente para evitar erros com process.env
-const SUPABASE_URL = import.meta.env.SUPABASE_URL || "https://supabase.aprova-ai.com";
-const SUPABASE_ANON_KEY = import.meta.env.SUPABASE_ANON_KEY || "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTcyMjc0ODQ0MCwiZXhwIjo0ODc4NDIyMDQwLCJyb2xlIjoiYW5vbiJ9.ozSzs-WV4AU67whaN9d5b01ZaJcNPqcYyQFrHWu3gAQ";
+// Explicitly define Supabase URL and key for clarity
+const SUPABASE_URL = 'https://supabase.aprova-ai.com';
+const SUPABASE_ANON_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTcyMjc0ODQ0MCwiZXhwIjo0ODc4NDIyMDQwLCJyb2xlIjoiYW5vbiJ9.ozSzs-WV4AU67whaN9d5b01ZaJcNPqcYyQFrHWu3gAQ';
 
 console.log('Initializing Supabase client with:', {
   url: SUPABASE_URL,
-  anonKey: SUPABASE_ANON_KEY ? 'Key exists (not showing for security)' : 'Key missing'
+  anonKey: SUPABASE_ANON_KEY.substring(0, 10) + '...' // Show partial key for debugging
 });
 
-// Cliente do Supabase com configurações atualizadas
+// Initialize Supabase client with explicit values
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
     storage: localStorage,
     detectSessionInUrl: true,
-    flowType: 'implicit' // Adicionado para melhor compatibilidade
+    flowType: 'implicit'
   },
   global: {
     headers: {
@@ -27,41 +27,41 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, 
   }
 });
 
-// Função para verificar estado da sessão atual
+// Get current session
 export const getCurrentSession = async () => {
   try {
     console.log('Getting stored session...');
     const { data, error } = await supabase.auth.getSession();
     if (error) {
-      console.error("Erro ao obter sessão:", error);
+      console.error("Error getting session:", error);
       throw error;
     }
     console.log('Session retrieved:', data.session ? 'Session exists' : 'No session');
     return { data };
   } catch (error) {
-    console.error("Exceção ao obter sessão:", error);
+    console.error("Exception getting session:", error);
     throw error;
   }
 };
 
-// Função para verificar usuário atual
+// Get current user
 export const getCurrentUser = async () => {
   try {
     console.log('Getting current user...');
     const { data, error } = await supabase.auth.getUser();
     if (error) {
-      console.error("Erro ao obter usuário:", error);
+      console.error("Error getting user:", error);
       throw error;
     }
     console.log('User retrieved:', data?.user?.email || 'No user');
     return data?.user;
   } catch (error) {
-    console.error("Exceção ao obter usuário:", error);
+    console.error("Exception getting user:", error);
     throw error;
   }
 };
 
-// Função para testar explicitamente a conexão com o Supabase
+// Test Supabase connection
 export const testSupabaseConnection = async () => {
   try {
     console.log('Testando conexão com Supabase URL:', SUPABASE_URL);

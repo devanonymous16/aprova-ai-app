@@ -10,21 +10,39 @@ export const useAuthActions = () => {
   const login = useCallback(async (email: string, password: string) => {
     try {
       console.log('Login attempt with email:', email);
+      
+      if (!email || !password) {
+        console.error('Missing email or password');
+        throw new Error('Email e senha são obrigatórios');
+      }
+      
       console.log('Calling supabase.auth.signInWithPassword...');
       
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ 
+        email, 
+        password 
+      });
       
       if (error) {
         console.error('Login error:', error);
         console.error('Login error details:', { code: error.code, message: error.message });
+        
+        if (error.message.includes('Invalid login credentials')) {
+          throw new Error('Email ou senha inválidos');
+        }
         throw error;
       }
       
-      console.log('Login successful:', data.user?.email);
+      if (!data.user) {
+        console.error('No user returned after successful login');
+        throw new Error('Erro ao processar login');
+      }
+      
+      console.log('Login successful:', data.user.email);
       console.log('Session established:', !!data.session);
       console.log('User details:', {
-        id: data.user?.id,
-        email: data.user?.email,
+        id: data.user.id,
+        email: data.user.email,
         sessionExpiry: data.session?.expires_at
       });
       
@@ -35,7 +53,7 @@ export const useAuthActions = () => {
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('role')
-        .eq('id', data.user?.id)
+        .eq('id', data.user.id)
         .single();
         
       if (profileError) {
@@ -122,11 +140,16 @@ export const useAuthActions = () => {
     }
   ) => {
     try {
-      console.log('Registrando novo usuário:', email);
-      console.log('Dados de registro:', { name: metadata.name, birth_date: metadata.birth_date, cpf: 'oculto por privacidade' });
+      console.log('Registering new user:', email);
+      console.log('Registration data:', { name: metadata.name, birth_date: metadata.birth_date, cpf: 'hidden for privacy' });
+      
+      if (!email || !password) {
+        console.error('Missing email or password');
+        throw new Error('Email e senha são obrigatórios');
+      }
       
       // 1. Signup with Supabase Auth
-      console.log('Chamando supabase.auth.signUp...');
+      console.log('Calling supabase.auth.signUp...');
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -136,45 +159,48 @@ export const useAuthActions = () => {
             cpf: metadata.cpf,
             birth_date: metadata.birth_date,
             role: 'student'  // Default role for all signed up users
-          }
+          },
+          emailRedirectTo: `${window.location.origin}/login`
         }
       });
       
       if (error) {
-        console.error('Erro no cadastro:', error);
-        console.error('Detalhes do erro:', { code: error.code, message: error.message });
+        console.error('Signup error:', error);
+        console.error('Error details:', { code: error.code, message: error.message });
         throw error;
       }
 
-      console.log('Usuário registrado com sucesso:', data);
+      if (!data.user) {
+        console.error('No user returned after successful signup');
+        throw new Error('Erro ao processar cadastro');
+      }
+
+      console.log('User registered successfully:', data.user.id);
 
       // 2. Create profile record in profiles table
-      if (data.user) {
-        console.log('Criando perfil para usuário:', data.user.id);
-        
-        console.log('Chamando supabase.from("profiles").insert...');
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: data.user.id,
-            email: email,
-            name: metadata.name,
-            role: 'student', // Always student for signup via platform
-            birth_date: metadata.birth_date,
-            cpf: metadata.cpf
-          })
-          .select('*')
-          .single();
+      console.log('Creating profile for user:', data.user.id);
+      
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: data.user.id,
+          email: email,
+          name: metadata.name,
+          role: 'student', // Always student for signup via platform
+          birth_date: metadata.birth_date,
+          cpf: metadata.cpf
+        })
+        .select()
+        .single();
 
-        if (profileError) {
-          console.error('Error creating profile:', profileError);
-          console.error('Detalhes do erro de perfil:', { code: profileError.code, message: profileError.message });
-          toast.error('Erro ao criar perfil', { 
-            description: profileError.message 
-          });
-        } else {
-          console.log('Perfil criado com sucesso:', profileData);
-        }
+      if (profileError) {
+        console.error('Error creating profile:', profileError);
+        console.error('Profile error details:', { code: profileError.code, message: profileError.message });
+        toast.error('Erro ao criar perfil', { 
+          description: profileError.message 
+        });
+      } else {
+        console.log('Profile created successfully:', profileData);
       }
       
       toast.success('Conta criada com sucesso', {
