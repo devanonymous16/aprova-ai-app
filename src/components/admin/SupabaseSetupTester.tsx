@@ -8,6 +8,9 @@ import { Separator } from '@/components/ui/separator';
 import { CheckIcon, AlertTriangleIcon, XIcon } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 
+// Define constants for the Supabase configuration
+const SUPABASE_URL = "https://supabase.aprova-ai.com";
+
 type TestStatus = 'idle' | 'loading' | 'success' | 'error';
 
 export default function SupabaseSetupTester() {
@@ -152,7 +155,7 @@ export default function SupabaseSetupTester() {
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span>URL do Supabase</span>
-              <code className="px-2 py-1 bg-gray-100 rounded text-xs">{process.env.SUPABASE_URL || 'https://supabase.aprova-ai.com'}</code>
+              <code className="px-2 py-1 bg-gray-100 rounded text-xs">{SUPABASE_URL}</code>
             </div>
           </div>
         </CardContent>

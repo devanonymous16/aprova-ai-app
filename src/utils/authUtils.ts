@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { UserRole } from '@/types/user';
@@ -73,9 +74,9 @@ export const createDefaultProfile = async (userId: string, email: string) => {
 // Função para criar manualmente os usuários de teste se necessário
 export const createTestUsers = async () => {
   const testUsers = [
-    { email: 'student@forefy.com', password: 'Teste123', role: 'student' },
-    { email: 'manager@forefy.com', password: 'Teste123', role: 'manager' },
-    { email: 'admin@forefy.com', password: 'Teste123', role: 'admin' },
+    { email: 'student@forefy.com', password: 'Teste123', role: 'student' as UserRole },
+    { email: 'manager@forefy.com', password: 'Teste123', role: 'manager' as UserRole },
+    { email: 'admin@forefy.com', password: 'Teste123', role: 'admin' as UserRole },
   ];
   
   console.log('Criando usuários de teste...');
@@ -83,7 +84,13 @@ export const createTestUsers = async () => {
   for (const user of testUsers) {
     try {
       // Verificar se o usuário já existe
-      const { data: existingUsers } = await supabase.auth.admin.listUsers();
+      const { data: existingUsers, error: listError } = await supabase.auth.admin.listUsers();
+      
+      if (listError) {
+        console.error(`Erro ao listar usuários: ${listError.message}`);
+        continue;
+      }
+      
       const userExists = existingUsers?.users?.find(u => u.email === user.email);
       
       if (userExists) {
@@ -124,7 +131,7 @@ export const createTestUsers = async () => {
           console.log(`Usuário e perfil criados com sucesso: ${user.email}`);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Erro ao processar usuário ${user.email}:`, error);
     }
   }
@@ -150,6 +157,11 @@ export const repairUserProfiles = async () => {
     
     // Para cada usuário, verificar se tem perfil
     for (const user of authData.users) {
+      if (!user.email) {
+        console.log(`Usuário ${user.id} não tem email, pulando...`);
+        continue;
+      }
+      
       const { data, error } = await supabase
         .from('profiles')
         .select()
