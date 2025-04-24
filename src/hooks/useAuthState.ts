@@ -29,7 +29,7 @@ export const useAuthState = () => {
       if (profileData) {
         console.log('Profile loaded successfully:', profileData);
         setProfile({
-          role: profileData.role,
+          role: profileData.role as UserRole,  // Explicitly cast to UserRole
           name: profileData.name,
           avatar_url: profileData.avatar_url
         });

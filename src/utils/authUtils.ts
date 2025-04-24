@@ -1,9 +1,8 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { UserRole } from '@/types/user';
 
-export const fetchUserProfile = async (userId: string, userEmail?: string) => {
+export const fetchUserProfile = async (userId: string, userEmail?: string | null) => {
   try {
     console.log(`Fetching profile for user: ${userId}`);
     const { data, error } = await supabase
@@ -41,6 +40,7 @@ export const fetchUserProfile = async (userId: string, userEmail?: string) => {
 export const createDefaultProfile = async (userId: string, email: string) => {
   console.log('Creating default profile for:', userId);
   
+  // Ensure role is strictly typed to UserRole
   let defaultRole: UserRole = 'student';
   if (email.includes('admin')) defaultRole = 'admin';
   else if (email.includes('manager')) defaultRole = 'manager';

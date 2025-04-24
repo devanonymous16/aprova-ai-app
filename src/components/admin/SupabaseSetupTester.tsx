@@ -48,12 +48,16 @@ export default function SupabaseSetupTester() {
     try {
       setTableStatus('loading');
       
-      // Verifica se as tabelas necessárias existem
+      // Corrigido: Usamos SQL direto em vez de acessar information_schema
       const { data, error } = await supabase
-        .from('information_schema.tables')
-        .select('table_name')
-        .eq('table_schema', 'public')
-        .in('table_name', ['profiles', 'config', 'users']);
+        .rpc('exec_sql', {
+          sql_query: `
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_schema = 'public' 
+            AND table_name IN ('profiles', 'config', 'users')
+          `
+        });
       
       if (error) {
         console.error('Erro ao verificar tabelas:', error);
