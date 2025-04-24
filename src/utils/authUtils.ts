@@ -91,7 +91,10 @@ export const createTestUsers = async () => {
   console.log('Criando usuários de teste...');
   
   for (const user of testUsers) {
+    // Armazena o email em uma constante local no início do loop
+    // para evitar problemas de inferência de tipo dentro do try/catch
     const currentUserEmail = user.email;
+
     try {
       // Verificar se o usuário já existe
       const { data: existingUsers, error: listError } = await supabase.auth.admin.listUsers();
@@ -101,27 +104,26 @@ export const createTestUsers = async () => {
         continue;
       }
       
-      // Make sure we're explicitly checking the type before accessing properties
       // Add type guard to ensure users array exists
       if (!existingUsers?.users) {
         console.error('Erro: não foi possível obter lista de usuários');
         continue;
       }
       
-      // Now TypeScript knows this is an array with email property
-      // Fix: Explicitly type the user object from the find method to ensure TypeScript knows it has an email property
+      // Use type guard for find
       const userExists = existingUsers.users.find((u): u is { email: string } & typeof u => 
-        typeof u.email === 'string' && u.email === currentUserEmail
+        typeof u.email === 'string' && u.email === currentUserEmail // Use currentUserEmail here for comparison
       );
       
       if (userExists) {
+        // Use currentUserEmail for logging
         console.log(`Usuário ${currentUserEmail} já existe, pulando...`);
         continue;
       }
       
-      // Criar o usuário
+      // Criar o usuário (usa user.email e user.password diretamente, pois o tipo TestUser é claro aqui)
       const { data, error } = await supabase.auth.signUp({
-        email: currentUserEmail,
+        email: user.email,
         password: user.password,
         options: {
           data: {
@@ -131,6 +133,7 @@ export const createTestUsers = async () => {
       });
       
       if (error) {
+        // Use currentUserEmail for logging
         console.error(`Erro ao criar usuário ${currentUserEmail}:`, error);
         continue;
       }
@@ -139,23 +142,26 @@ export const createTestUsers = async () => {
       
       // Criar perfil
       if (data.user) {
-        // Use the proper role type here, constrained to Supabase enum values
+        // Use user.email and user.role directly here as TestUser type is clear
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
             id: data.user.id,
-            email: currentUserEmail,
-            name: currentUserEmail.split('@')[0],
-            role: user.role // Already typed as 'student' | 'manager' | 'admin'
+            email: user.email, // Mantém user.email para o dado a ser inserido
+            name: user.email.split('@')[0], // Mantém user.email para o dado a ser inserido
+            role: user.role
           });
           
         if (profileError) {
+          // Use currentUserEmail for logging
           console.error(`Erro ao criar perfil para ${currentUserEmail}:`, profileError);
         } else {
+          // Use currentUserEmail for logging
           console.log(`Usuário e perfil criados com sucesso: ${currentUserEmail}`);
         }
       }
     } catch (error: any) {
+      // Use currentUserEmail for logging
       console.error(`Erro ao processar usuário ${currentUserEmail}:`, error);
     }
   }
