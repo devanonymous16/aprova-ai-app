@@ -55,6 +55,10 @@ export default function UnauthorizedPage() {
     checkSupabaseConnection();
   }, [profile, navigate]);
 
+  const handleProfileCreated = () => {
+    window.location.reload();
+  };
+
   return (
     <div className="min-h-[80vh] flex flex-col items-center justify-center px-4 py-12">
       <UnauthorizedHeader profile={profile} />
@@ -81,6 +85,7 @@ export default function UnauthorizedPage() {
         handleCheckProfile={async () => {}} // Empty because handling is moved to UnauthorizedProfileCheck
         isChecking={false}
         logout={async () => {}} // Empty because we're using force logout
+        handleProfileCreated={handleProfileCreated}
       />
 
       <UnauthorizedDebugInfo
