@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -56,18 +55,13 @@ export default function UnauthorizedPage() {
           });
         }
       } catch (err: any) {
-        console.error('Exceção ao conectar com Supabase:', err);
+        console.error('Exceção ao conectar com Supabase:', err.message);
         setSupabaseInfo({ error: err.message, status: 'exception' });
       }
     };
 
     checkSupabaseConnection();
   }, [profile, navigate]);
-
-  const handleProfileCreated = () => {
-    console.log('Perfil criado, redirecionando para dashboard');
-    window.location.href = '/dashboard';
-  };
 
   const handleCheckProfile = async () => {
     if (!user) return;
@@ -102,6 +96,24 @@ export default function UnauthorizedPage() {
     }
   };
   
+  const handleForceLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      // Usa a função de logout forçado
+      await forceLogout();
+      
+      // Redireciona para a página de login
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Erro ao forçar logout:', error);
+      toast.error('Erro ao fazer logout forçado', {
+        description: 'Tente recarregar a página'
+      });
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
   const handleReconnect = async () => {
     setIsReconnecting(true);
     try {
@@ -130,24 +142,6 @@ export default function UnauthorizedPage() {
       console.error('Erro ao tentar reconectar:', error);
     } finally {
       setIsReconnecting(false);
-    }
-  };
-  
-  const handleForceLogout = async () => {
-    setIsLoggingOut(true);
-    try {
-      // Usa a função de logout forçado
-      await forceLogout();
-      
-      // Redireciona para a página de login
-      window.location.href = '/login';
-    } catch (error) {
-      console.error('Erro ao forçar logout:', error);
-      toast.error('Erro ao fazer logout forçado', {
-        description: 'Tente recarregar a página'
-      });
-    } finally {
-      setIsLoggingOut(false);
     }
   };
   

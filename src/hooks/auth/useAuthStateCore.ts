@@ -72,10 +72,9 @@ export const useAuthStateCore = () => {
         
         if (currentSession?.user) {
           await updateProfile(currentSession.user);
-        } else {
-          setProfile(null);
-          setLoading(false);
         }
+        
+        setLoading(false);
       }
     );
     
