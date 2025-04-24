@@ -41,8 +41,9 @@ export const fetchUserProfile = async (userId: string, userEmail?: string | null
 export const createDefaultProfile = async (userId: string, email: string) => {
   console.log('Creating default profile for:', userId);
   
-  // Ensure role is strictly typed to UserRole
-  let defaultRole: UserRole = 'student';
+  // Ensure role is strictly typed to be compatible with Supabase DB enum
+  // Exclude 'visitor' from role options for database
+  let defaultRole: 'student' | 'manager' | 'admin' = 'student';
   if (email.includes('admin')) defaultRole = 'admin';
   else if (email.includes('manager')) defaultRole = 'manager';
   
@@ -73,10 +74,12 @@ export const createDefaultProfile = async (userId: string, email: string) => {
 
 // Função para criar manualmente os usuários de teste se necessário
 export const createTestUsers = async () => {
+  // Define test users with proper types
+  // Use explicit database-compatible role types
   const testUsers = [
-    { email: 'student@forefy.com', password: 'Teste123', role: 'student' as UserRole },
-    { email: 'manager@forefy.com', password: 'Teste123', role: 'manager' as UserRole },
-    { email: 'admin@forefy.com', password: 'Teste123', role: 'admin' as UserRole },
+    { email: 'student@forefy.com', password: 'Teste123', role: 'student' as const },
+    { email: 'manager@forefy.com', password: 'Teste123', role: 'manager' as const },
+    { email: 'admin@forefy.com', password: 'Teste123', role: 'admin' as const },
   ];
   
   console.log('Criando usuários de teste...');
@@ -91,7 +94,15 @@ export const createTestUsers = async () => {
         continue;
       }
       
-      const userExists = existingUsers?.users?.find(u => u.email === user.email);
+      // Make sure we're explicitly checking the type before accessing properties
+      // Add type guard to ensure users array exists
+      if (!existingUsers?.users) {
+        console.error('Erro: não foi possível obter lista de usuários');
+        continue;
+      }
+      
+      // Now TypeScript knows this is an array with email property
+      const userExists = existingUsers.users.find(u => u.email === user.email);
       
       if (userExists) {
         console.log(`Usuário ${user.email} já existe, pulando...`);
@@ -116,13 +127,14 @@ export const createTestUsers = async () => {
       
       // Criar perfil
       if (data.user) {
+        // Use the proper role type here, constrained to Supabase enum values
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
             id: data.user.id,
             email: user.email,
             name: user.email.split('@')[0],
-            role: user.role
+            role: user.role // Already typed as 'student' | 'manager' | 'admin'
           });
           
         if (profileError) {
@@ -176,8 +188,8 @@ export const repairUserProfiles = async () => {
       if (!data) {
         console.log(`Usuário ${user.email} não tem perfil, criando...`);
         
-        // Determinar role
-        let role: UserRole = 'student';
+        // Determinar role - use only valid Supabase enum values
+        let role: 'student' | 'manager' | 'admin' = 'student';
         if (user.email?.includes('admin')) role = 'admin';
         else if (user.email?.includes('manager')) role = 'manager';
         
