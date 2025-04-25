@@ -1,6 +1,17 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
+// Define the interface for the Admin API User
+interface AdminApiUser {
+  id: string;
+  email?: string | null;
+  email_confirmed_at?: string | null;
+  created_at?: string;
+  user_metadata?: {
+    name?: string;
+  };
+}
+
 interface TestUser {
   email: string;
   role: 'student' | 'manager' | 'admin';
@@ -25,19 +36,24 @@ export const cleanupTestUsers = async () => {
       throw listError;
     }
     
-    console.log(`Found ${users.length} total users`);
+    const typedUsers = users as AdminApiUser[];
+    console.log(`Found ${typedUsers.length} total users`);
     
     // 2. Delete users that aren't in our test set
     const testEmails = TEST_USERS.map(u => u.email.toLowerCase());
-    const usersToDelete = users.filter(u => !testEmails.includes(u.email?.toLowerCase() || ''));
+    const usersToDelete = typedUsers.filter(u => {
+      const userEmail = u.email?.toLowerCase();
+      return userEmail && !testEmails.includes(userEmail);
+    });
     
     console.log(`Found ${usersToDelete.length} users to delete`);
     
     for (const user of usersToDelete) {
-      console.log(`Deleting user: ${user.email}`);
+      const userEmail = user.email;
+      console.log(`Deleting user: ${userEmail}`);
       const { error: deleteError } = await supabase.auth.admin.deleteUser(user.id);
       if (deleteError) {
-        console.error(`Error deleting user ${user.email}:`, deleteError);
+        console.error(`Error deleting user ${userEmail}:`, deleteError);
       }
     }
     
@@ -46,7 +62,7 @@ export const cleanupTestUsers = async () => {
       console.log(`Processing test user: ${testUser.email}`);
       
       // Check if user exists
-      const existingUser = users.find(u => 
+      const existingUser = typedUsers.find(u => 
         u.email?.toLowerCase() === testUser.email.toLowerCase()
       );
       
@@ -107,9 +123,10 @@ export const cleanupTestUsers = async () => {
       throw finalListError;
     }
     
-    const finalUserCount = finalUsers.length;
+    const typedFinalUsers = finalUsers as AdminApiUser[];
+    const finalUserCount = typedFinalUsers.length;
     const allTestUsersExist = TEST_USERS.every(testUser => 
-      finalUsers.some(u => u.email?.toLowerCase() === testUser.email.toLowerCase())
+      typedFinalUsers.some(u => u.email?.toLowerCase() === testUser.email.toLowerCase())
     );
     
     console.log('Cleanup completed!');
