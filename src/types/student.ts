@@ -34,7 +34,7 @@ export interface Subscription {
 export interface StudentExam {
   id: string;
   student_id: string;
-  exam_position_id: string;
+  exam_position_id: string;  // Updated from exam_positions_id
   status: ExamPositionStatus;
   progress_percentage: number;
   created_at: string;
