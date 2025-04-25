@@ -1,9 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExamPosition, StudentExam } from "@/types/student";
-import { ArrowLeft, Calendar, CircleDollarSign, Users, BookOpen, BarChart2 } from "lucide-react";
+import { ArrowLeft, Calendar, CircleDollarSign, Users, BookOpen, BarChart2, Clock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
@@ -38,7 +39,7 @@ export default function StudentExamDetail() {
           return;
         }
 
-        setExam(examData as ExamPosition);
+        setExam(examData as unknown as ExamPosition);
         
         // 2. Check student access
         if (user) {
@@ -56,7 +57,7 @@ export default function StudentExamDetail() {
           }
 
           if (accessData) {
-            setStudentExam(accessData as StudentExam);
+            setStudentExam(accessData as unknown as StudentExam);
           }
         }
         
