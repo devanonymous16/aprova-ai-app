@@ -1,14 +1,23 @@
 
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { BookOpen, BarChart2, AlertTriangle, TrendingUp } from 'lucide-react';
+import { Check, CalendarDays, TrendingUp, Award, Timer } from 'lucide-react';
 
 interface ProgressOverviewProps {
   overallProgress: number;
-  examCount: number;
+  metrics: {
+    questionsResolved: number;
+    practiceDays: { current: number; total: number };
+    performance: number;
+    ranking: { position: number; total: number };
+    practiceTime: { hours: number; minutes: number };
+  };
 }
 
-export default function ProgressOverview({ overallProgress, examCount }: ProgressOverviewProps) {
+export default function ProgressOverview({ overallProgress, metrics }: ProgressOverviewProps) {
+  const [expandedCard, setExpandedCard] = useState<'ranking' | 'time' | null>(null);
+
   return (
     <Card className="mb-8">
       <CardHeader className="pb-3">
@@ -23,37 +32,79 @@ export default function ProgressOverview({ overallProgress, examCount }: Progres
         </CardTitle>
       </CardHeader>
       <CardContent className="pb-2">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
           <div className="bg-gray-50 rounded-lg p-4 flex items-center gap-4">
             <div className="bg-blue-100 p-3 rounded-full">
-              <BookOpen className="h-5 w-5 text-blue-700" />
+              <Check className="h-5 w-5 text-blue-700" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Concursos ativos</p>
-              <p className="text-xl font-bold">{examCount}</p>
+              <p className="text-sm text-muted-foreground">Questões Resolvidas</p>
+              <p className="text-xl font-bold">{metrics.questionsResolved}</p>
             </div>
           </div>
           
           <div className="bg-gray-50 rounded-lg p-4 flex items-center gap-4">
             <div className="bg-purple-100 p-3 rounded-full">
-              <BarChart2 className="h-5 w-5 text-purple-700" />
+              <CalendarDays className="h-5 w-5 text-purple-700" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Média de desempenho</p>
-              <p className="text-xl font-bold">68%</p>
+              <p className="text-sm text-muted-foreground">Dias de Prática</p>
+              <p className="text-xl font-bold">{metrics.practiceDays.current} / {metrics.practiceDays.total}</p>
             </div>
           </div>
           
           <div className="bg-gray-50 rounded-lg p-4 flex items-center gap-4">
-            <div className="bg-amber-100 p-3 rounded-full">
-              <AlertTriangle className="h-5 w-5 text-amber-700" />
+            <div className="bg-green-100 p-3 rounded-full">
+              <TrendingUp className="h-5 w-5 text-green-700" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Tópicos críticos</p>
-              <p className="text-xl font-bold">3</p>
+              <p className="text-sm text-muted-foreground">Desempenho</p>
+              <p className="text-xl font-bold">{metrics.performance}%</p>
             </div>
           </div>
+          
+          <button 
+            onClick={() => setExpandedCard(expandedCard === 'ranking' ? null : 'ranking')}
+            className="bg-gray-50 rounded-lg p-4 flex items-center gap-4 hover:bg-gray-100 transition-colors"
+          >
+            <div className="bg-amber-100 p-3 rounded-full">
+              <Award className="h-5 w-5 text-amber-700" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground text-left">Ranking de Acertos</p>
+              <p className="text-xl font-bold">#{metrics.ranking.position} de {metrics.ranking.total}</p>
+            </div>
+          </button>
+          
+          <button 
+            onClick={() => setExpandedCard(expandedCard === 'time' ? null : 'time')}
+            className="bg-gray-50 rounded-lg p-4 flex items-center gap-4 hover:bg-gray-100 transition-colors"
+          >
+            <div className="bg-cyan-100 p-3 rounded-full">
+              <Timer className="h-5 w-5 text-cyan-700" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground text-left">Tempo Praticando</p>
+              <p className="text-xl font-bold">{metrics.practiceTime.hours}h {metrics.practiceTime.minutes}m</p>
+            </div>
+          </button>
         </div>
+        
+        {expandedCard === 'ranking' && (
+          <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+            <p className="text-muted-foreground">
+              Placeholder: Aqui aparecerá o ranking detalhado por Tópicos.
+            </p>
+          </div>
+        )}
+        
+        {expandedCard === 'time' && (
+          <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+            <p className="text-muted-foreground">
+              Placeholder: Aqui aparecerá o tempo detalhado por Tópicos.
+            </p>
+          </div>
+        )}
         
         <div>
           <div className="flex justify-between text-sm mb-1">

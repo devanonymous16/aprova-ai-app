@@ -2,7 +2,12 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { StudentExam, ExamPosition } from '@/types/student';
-import { fetchStudentExams, fetchSuggestedExams, fetchOverallProgress } from '@/services/mockStudentData';
+import { 
+  fetchStudentExams, 
+  fetchSuggestedExams, 
+  fetchOverallProgress,
+  fetchStudentMetrics 
+} from '@/services/mockStudentData';
 import DashboardHeader from '@/components/student/dashboard/DashboardHeader';
 import ProgressOverview from '@/components/student/dashboard/ProgressOverview';
 import ExamsSection from '@/components/student/dashboard/ExamsSection';
@@ -14,6 +19,13 @@ export default function StudentDashboard() {
   const [subscribedExams, setSubscribedExams] = useState<StudentExam[]>([]);
   const [suggestedExams, setSuggestedExams] = useState<ExamPosition[]>([]);
   const [overallProgress, setOverallProgress] = useState(0);
+  const [metrics, setMetrics] = useState({
+    questionsResolved: 0,
+    practiceDays: { current: 0, total: 0 },
+    performance: 0,
+    ranking: { position: 0, total: 0 },
+    practiceTime: { hours: 0, minutes: 0 }
+  });
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
@@ -23,14 +35,17 @@ export default function StudentDashboard() {
       setLoading(true);
       try {
         if (user) {
-          const exams = await fetchStudentExams(user.id);
+          const [exams, suggested, progress, studentMetrics] = await Promise.all([
+            fetchStudentExams(user.id),
+            fetchSuggestedExams(),
+            fetchOverallProgress(user.id),
+            fetchStudentMetrics(user.id)
+          ]);
+          
           setSubscribedExams(exams);
-          
-          const suggested = await fetchSuggestedExams();
           setSuggestedExams(suggested);
-          
-          const progress = await fetchOverallProgress(user.id);
           setOverallProgress(progress);
+          setMetrics(studentMetrics);
         }
       } catch (error) {
         console.error("Error loading dashboard data:", error);
@@ -48,7 +63,7 @@ export default function StudentDashboard() {
       
       <ProgressOverview 
         overallProgress={overallProgress}
-        examCount={subscribedExams.length}
+        metrics={metrics}
       />
       
       <ExamsSection

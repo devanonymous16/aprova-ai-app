@@ -1,4 +1,3 @@
-
 import { 
   ExamPosition, 
   StudentExam, 
@@ -307,4 +306,25 @@ export const getTopicPerformanceComparison = async (studentId: string, examPosit
       difference: performancePercent - avgPerformance
     };
   }).sort((a, b) => b.difference - a.difference);
+};
+
+// New mock metrics data
+export const fetchStudentMetrics = (studentId: string): Promise<{
+  questionsResolved: number;
+  practiceDays: { current: number; total: number };
+  performance: number;
+  ranking: { position: number; total: number };
+  practiceTime: { hours: number; minutes: number };
+}> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({
+        questionsResolved: 1250,
+        practiceDays: { current: 25, total: 60 },
+        performance: 78,
+        ranking: { position: 15, total: 230 },
+        practiceTime: { hours: 42, minutes: 15 }
+      });
+    }, 500);
+  });
 };
