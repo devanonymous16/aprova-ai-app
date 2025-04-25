@@ -3,8 +3,8 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ExamPosition, StudentExam } from "@/types/student";
-import { ArrowLeft, Calendar, CircleDollarSign, Users, BookOpen, BarChart2, Clock } from "lucide-react";
+import { ExamPosition, StudentExam, ExamLevelData, EducationLevel } from "@/types/student";
+import { ArrowLeft, Calendar, CircleDollarSign, Users, BookOpen, BarChart2, Clock, Check } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/sonner";
@@ -14,6 +14,7 @@ export default function StudentExamDetail() {
   const { user } = useAuth();
   const [exam, setExam] = useState<ExamPosition | null>(null);
   const [studentExam, setStudentExam] = useState<StudentExam | null>(null);
+  const [educationLevel, setEducationLevel] = useState<EducationLevel | null>(null);
   const [loading, setLoading] = useState(true);
   const [accessChecked, setAccessChecked] = useState(false);
   
@@ -21,10 +22,17 @@ export default function StudentExamDetail() {
     const loadData = async () => {
       setLoading(true);
       try {
-        // 1. Load exam position details
+        // 1. Load exam position details with education level
         const { data: examData, error: examError } = await supabase
           .from('exam_positions')
-          .select('*')
+          .select(`
+            *,
+            exam:exams(
+              *,
+              institution:exam_institutions(name)
+            ),
+            education_level:exam_level_of_educations(*)
+          `)
           .eq('id', id)
           .single();
           
@@ -40,6 +48,9 @@ export default function StudentExamDetail() {
         }
 
         setExam(examData as unknown as ExamPosition);
+        if (examData.education_level) {
+          setEducationLevel(examData.education_level[0] as EducationLevel);
+        }
         
         // 2. Check student access
         if (user) {
@@ -102,6 +113,106 @@ export default function StudentExamDetail() {
           <Link to="/student/exams">
             <Button>Voltar para Meus Exames</Button>
           </Link>
+        </div>
+      </div>
+    );
+  }
+  
+  // If student doesn't have access, show subscription info
+  if (!studentExam && educationLevel) {
+    const monthlyPayment = (educationLevel.full_price / 12).toFixed(2);
+    
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Link to="/student/exams">
+          <Button variant="ghost" size="sm" className="mb-6">
+            <ArrowLeft className="mr-2 h-4 w-4" /> Voltar para Exames
+          </Button>
+        </Link>
+        
+        <div className="text-center mb-12">
+          <h1 className="text-3xl font-bold mb-4">
+            Assine para Acessar: {exam.title}
+          </h1>
+          <p className="text-xl text-muted-foreground">
+            {exam.organization}
+          </p>
+        </div>
+        
+        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+          <Card className="p-6">
+            <CardHeader className="pb-3">
+              <CardTitle>Plano Completo Forefy</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                <div className="bg-primary/5 p-4 rounded-lg">
+                  <span className="text-lg font-medium block mb-1">Anual à vista</span>
+                  <span className="text-3xl font-bold text-primary">
+                    {new Intl.NumberFormat('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL'
+                    }).format(educationLevel.promo_price)}
+                  </span>
+                </div>
+                
+                <div className="p-4">
+                  <span className="text-lg font-medium block mb-1">ou Parcelado</span>
+                  <span className="text-2xl text-muted-foreground">
+                    12x de{' '}
+                    {new Intl.NumberFormat('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL'
+                    }).format(Number(monthlyPayment))}
+                  </span>
+                </div>
+                
+                <Button className="w-full text-lg py-6" size="lg">
+                  Assinar Agora
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Benefícios Inclusos</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-4">
+                <li className="flex items-center gap-2">
+                  <div className="bg-primary/10 p-1 rounded-full">
+                    <Check className="h-4 w-4 text-primary" />
+                  </div>
+                  <span>Acesso a todos os materiais do curso</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <div className="bg-primary/10 p-1 rounded-full">
+                    <Check className="h-4 w-4 text-primary" />
+                  </div>
+                  <span>Plano de Estudos Personalizado (PEP)</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <div className="bg-primary/10 p-1 rounded-full">
+                    <Check className="h-4 w-4 text-primary" />
+                  </div>
+                  <span>Suporte com IA para dúvidas</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <div className="bg-primary/10 p-1 rounded-full">
+                    <Check className="h-4 w-4 text-primary" />
+                  </div>
+                  <span>Banco de questões comentadas</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <div className="bg-primary/10 p-1 rounded-full">
+                    <Check className="h-4 w-4 text-primary" />
+                  </div>
+                  <span>Simulados e provas anteriores</span>
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );

@@ -1,4 +1,3 @@
-
 export type ExamPositionStatus = 'pending' | 'active' | 'completed' | 'failed';
 export type SubscriptionStatus = 'active' | 'canceled' | 'pending' | 'expired';
 export type QuestionDifficulty = 'easy' | 'medium' | 'hard';
@@ -130,4 +129,21 @@ export interface StudySession {
   started_at: string;
   ended_at?: string;
   created_at: string;
+}
+
+export interface EducationLevel {
+  id: string;
+  name: string;
+  promo_price: number;
+  full_price: number;
+}
+
+export interface ExamLevelData {
+  exam: {
+    title: string;
+    organization: string;
+    exam_level_of_education_id: string;
+    description?: string;
+  };
+  educationLevel: EducationLevel | null;
 }
