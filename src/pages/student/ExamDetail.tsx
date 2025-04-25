@@ -2,46 +2,77 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { mockExamPositions, mockStudentExams } from "@/services/mockStudentData";
 import { ExamPosition, StudentExam } from "@/types/student";
-import { ArrowLeft, Calendar, CircleDollarSign, Users, BookOpen, BarChart2, Clock } from "lucide-react";
+import { ArrowLeft, Calendar, CircleDollarSign, Users, BookOpen, BarChart2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/sonner";
 
 export default function StudentExamDetail() {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const [exam, setExam] = useState<ExamPosition | null>(null);
   const [studentExam, setStudentExam] = useState<StudentExam | null>(null);
   const [loading, setLoading] = useState(true);
+  const [accessChecked, setAccessChecked] = useState(false);
   
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
       try {
-        // Check if this is a student exam ID
-        const studentExamData = mockStudentExams.find(e => e.id === id);
-        if (studentExamData) {
-          setStudentExam(studentExamData);
-          setExam(studentExamData.exam_position);
-        } else {
-          // Otherwise, find the exam position directly
-          const examData = mockExamPositions.find(e => e.id === id);
-          if (examData) {
-            setExam(examData);
-            // Check if user is subscribed
-            const subscribedExam = mockStudentExams.find(e => e.exam_position_id === examData.id);
-            if (subscribedExam) {
-              setStudentExam(subscribedExam);
-            }
+        // 1. Load exam position details
+        const { data: examData, error: examError } = await supabase
+          .from('exam_positions')
+          .select('*')
+          .eq('id', id)
+          .single();
+          
+        if (examError) {
+          console.error("Error loading exam details:", examError);
+          toast.error("Erro ao carregar detalhes do exame");
+          return;
+        }
+
+        if (!examData) {
+          toast.error("Exame não encontrado");
+          return;
+        }
+
+        setExam(examData as ExamPosition);
+        
+        // 2. Check student access
+        if (user) {
+          const { data: accessData, error: accessError } = await supabase
+            .from('student_exams')
+            .select('*')
+            .eq('student_id', user.id)
+            .eq('exam_position_id', id)
+            .maybeSingle();
+            
+          if (accessError) {
+            console.error("Error checking access:", accessError);
+            toast.error("Erro ao verificar acesso");
+            return;
+          }
+
+          if (accessData) {
+            setStudentExam(accessData as StudentExam);
           }
         }
+        
+        setAccessChecked(true);
       } catch (error) {
-        console.error("Error loading exam details:", error);
+        console.error("Error in loadData:", error);
+        toast.error("Erro ao carregar dados");
       } finally {
         setLoading(false);
       }
     };
     
-    loadData();
-  }, [id]);
+    if (id && user) {
+      loadData();
+    }
+  }, [id, user]);
   
   useEffect(() => {
     if (exam) {
@@ -51,7 +82,7 @@ export default function StudentExamDetail() {
     }
   }, [exam]);
   
-  if (loading) {
+  if (loading || !accessChecked) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex justify-center">
         <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary"></div>
@@ -74,9 +105,8 @@ export default function StudentExamDetail() {
       </div>
     );
   }
-  
-  const isSubscribed = studentExam !== null;
-  
+
+  // Render different UIs based on access
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <Link to="/student/exams">
@@ -85,7 +115,7 @@ export default function StudentExamDetail() {
         </Button>
       </Link>
       
-      {/* Header */}
+      {/* Header section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="md:col-span-2">
           <div className="flex items-center gap-4 mb-2">
@@ -143,7 +173,7 @@ export default function StudentExamDetail() {
               <CardTitle>Ações</CardTitle>
             </CardHeader>
             <CardContent>
-              {isSubscribed ? (
+              {studentExam ? (
                 <div className="space-y-4">
                   <Link to="/student/study-plan" className="block w-full">
                     <Button className="w-full">
@@ -152,7 +182,7 @@ export default function StudentExamDetail() {
                   </Link>
                   <Link to={`/student/autodiagnosis/${exam.id}`} className="block w-full">
                     <Button variant="outline" className="w-full">
-                      <BarChart2 className="mr-2 h-4 w-4" /> Refazer autodiagnóstico
+                      <BarChart2 className="mr-2 h-4 w-4" /> Fazer autodiagnóstico
                     </Button>
                   </Link>
                 </div>
@@ -164,7 +194,7 @@ export default function StudentExamDetail() {
                       <span className="text-xl font-bold">R$ 129,90</span>
                     </div>
                     <p className="text-sm text-muted-foreground mb-3">
-                      Acesso completo aos materiais e questões do concurso por 12 meses.
+                      Acesso completo aos materiais e questões do concurso.
                     </p>
                     <Button className="w-full">Assinar agora</Button>
                   </div>
@@ -186,7 +216,7 @@ export default function StudentExamDetail() {
         </div>
       </div>
       
-      {/* Details */}
+      {/* Details cards section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <Card>
           <CardHeader>
