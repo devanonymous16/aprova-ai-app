@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useCallback, ReactNode } from 'react';
+
+import React, { createContext, useContext, useCallback, ReactNode, useEffect } from 'react';
 import { useAuthState } from '@/hooks/useAuthState';
 import { useAuthActions } from '@/hooks/useAuthActions';
 import { UserRole } from '@/types/user';
@@ -21,6 +22,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  console.log('[DIAGNÓSTICO] AuthContext: Provider montando...');
+  
   const {
     user,
     profile,
@@ -28,6 +31,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loading,
     isAuthenticated
   } = useAuthState();
+  
+  useEffect(() => {
+    console.log('[DIAGNÓSTICO] AuthContext: Estado de autenticação atualizado:', { 
+      isAuthenticated, 
+      hasUser: !!user, 
+      hasProfile: !!profile,
+      loading 
+    });
+  }, [isAuthenticated, user, profile, loading]);
 
   const {
     login,
@@ -59,20 +71,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [authActionsLogout, user, session, profile, isAuthenticated]);
 
   const hasRole = useCallback((role: UserRole | UserRole[]): boolean => {
-    if (!profile) {
-      console.warn('hasRole check failed: No profile available', { user });
+    try {
+      if (!profile) {
+        console.warn('[DIAGNÓSTICO] hasRole check falhou: Nenhum perfil disponível', { user });
+        return false;
+      }
+      
+      if (Array.isArray(role)) {
+        console.log('[DIAGNÓSTICO] Verificando múltiplos papéis:', role, 'Papel atual:', profile.role);
+        return role.includes(profile.role);
+      }
+      
+      console.log('[DIAGNÓSTICO] Verificando papel único:', role, 'Papel atual:', profile.role);
+      return profile.role === role;
+    } catch (error) {
+      console.error('[DIAGNÓSTICO] Erro em hasRole:', error);
       return false;
     }
-    
-    if (Array.isArray(role)) {
-      console.log('Checking multiple roles:', role, 'Current role:', profile.role);
-      return role.includes(profile.role);
-    }
-    
-    console.log('Checking single role:', role, 'Current role:', profile.role);
-    return profile.role === role;
   }, [profile, user]);
 
+  console.log('[DIAGNÓSTICO] AuthContext: Preparando provider value');
+  
   return (
     <AuthContext.Provider value={{
       user,
@@ -88,15 +107,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       forgotPassword,
       resetPassword,
     }}>
+      {console.log('[DIAGNÓSTICO] AuthContext: Renderizando children do provider')}
       {children}
     </AuthContext.Provider>
   );
 }
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+  try {
+    console.log('[DIAGNÓSTICO] useAuth hook sendo chamado');
+    const context = useContext(AuthContext);
+    if (!context) {
+      console.error('[DIAGNÓSTICO] useAuth: ERRO - hook usado fora de AuthProvider');
+      throw new Error('useAuth must be used within an AuthProvider');
+    }
+    return context;
+  } catch (error) {
+    console.error('[DIAGNÓSTICO] Erro no hook useAuth:', error);
+    throw error;
   }
-  return context;
 };

@@ -5,10 +5,26 @@ import App from './App.tsx'
 import './index.css'
 import { StrictMode } from 'react'
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-  </StrictMode>
-);
+console.log('[DIAGNÓSTICO] main.tsx: Inicializando aplicação...');
+
+const rootElement = document.getElementById("root");
+console.log('[DIAGNÓSTICO] main.tsx: Elemento root encontrado?', !!rootElement);
+
+if (rootElement) {
+  const root = createRoot(rootElement);
+  console.log('[DIAGNÓSTICO] main.tsx: Root criado, pronto para renderizar App');
+  
+  root.render(
+    <StrictMode>
+      {console.log('[DIAGNÓSTICO] main.tsx: Renderizando dentro do StrictMode')}
+      <BrowserRouter>
+        {console.log('[DIAGNÓSTICO] main.tsx: BrowserRouter inicializado')}
+        <App />
+      </BrowserRouter>
+    </StrictMode>
+  );
+  
+  console.log('[DIAGNÓSTICO] main.tsx: Renderização inicial concluída');
+} else {
+  console.error('[DIAGNÓSTICO] main.tsx: ERRO - Elemento root não encontrado!');
+}
