@@ -9,28 +9,21 @@ export const fetchUserProfile = async (userId: string, userEmail?: string | null
   });
   
   try {
-    // Simplified query with only essential fields and increased timeout
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Query timeout after 30s')), 30000);
-    });
-    
     console.log('[PROFILE DEBUG] Iniciando query profiles simplificada...');
     
-    // Simplified query for testing
-    const queryPromise = supabase
+    // Simplified direct query without timeout
+    const { data, error } = await supabase
       .from('profiles')
-      .select('id, role, name') // Minimal fields
+      .select('id') // Temporarily only selecting id for testing
       .eq('id', userId)
       .maybeSingle();
-    
-    const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
     
     console.log('[PROFILE DEBUG] Resultado direto da query:', {
       timestamp: new Date().toISOString(),
       hasData: !!data,
       hasError: !!error,
       error: error ? { message: error.message, code: error.code } : null,
-      data: data ? { id: data.id, role: data.role } : null
+      data: data ? { id: data.id } : null
     });
 
     if (error) {
@@ -65,7 +58,7 @@ export const fetchUserProfile = async (userId: string, userEmail?: string | null
 
     console.log('[PROFILE DEBUG] Perfil encontrado com sucesso:', {
       timestamp: new Date().toISOString(),
-      profile: { id: data.id, role: data.role }
+      profile: { id: data.id }
     });
     
     return data;
