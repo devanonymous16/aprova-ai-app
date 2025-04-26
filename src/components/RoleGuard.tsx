@@ -18,22 +18,21 @@ export default function RoleGuard({
 }: RoleGuardProps) {
   const { isAuthenticated, hasRole, loading, profile } = useAuth();
   
-  // Aguarda o carregamento da autenticação
+  // Wait for authentication loading
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-900"></div>
-        <p className="ml-2 text-gray-500">Verificando permissões...</p>
       </div>
     );
   }
   
-  // Se não estiver autenticado, redireciona para o login
+  // If not authenticated, redirect to login
   if (!isAuthenticated) {
     return <Navigate to={redirectTo} replace />;
   }
   
-  // Se o perfil não foi carregado corretamente
+  // If authenticated but no profile, redirect to unauthorized
   if (!profile) {
     toast.warning('Perfil não encontrado', {
       description: 'Faça login novamente para continuar'
@@ -41,7 +40,7 @@ export default function RoleGuard({
     return <Navigate to="/unauthorized" replace />;
   }
   
-  // Se não tiver o papel necessário, redireciona para a página não autorizada
+  // If authenticated but wrong role, redirect to unauthorized
   if (!hasRole(allowedRoles)) {
     toast.error('Acesso negado', {
       description: 'Você não tem permissão para acessar esta página'
@@ -49,6 +48,6 @@ export default function RoleGuard({
     return <Navigate to="/unauthorized" replace />;
   }
   
-  // Se tudo estiver ok, renderiza os filhos
+  // If everything is ok, render children
   return <>{children}</>;
 }

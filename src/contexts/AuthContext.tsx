@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useCallback, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useCallback, ReactNode } from 'react';
 import { useAuthState } from '@/hooks/useAuthState';
 import { useAuthActions } from '@/hooks/useAuthActions';
 import { UserRole } from '@/types/user';
