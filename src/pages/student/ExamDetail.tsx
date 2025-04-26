@@ -3,7 +3,10 @@ import { useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ExamPosition, StudentExam, ExamLevelData, EducationLevel } from '@/types/student';
-import { ArrowLeft, Calendar, CircleDollarSign, Users, BookOpen, BarChart2 } from 'lucide-react';
+import { 
+  ArrowLeft, Calendar, CircleDollarSign, Users, BookOpen, BarChart2, 
+  Check, Timer 
+} from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/sonner';
@@ -383,7 +386,7 @@ export default function StudentExamDetail() {
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <Clock className="h-5 w-5 text-primary mt-1" />
+                <Timer className="h-5 w-5 text-primary mt-1" />
                 <div>
                   <h4 className="font-medium">Duração da Prova</h4>
                   <p className="text-sm text-muted-foreground">
