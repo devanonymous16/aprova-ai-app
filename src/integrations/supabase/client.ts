@@ -134,10 +134,6 @@ export const getCurrentUser = async () => {
   }
 };
 
-// Exportando as funções existentes
-export { testSupabaseConnection } from '@/utils/supabaseSetup';
-
-// Add connection test function with timeout
 export const testSupabaseConnection = async () => {
   try {
     console.log('[DIAGNÓSTICO] Testando conexão com timeout...');
