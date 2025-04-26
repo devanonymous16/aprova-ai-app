@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { UserRole } from '@/types/user';
 
@@ -11,21 +12,28 @@ export const fetchUserProfile = async (userId: string, userEmail?: string | null
   try {
     console.log('[PROFILE DEBUG] Iniciando query profiles simplificada...');
     
-    // Simplified direct query without timeout
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('id') // Temporarily only selecting id for testing
-      .eq('id', userId)
-      .maybeSingle();
+    // Debug logs for Supabase client
+    console.log('[fetchUserProfile] Objeto supabase ANTES da query:', supabase);
+    console.log('[fetchUserProfile] Tipo do supabase.from:', typeof supabase.from);
     
-    console.log('[PROFILE DEBUG] Resultado direto da query:', {
-      timestamp: new Date().toISOString(),
-      hasData: !!data,
-      hasError: !!error,
-      error: error ? { message: error.message, code: error.code } : null,
-      data: data ? { id: data.id } : null
-    });
+    // Separate query building steps for debugging
+    console.log('[fetchUserProfile] Construindo query base: supabase.from(profiles)');
+    const queryBuilder = supabase.from('profiles');
 
+    console.log('[fetchUserProfile] Adicionando select(id)');
+    const selectQuery = queryBuilder.select('id'); // Query simplificada ainda
+
+    console.log('[fetchUserProfile] Adicionando eq(id, userId):', userId);
+    const filteredQuery = selectQuery.eq('id', userId);
+
+    console.log('[fetchUserProfile] Adicionando maybeSingle()');
+    const finalQuery = filteredQuery.maybeSingle();
+
+    console.log('[fetchUserProfile] EXECUTANDO a query final (await)...');
+    const { data, error } = await finalQuery; // Executa aqui
+    
+    console.log('[fetchUserProfile] Resultado OBTIDO da query:', { data, error }); // Log CRÍTICO
+    
     if (error) {
       console.error('[PROFILE DEBUG] Erro na query:', {
         timestamp: new Date().toISOString(),
@@ -72,6 +80,7 @@ export const fetchUserProfile = async (userId: string, userEmail?: string | null
         code: error.code
       }
     });
+    console.log('[fetchUserProfile] Bloco FINALLY - Chamando setLoading(false)');
     return null;
   }
 };
