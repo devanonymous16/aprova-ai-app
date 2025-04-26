@@ -10,62 +10,57 @@ export const fetchUserProfile = async (userId: string, userEmail?: string | null
   });
   
   try {
+    // Log pre-query
     console.log('[PROFILE DEBUG] Iniciando query profiles...', {
       timestamp: new Date().toISOString(),
       action: 'PRE_QUERY'
     });
     
-    const { data, error } = await supabase
+    // Execute query with timeout protection
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Query timeout')), 10000);
+    });
+    
+    const queryPromise = supabase
       .from('profiles')
       .select('role, name, avatar_url')
       .eq('id', userId)
       .maybeSingle();
-      
-    console.log('[PROFILE DEBUG] Query profiles completada:', {
+    
+    const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
+    
+    // Log immediate query result
+    console.log('[PROFILE DEBUG] Resultado direto da query:', {
       timestamp: new Date().toISOString(),
-      action: 'POST_QUERY',
       hasData: !!data,
       hasError: !!error,
-      errorDetails: error ? {
-        code: error.code,
-        message: error.message
-      } : null,
-      profileData: data
+      data,
+      error
     });
 
     if (error) {
-      console.log('[PROFILE DEBUG] Tratando erro da query...', {
+      console.error('[PROFILE DEBUG] Erro na query:', {
         timestamp: new Date().toISOString(),
-        action: 'HANDLE_ERROR'
+        error
       });
       
       if (userEmail) {
-        console.log('[PROFILE DEBUG] Tentando criar perfil padrão após erro...', {
-          timestamp: new Date().toISOString(),
-          action: 'CREATE_DEFAULT_START'
-        });
+        console.log('[PROFILE DEBUG] Tentando criar perfil após erro');
         return await createDefaultProfile(userId, userEmail);
       }
       return null;
     }
 
     if (!data) {
-      console.log('[PROFILE DEBUG] Perfil não encontrado, tentando criar padrão...', {
-        timestamp: new Date().toISOString(),
-        action: 'NOT_FOUND'
-      });
-      
+      console.log('[PROFILE DEBUG] Perfil não encontrado, tentando criar');
       if (userEmail) {
         return await createDefaultProfile(userId, userEmail);
       }
       return null;
     }
 
-    const endTime = new Date();
     console.log('[PROFILE DEBUG] Perfil encontrado com sucesso:', {
-      timestamp: endTime.toISOString(),
-      action: 'SUCCESS',
-      totalDuration: endTime.getTime() - startTime.getTime() + 'ms',
+      timestamp: new Date().toISOString(),
       profile: data
     });
     
@@ -74,7 +69,6 @@ export const fetchUserProfile = async (userId: string, userEmail?: string | null
   } catch (error) {
     console.error('[PROFILE DEBUG] Erro crítico em fetchUserProfile:', {
       timestamp: new Date().toISOString(),
-      action: 'CRITICAL_ERROR',
       error
     });
     return null;

@@ -13,10 +13,6 @@ interface ProfileType {
 }
 
 export const useAuthState = () => {
-  console.log('[DIAGNÓSTICO AUTH] useAuthState: Hook inicializando...', {
-    timestamp: new Date().toISOString()
-  });
-  
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<ProfileType | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -25,36 +21,28 @@ export const useAuthState = () => {
   const navigate = useNavigate();
 
   const updateProfile = useCallback(async (currentUser: User) => {
-    console.log('[DIAGNÓSTICO AUTH] updateProfile: Iniciando...', {
+    console.log('[AUTH DEBUG] updateProfile iniciando:', {
       timestamp: new Date().toISOString(),
-      userId: currentUser.id,
-      email: currentUser.email
+      userId: currentUser.id
     });
     
     try {
-      const profileData = await fetchUserProfile(
-        currentUser.id,
-        currentUser.email
-      );
+      const profileData = await fetchUserProfile(currentUser.id, currentUser.email);
       
-      console.log('[DIAGNÓSTICO AUTH] updateProfile: Resultado fetchUserProfile:', {
+      console.log('[AUTH DEBUG] Resultado fetchUserProfile:', {
         timestamp: new Date().toISOString(),
-        success: !!profileData
+        success: !!profileData,
+        profile: profileData
       });
       
       if (profileData) {
-        console.log('[DIAGNÓSTICO AUTH] updateProfile: Atualizando estado do perfil', {
-          timestamp: new Date().toISOString(),
-          role: profileData.role
-        });
-        
         setProfile({
           role: profileData.role as UserRole,
           name: profileData.name,
           avatar_url: profileData.avatar_url
         });
       } else {
-        console.error('[DIAGNÓSTICO AUTH] updateProfile: Falha ao carregar perfil', {
+        console.error('[AUTH DEBUG] Perfil não encontrado:', {
           timestamp: new Date().toISOString(),
           userId: currentUser.id
         });
@@ -64,44 +52,41 @@ export const useAuthState = () => {
         });
       }
     } catch (error) {
-      console.error('[DIAGNÓSTICO AUTH] updateProfile: Erro crítico:', {
+      console.error('[AUTH DEBUG] Erro em updateProfile:', {
         timestamp: new Date().toISOString(),
         error
       });
       setProfile(null);
       setError(error instanceof Error ? error : new Error(String(error)));
-      toast.error('Erro ao carregar perfil', {
-        description: 'Ocorreu um erro inesperado'
-      });
     } finally {
-      console.log('[DIAGNÓSTICO AUTH] updateProfile: Finalizando e setando loading=false', {
-        timestamp: new Date().toISOString()
-      });
       setLoading(false);
-      
-      if (profile) {
-        console.log('[DIAGNÓSTICO AUTH] updateProfile: Iniciando navegação pós-loading', {
-          timestamp: new Date().toISOString(),
-          role: profile.role
-        });
-        
-        if (profile.role === 'student') {
-          navigate('/dashboard/student');
-        } else if (profile.role === 'manager') {
-          navigate('/dashboard/manager');
-        } else if (profile.role === 'admin') {
-          navigate('/dashboard/admin');
-        } else {
-          navigate('/dashboard');
-        }
-      } else {
-        console.log('[DIAGNÓSTICO AUTH] updateProfile: Redirecionando para /unauthorized', {
-          timestamp: new Date().toISOString()
-        });
-        navigate('/unauthorized');
-      }
     }
-  }, [navigate, profile]);
+  }, []);
+
+  useEffect(() => {
+    if (!loading && profile) {
+      console.log('[AUTH DEBUG] Navegação iniciando:', {
+        timestamp: new Date().toISOString(),
+        role: profile.role
+      });
+      
+      if (profile.role === 'student') {
+        navigate('/dashboard/student');
+      } else if (profile.role === 'manager') {
+        navigate('/dashboard/manager');
+      } else if (profile.role === 'admin') {
+        navigate('/dashboard/admin');
+      } else {
+        navigate('/dashboard');
+      }
+    } else if (!loading && user && !profile) {
+      console.log('[AUTH DEBUG] Redirecionando para unauthorized:', {
+        timestamp: new Date().toISOString(),
+        hasUser: !!user
+      });
+      navigate('/unauthorized');
+    }
+  }, [profile, loading, user, navigate]);
 
   const clearAuthState = useCallback(() => {
     console.log('[DIAGNÓSTICO LOGOUT] useAuthState.clearAuthState: Limpando estado de autenticação explicitamente');
@@ -111,35 +96,27 @@ export const useAuthState = () => {
   }, []);
 
   useEffect(() => {
-    let isMounted = true;
-    console.log('[DIAGNÓSTICO AUTH] useEffect: Inicializando auth state...', {
-      timestamp: new Date().toISOString()
-    });
+    let mounted = true;
+    console.log('[AUTH DEBUG] useEffect auth state iniciando');
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
-        if (!isMounted) {
-          console.log('[DIAGNÓSTICO AUTH] onAuthStateChange: Componente desmontado, abortando');
-          return;
-        }
+        if (!mounted) return;
+        
+        console.log('[AUTH DEBUG] Auth state change:', {
+          event,
+          hasSession: !!currentSession
+        });
         
         try {
-          console.log('[DIAGNÓSTICO AUTH] onAuthStateChange: Evento recebido:', {
-            timestamp: new Date().toISOString(),
-            event,
-            hasSession: !!currentSession
-          });
-          
           setLoading(true);
           
           if (event === 'SIGNED_OUT') {
-            console.log('[DIAGNÓSTICO AUTH] onAuthStateChange: SIGNED_OUT, limpando estado');
             setUser(null);
             setSession(null);
             setProfile(null);
             setLoading(false);
           } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-            console.log('[DIAGNÓSTICO AUTH] onAuthStateChange: Evento de autenticação:', event);
             setSession(currentSession);
             setUser(currentSession?.user ?? null);
             
@@ -150,10 +127,7 @@ export const useAuthState = () => {
             }
           }
         } catch (error) {
-          console.error('[DIAGNÓSTICO AUTH] onAuthStateChange: Erro:', {
-            timestamp: new Date().toISOString(),
-            error
-          });
+          console.error('[AUTH DEBUG] Error in auth state change:', error);
           setError(error instanceof Error ? error : new Error(String(error)));
           setLoading(false);
         }
@@ -162,23 +136,10 @@ export const useAuthState = () => {
 
     const initializeAuth = async () => {
       try {
-        console.log('[DIAGNÓSTICO AUTH] initializeAuth: Iniciando...', {
-          timestamp: new Date().toISOString()
-        });
-        
         const { data } = await supabase.auth.getSession();
+        if (!mounted) return;
+        
         const currentSession = data.session;
-        
-        if (!isMounted) {
-          console.log('[DIAGNÓSTICO AUTH] initializeAuth: Componente desmontado, abortando');
-          return;
-        }
-        
-        console.log('[DIAGNÓSTICO AUTH] initializeAuth: Sessão recuperada:', {
-          timestamp: new Date().toISOString(),
-          hasSession: !!currentSession
-        });
-        
         setSession(currentSession);
         
         if (currentSession?.user) {
@@ -190,12 +151,7 @@ export const useAuthState = () => {
           setLoading(false);
         }
       } catch (error) {
-        console.error('[DIAGNÓSTICO AUTH] initializeAuth: Erro:', {
-          timestamp: new Date().toISOString(),
-          error
-        });
-        setUser(null);
-        setProfile(null);
+        console.error('[AUTH DEBUG] Error in initializeAuth:', error);
         setError(error instanceof Error ? error : new Error(String(error)));
         setLoading(false);
       }
@@ -204,8 +160,7 @@ export const useAuthState = () => {
     initializeAuth();
     
     return () => {
-      console.log('[DIAGNÓSTICO AUTH] Cleanup: Removendo subscription');
-      isMounted = false;
+      mounted = false;
       subscription.unsubscribe();
     };
   }, [updateProfile]);
