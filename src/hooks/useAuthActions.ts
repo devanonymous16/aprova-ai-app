@@ -8,14 +8,9 @@ export const useAuthActions = () => {
 
   const login = useCallback(async (email: string, password: string) => {
     try {
-      console.log('[DIAGNÓSTICO LOGIN] useAuthActions.login: Iniciando com email:', email);
-      
       if (!email || !password) {
-        console.error('[DIAGNÓSTICO LOGIN] Email ou senha ausentes');
         throw new Error('Email e senha são obrigatórios');
       }
-      
-      console.log('[DIAGNÓSTICO LOGIN] Chamando supabase.auth.signInWithPassword...');
       
       const { data, error } = await supabase.auth.signInWithPassword({ 
         email, 
@@ -23,13 +18,6 @@ export const useAuthActions = () => {
       });
       
       if (error) {
-        console.error('[DIAGNÓSTICO LOGIN] Erro no signInWithPassword:', error);
-        console.error('[DIAGNÓSTICO LOGIN] Detalhes do erro:', { 
-          code: error.code, 
-          message: error.message,
-          status: error.status
-        });
-        
         if (error.message.includes('Invalid login credentials')) {
           throw new Error('Email ou senha inválidos');
         }
@@ -37,29 +25,19 @@ export const useAuthActions = () => {
       }
       
       if (!data.user) {
-        console.error('[DIAGNÓSTICO LOGIN] Nenhum usuário retornado após login bem-sucedido');
         throw new Error('Erro ao processar login: usuário não encontrado');
       }
-      
-      console.log('[DIAGNÓSTICO LOGIN] Login Supabase bem-sucedido:', {
-        userId: data.user.id,
-        email: data.user.email,
-        sessionExpiry: data.session?.expires_at
-      });
       
       toast.success('Login realizado com sucesso');
       
     } catch (error: any) {
-      console.error('[DIAGNÓSTICO LOGIN] Erro durante o processo de login:', error);
-      console.error('[DIAGNÓSTICO LOGIN] Stack trace:', error.stack);
+      console.error('Login error:', error);
       throw error;
     }
   }, []);
 
   const loginWithGoogle = useCallback(async () => {
     try {
-      console.log('Iniciando login com Google...');
-      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -67,93 +45,46 @@ export const useAuthActions = () => {
         }
       });
       
-      if (error) {
-        console.error('Erro no login com Google:', error);
-        throw error;
-      }
+      if (error) throw error;
       
-      console.log('Login com Google iniciado:', data);
     } catch (error: any) {
-      console.error('Erro ao iniciar login com Google:', error);
+      console.error('Google login error:', error);
       toast.error('Erro no login com Google', {
         description: error.message || 'Tente novamente mais tarde'
       });
+      throw error;
     }
   }, []);
 
   const logout = useCallback(async () => {
     try {
-      console.log('[DIAGNÓSTICO LOGOUT] Iniciando logout completo (useAuthActions)');
-      
-      // 1. Verificar sessão atual antes de tentar logout
-      const { data: sessionData } = await supabase.auth.getSession();
-      console.log('[DIAGNÓSTICO LOGOUT] Sessão atual antes do logout:', 
-        sessionData.session ? 'Existe sessão' : 'Sem sessão');
-      
-      console.log('[DIAGNÓSTICO LOGOUT] Chamando supabase.auth.signOut()...');
-      const { error } = await supabase.auth.signOut({
-        scope: 'global' // Força a remoção de todas as sessões
-      });
-      
-      if (error) {
-        console.error('[DIAGNÓSTICO LOGOUT] Erro no signOut:', error);
-        throw error;
-      }
-      
-      console.log('[DIAGNÓSTICO LOGOUT] signOut concluído, limpando localStorage...');
-      
-      // 2. Limpar TODOS os possíveis tokens e dados do Supabase no localStorage
+      // Clear Supabase session
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+
+      // Clear local storage
       const supabaseKeys = Object.keys(localStorage).filter(key => 
         key.includes('supabase') || 
         key.includes('sb-') || 
         key.includes('auth')
       );
       
-      console.log('[DIAGNÓSTICO LOGOUT] Chaves do Supabase encontradas:', supabaseKeys);
+      supabaseKeys.forEach(key => localStorage.removeItem(key));
       
-      // Remover cada chave encontrada
-      supabaseKeys.forEach(key => {
-        console.log('[DIAGNÓSTICO LOGOUT] Removendo chave:', key);
-        localStorage.removeItem(key);
-      });
-      
-      // 3. Limpar explicitamente as chaves mais comuns
-      localStorage.removeItem('sb-supabase-auth-token');
-      localStorage.removeItem('supabase.auth.token');
-      
-      // 4. Verificar se a sessão foi realmente limpa
+      // Double-check session is cleared
       const { data: checkSession } = await supabase.auth.getSession();
-      console.log('[DIAGNÓSTICO LOGOUT] Verificação da sessão após logout:', 
-        checkSession.session ? 'ERRO: Ainda existe sessão!' : 'OK: Sessão removida');
-      
       if (checkSession.session) {
-        console.error('[DIAGNÓSTICO LOGOUT] ALERTA: Sessão ainda existe após logout! Forçando limpeza...');
-        // Ultima tentativa: forçar limpeza de estado local e redirecionamento
-        window.localStorage.clear(); // Limpeza radical
+        localStorage.clear();
       }
       
-      // 5. Notificar sucesso
-      console.log('[DIAGNÓSTICO LOGOUT] Logout completo, redirecionando...');
-      toast.success('Logout realizado com sucesso');
-      
-      // 6. Forçar navegação com recarregamento completo para garantir a limpeza de todo o estado
-      console.log('[DIAGNÓSTICO LOGOUT] Forçando navegação para /login com reload completo');
-      window.location.href = '/login';
-      
+      // Let onAuthStateChange handle state cleanup and navigation
     } catch (error: any) {
-      console.error('[DIAGNÓSTICO LOGOUT] Erro detalhado no logout:', error);
-      
-      // Fallback: limpar localStorage e forçar redirecionamento mesmo em caso de erro
-      console.log('[DIAGNÓSTICO LOGOUT] Executando limpeza de emergência do localStorage');
-      localStorage.clear();
-      
-      toast.error('Erro no logout, mas redirecionando mesmo assim', {
+      console.error('Logout error:', error);
+      toast.error('Erro ao fazer logout', {
         description: error.message || 'Tente novamente'
       });
-      
-      // Forçar redirecionamento com reload mesmo em caso de erro
-      console.log('[DIAGNÓSTICO LOGOUT] Redirecionamento de emergência para /login');
-      window.location.replace('/login');
+      // Force navigation on error
+      window.location.href = '/login';
     }
   }, []);
 
@@ -227,7 +158,7 @@ export const useAuthActions = () => {
         description: 'Verifique seu email para confirmar o cadastro'
       });
       
-      // Redirect to login page após breve delay
+      // Redirect to login page after brief delay
       setTimeout(() => {
         navigate('/login');
       }, 1500);

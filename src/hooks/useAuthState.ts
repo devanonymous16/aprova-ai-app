@@ -22,62 +22,25 @@ export const useAuthState = () => {
   const navigate = useNavigate();
 
   const updateProfile = useCallback(async (currentUser: User) => {
-    console.log('[AUTH DEBUG - updateProfile] Iniciando com:', { 
-      userId: currentUser.id,
-      userEmail: currentUser.email,
-      timestamp: new Date().toISOString()
-    });
+    if (!currentUser.id) {
+      throw new Error('User ID required to fetch profile');
+    }
 
     try {
-      console.log('[AUTH DEBUG - updateProfile] ANTES de fetchUserProfile:', {
-        userId: currentUser.id,
-        email: currentUser.email,
-        supabaseInitialized: !!supabase
-      });
-
-      if (!currentUser.id) {
-        console.error('[AUTH DEBUG - updateProfile] ERRO: userId ausente!');
-        throw new Error('User ID ausente para buscar perfil.');
-      }
-
       const profileData = await fetchUserProfile(currentUser.id, currentUser.email);
       
-      console.log('[AUTH DEBUG - updateProfile] APÓS fetchUserProfile:', {
-        success: !!profileData,
-        profileData: profileData ? {
-          role: profileData.role,
-          name: profileData.name
-        } : null,
-        timestamp: new Date().toISOString()
-      });
-      
       if (profileData) {
-        console.log('[AUTH DEBUG - updateProfile] Perfil obtido com sucesso:', {
-          role: profileData.role,
-          name: profileData.name
-        });
         setProfile(profileData);
       } else {
-        console.log('[AUTH DEBUG - updateProfile] Perfil não encontrado');
         setProfile(null);
         toast.error('Erro ao carregar perfil', {
           description: 'Não foi possível recuperar suas informações'
         });
       }
     } catch (error) {
-      console.error('[AUTH DEBUG - updateProfile] ERRO CAPTURADO:', {
-        error,
-        errorMessage: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : 'No stack trace',
-        timestamp: new Date().toISOString()
-      });
       setProfile(null);
       setError(error instanceof Error ? error : new Error(String(error)));
     } finally {
-      console.log('[AUTH DEBUG - updateProfile] Finalizando execução:', {
-        timestamp: new Date().toISOString(),
-        status: 'setLoading(false)'
-      });
       setLoading(false);
     }
   }, []);
@@ -91,112 +54,75 @@ export const useAuthState = () => {
           : profile.role === 'admin'
             ? '/dashboard/admin'
             : '/dashboard';
-      
-      console.log('[AUTH DEBUG] Navegando para:', targetRoute);
       navigate(targetRoute);
     } else if (!loading && user && !profile) {
-      console.log('[AUTH DEBUG] Redirecionando para /unauthorized (sem perfil)');
       navigate('/unauthorized');
     }
   }, [profile, loading, user, navigate]);
 
   useEffect(() => {
-    console.log('[AUTH DEBUG] Iniciando efeito principal de autenticação');
     let mounted = true;
 
-    try {
-      console.log('[AUTH EFFECT] Configurando onAuthStateChange listener...');
-      
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        async (event, currentSession) => {
-          console.log('>>> [onAuthStateChange CALLBACK INICIADO] Evento:', event);
-          
-          if (!mounted) {
-            console.log('[AUTH DEBUG] Componente desmontado, ignorando evento:', event);
-            return;
-          }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, currentSession) => {
+        if (!mounted) return;
 
-          try {
-            console.log('[AUTH DEBUG] Auth state change:', { event, session: currentSession?.user?.email });
-            setLoading(true);
-
-            if (event === 'SIGNED_OUT') {
-              console.log('[AUTH DEBUG] Usuário deslogado, limpando estados');
-              setUser(null);
-              setSession(null);
-              setProfile(null);
-              setLoading(false);
-            } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-              console.log('[AUTH DEBUG] Atualizando sessão e usuário');
-              setSession(currentSession);
-              setUser(currentSession?.user ?? null);
-
-              if (currentSession?.user) {
-                console.log('[AUTH DEBUG] Atualizando perfil do usuário');
-                await updateProfile(currentSession.user);
-              } else {
-                console.log('[AUTH DEBUG] Sem usuário na sessão');
-                setLoading(false);
-              }
-            }
-          } catch (error) {
-            console.error('[AUTH DEBUG] Erro no callback de auth state:', error);
-            setError(error instanceof Error ? error : new Error(String(error)));
-            setLoading(false);
-          }
-        }
-      );
-
-      console.log('[AUTH EFFECT] Listener configurado. Subscription:', subscription);
-
-      const initializeAuth = async () => {
         try {
-          console.log('[AUTH DEBUG] Iniciando inicialização de auth');
-          const { data } = await supabase.auth.getSession();
-          
-          if (!mounted) {
-            console.log('[AUTH DEBUG] Componente desmontado durante inicialização');
-            return;
-          }
+          setLoading(true);
 
-          const currentSession = data.session;
-          setSession(currentSession);
-
-          if (currentSession?.user) {
-            console.log('[AUTH DEBUG] Sessão encontrada, atualizando usuário e perfil');
-            setUser(currentSession.user);
-            await updateProfile(currentSession.user);
-          } else {
-            console.log('[AUTH DEBUG] Nenhuma sessão encontrada');
+          if (event === 'SIGNED_OUT') {
             setUser(null);
+            setSession(null);
             setProfile(null);
-            setLoading(false);
+            setError(null);
+            window.location.href = '/login';
+          } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+            setSession(currentSession);
+            setUser(currentSession?.user ?? null);
+
+            if (currentSession?.user) {
+              await updateProfile(currentSession.user);
+            }
           }
         } catch (error) {
-          console.error('[AUTH DEBUG] Erro em initializeAuth:', error);
+          console.error('Auth state change error:', error);
           setError(error instanceof Error ? error : new Error(String(error)));
+        } finally {
+          if (mounted) setLoading(false);
+        }
+      }
+    );
+
+    const initializeAuth = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+
+        const currentSession = data.session;
+        setSession(currentSession);
+
+        if (currentSession?.user) {
+          setUser(currentSession.user);
+          await updateProfile(currentSession.user);
+        } else {
+          setUser(null);
+          setProfile(null);
           setLoading(false);
         }
-      };
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        setError(error instanceof Error ? error : new Error(String(error)));
+        setLoading(false);
+      }
+    };
 
-      initializeAuth();
+    initializeAuth();
 
-      return () => {
-        console.log('[AUTH EFFECT CLEANUP] Limpando listener');
-        mounted = false;
-        if (subscription) {
-          console.log('[AUTH EFFECT CLEANUP] Executando unsubscribe');
-          subscription.unsubscribe();
-        }
-      };
-    } catch (error) {
-      console.error('[AUTH DEBUG] Erro fatal no efeito de auth:', error);
-      setError(error instanceof Error ? error : new Error(String(error)));
-      setLoading(false);
-      return () => {
-        mounted = false;
-      };
-    }
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, [updateProfile]);
 
   return {

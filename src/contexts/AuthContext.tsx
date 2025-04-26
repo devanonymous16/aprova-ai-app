@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useCallback, ReactNode, useEffect } from 'react';
 import { useAuthState } from '@/hooks/useAuthState';
 import { useAuthActions } from '@/hooks/useAuthActions';
@@ -21,8 +22,6 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  console.log('[DIAGNÓSTICO] AuthContext: Provider montando...');
-  
   const {
     user,
     profile,
@@ -31,15 +30,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isAuthenticated
   } = useAuthState();
   
-  useEffect(() => {
-    console.log('[DIAGNÓSTICO] AuthContext: Estado de autenticação atualizado:', { 
-      isAuthenticated, 
-      hasUser: !!user, 
-      hasProfile: !!profile,
-      loading 
-    });
-  }, [isAuthenticated, user, profile, loading]);
-
   const {
     login,
     loginWithGoogle,
@@ -50,47 +40,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   } = useAuthActions();
 
   const logout = useCallback(async () => {
-    console.log('[DIAGNÓSTICO LOGOUT] AuthContext.logout chamado');
-    console.log('[DIAGNÓSTICO LOGOUT] Estado antes do logout:', { 
-      user: !!user, 
-      session: !!session, 
-      profile: !!profile, 
-      isAuthenticated 
-    });
-    
     try {
-      console.log('[DIAGNÓSTICO LOGOUT] Delegando para authActionsLogout');
       await authActionsLogout();
-      console.log('[DIAGNÓSTICO LOGOUT] authActionsLogout concluído, verifique se redirecionou');
     } catch (error) {
-      console.error('[DIAGNÓSTICO LOGOUT] Erro no AuthContext.logout:', error);
-      console.log('[DIAGNÓSTICO LOGOUT] Forçando redirecionamento mesmo após erro');
+      console.error('Logout error in AuthContext:', error);
       window.location.href = '/login';
     }
-  }, [authActionsLogout, user, session, profile, isAuthenticated]);
+  }, [authActionsLogout]);
 
   const hasRole = useCallback((role: UserRole | UserRole[]): boolean => {
-    try {
-      if (!profile) {
-        console.warn('[DIAGNÓSTICO] hasRole check falhou: Nenhum perfil disponível', { user });
-        return false;
-      }
-      
-      if (Array.isArray(role)) {
-        console.log('[DIAGNÓSTICO] Verificando múltiplos papéis:', role, 'Papel atual:', profile.role);
-        return role.includes(profile.role);
-      }
-      
-      console.log('[DIAGNÓSTICO] Verificando papel único:', role, 'Papel atual:', profile.role);
-      return profile.role === role;
-    } catch (error) {
-      console.error('[DIAGNÓSTICO] Erro em hasRole:', error);
-      return false;
+    if (!profile) return false;
+    
+    if (Array.isArray(role)) {
+      return role.includes(profile.role);
     }
-  }, [profile, user]);
+    
+    return profile.role === role;
+  }, [profile]);
 
-  console.log('[DIAGNÓSTICO] AuthContext: Preparando provider value');
-  
   return (
     <AuthContext.Provider value={{
       user,
@@ -112,16 +79,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 }
 
 export const useAuth = () => {
-  try {
-    console.log('[DIAGNÓSTICO] useAuth hook sendo chamado');
-    const context = useContext(AuthContext);
-    if (!context) {
-      console.error('[DIAGNÓSTICO] useAuth: ERRO - hook usado fora de AuthProvider');
-      throw new Error('useAuth must be used within an AuthProvider');
-    }
-    return context;
-  } catch (error) {
-    console.error('[DIAGNÓSTICO] Erro no hook useAuth:', error);
-    throw error;
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
   }
+  return context;
 };
