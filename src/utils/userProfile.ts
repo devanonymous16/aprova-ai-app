@@ -2,33 +2,72 @@ import { supabase } from '@/integrations/supabase/client';
 import { UserRole } from '@/types/user';
 
 export const fetchUserProfile = async (userId: string, userEmail?: string | null) => {
+  console.log('[PROFILE DEBUG] fetchUserProfile INICIANDO:', {
+    userId,
+    userEmail,
+    timestamp: new Date().toISOString(),
+    supabaseInitialized: !!supabase
+  });
+
   try {
+    console.log('[PROFILE DEBUG] Iniciando query Supabase...');
+    
     const { data, error } = await supabase
       .from('profiles')
       .select('id, role, name, avatar_url')
       .eq('id', userId)
       .maybeSingle();
     
+    console.log('[PROFILE DEBUG] Resultado da query:', {
+      success: !error,
+      hasData: !!data,
+      error: error?.message,
+      data: data ? {
+        id: data.id,
+        role: data.role,
+        name: data.name
+      } : null
+    });
+    
     if (error) {
-      console.error('Error fetching profile:', error.message);
+      console.error('[PROFILE DEBUG] Erro na query:', {
+        code: error.code,
+        message: error.message,
+        details: error.details
+      });
+      
       if (userEmail) {
+        console.log('[PROFILE DEBUG] Tentando criar perfil padrão...');
         return await createDefaultProfile(userId, userEmail);
       }
       return null;
     }
 
     if (!data && userEmail) {
+      console.log('[PROFILE DEBUG] Perfil não encontrado, criando padrão...');
       return await createDefaultProfile(userId, userEmail);
     }
 
     if (!data) {
+      console.log('[PROFILE DEBUG] Nenhum perfil encontrado e sem email para criar');
       return null;
     }
+    
+    console.log('[PROFILE DEBUG] Perfil recuperado com sucesso:', {
+      id: data.id,
+      role: data.role,
+      name: data.name
+    });
     
     return data;
     
   } catch (error: any) {
-    console.error('Critical error in fetchUserProfile:', error.message);
+    console.error('[PROFILE DEBUG] Erro crítico em fetchUserProfile:', {
+      error,
+      errorMessage: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
     return null;
   }
 };

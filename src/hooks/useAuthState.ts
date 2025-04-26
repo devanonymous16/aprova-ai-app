@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,29 +22,62 @@ export const useAuthState = () => {
   const navigate = useNavigate();
 
   const updateProfile = useCallback(async (currentUser: User) => {
-    console.log('[AUTH DEBUG] updateProfile iniciando:', { userId: currentUser.id });
+    console.log('[AUTH DEBUG - updateProfile] Iniciando com:', { 
+      userId: currentUser.id,
+      userEmail: currentUser.email,
+      timestamp: new Date().toISOString()
+    });
+
     try {
+      console.log('[AUTH DEBUG - updateProfile] ANTES de fetchUserProfile:', {
+        userId: currentUser.id,
+        email: currentUser.email,
+        supabaseInitialized: !!supabase
+      });
+
+      if (!currentUser.id) {
+        console.error('[AUTH DEBUG - updateProfile] ERRO: userId ausente!');
+        throw new Error('User ID ausente para buscar perfil.');
+      }
+
       const profileData = await fetchUserProfile(currentUser.id, currentUser.email);
       
+      console.log('[AUTH DEBUG - updateProfile] APÓS fetchUserProfile:', {
+        success: !!profileData,
+        profileData: profileData ? {
+          role: profileData.role,
+          name: profileData.name
+        } : null,
+        timestamp: new Date().toISOString()
+      });
+      
       if (profileData) {
-        console.log('[AUTH DEBUG] Perfil obtido com sucesso:', {
+        console.log('[AUTH DEBUG - updateProfile] Perfil obtido com sucesso:', {
           role: profileData.role,
           name: profileData.name
         });
         setProfile(profileData);
       } else {
-        console.log('[AUTH DEBUG] Perfil não encontrado');
+        console.log('[AUTH DEBUG - updateProfile] Perfil não encontrado');
         setProfile(null);
         toast.error('Erro ao carregar perfil', {
           description: 'Não foi possível recuperar suas informações'
         });
       }
     } catch (error) {
-      console.error('[AUTH DEBUG] Erro em updateProfile:', error);
+      console.error('[AUTH DEBUG - updateProfile] ERRO CAPTURADO:', {
+        error,
+        errorMessage: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : 'No stack trace',
+        timestamp: new Date().toISOString()
+      });
       setProfile(null);
       setError(error instanceof Error ? error : new Error(String(error)));
     } finally {
-      console.log('[AUTH DEBUG] updateProfile finalizando: setLoading(false)');
+      console.log('[AUTH DEBUG - updateProfile] Finalizando execução:', {
+        timestamp: new Date().toISOString(),
+        status: 'setLoading(false)'
+      });
       setLoading(false);
     }
   }, []);
