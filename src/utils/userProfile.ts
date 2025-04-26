@@ -1,86 +1,34 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { UserRole } from '@/types/user';
 
 export const fetchUserProfile = async (userId: string, userEmail?: string | null) => {
-  console.log('[PROFILE DEBUG] fetchUserProfile iniciando:', {
-    timestamp: new Date().toISOString(),
-    userId,
-    email: userEmail || 'não fornecido'
-  });
-  
   try {
-    console.log('[PROFILE DEBUG] Iniciando query profiles simplificada...');
-    
-    // Debug logs for Supabase client
-    console.log('[fetchUserProfile] Objeto supabase ANTES da query:', supabase);
-    console.log('[fetchUserProfile] Tipo do supabase.from:', typeof supabase.from);
-    
-    // Separate query building steps for debugging
-    console.log('[fetchUserProfile] Construindo query base: supabase.from(profiles)');
-    const queryBuilder = supabase.from('profiles');
-
-    console.log('[fetchUserProfile] Adicionando select(id)');
-    const selectQuery = queryBuilder.select('id'); // Query simplificada ainda
-
-    console.log('[fetchUserProfile] Adicionando eq(id, userId):', userId);
-    const filteredQuery = selectQuery.eq('id', userId);
-
-    console.log('[fetchUserProfile] Adicionando maybeSingle()');
-    const finalQuery = filteredQuery.maybeSingle();
-
-    console.log('[fetchUserProfile] EXECUTANDO a query final (await)...');
-    const { data, error } = await finalQuery; // Executa aqui
-    
-    console.log('[fetchUserProfile] Resultado OBTIDO da query:', { data, error }); // Log CRÍTICO
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, role, name, avatar_url')
+      .eq('id', userId)
+      .maybeSingle();
     
     if (error) {
-      console.error('[PROFILE DEBUG] Erro na query:', {
-        timestamp: new Date().toISOString(),
-        errorDetails: {
-          message: error.message,
-          code: error.code,
-          hint: error.hint,
-          details: error.details
-        }
-      });
-      
-      // If query failed and we have an email, try to create profile
+      console.error('Error fetching profile:', error.message);
       if (userEmail) {
-        console.log('[PROFILE DEBUG] Tentando criar perfil após erro na query');
         return await createDefaultProfile(userId, userEmail);
       }
       return null;
     }
 
-    // If no data found but we have email, create profile
     if (!data && userEmail) {
-      console.log('[PROFILE DEBUG] Perfil não encontrado, tentando criar');
       return await createDefaultProfile(userId, userEmail);
     }
 
     if (!data) {
-      console.log('[PROFILE DEBUG] Perfil não encontrado e sem email para criar');
       return null;
     }
-
-    console.log('[PROFILE DEBUG] Perfil encontrado com sucesso:', {
-      timestamp: new Date().toISOString(),
-      profile: { id: data.id }
-    });
     
     return data;
     
   } catch (error: any) {
-    console.error('[PROFILE DEBUG] Erro crítico em fetchUserProfile:', {
-      timestamp: new Date().toISOString(),
-      error: {
-        message: error.message,
-        stack: error.stack,
-        code: error.code
-      }
-    });
-    console.log('[fetchUserProfile] Bloco FINALLY - Chamando setLoading(false)');
+    console.error('Critical error in fetchUserProfile:', error.message);
     return null;
   }
 };

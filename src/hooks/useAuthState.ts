@@ -21,51 +21,28 @@ export const useAuthState = () => {
   const navigate = useNavigate();
 
   const updateProfile = useCallback(async (currentUser: User) => {
-    console.log('[AUTH DEBUG] updateProfile iniciando:', {
-      timestamp: new Date().toISOString(),
-      userId: currentUser.id
-    });
-    
     try {
       const profileData = await fetchUserProfile(currentUser.id, currentUser.email);
       
-      console.log('[AUTH DEBUG] Resultado fetchUserProfile:', {
-        timestamp: new Date().toISOString(),
-        success: !!profileData,
-        profile: profileData
-      });
-      
-      setProfile(null);
-      
-      if (!profileData) {
-        console.error('[AUTH DEBUG] Perfil não encontrado:', {
-          timestamp: new Date().toISOString(),
-          userId: currentUser.id
-        });
+      if (profileData) {
+        setProfile(profileData);
+      } else {
+        setProfile(null);
         toast.error('Erro ao carregar perfil', {
           description: 'Não foi possível recuperar suas informações'
         });
       }
     } catch (error) {
-      console.error('[AUTH DEBUG] Erro em updateProfile:', {
-        timestamp: new Date().toISOString(),
-        error
-      });
+      console.error('Error updating profile:', error);
       setProfile(null);
       setError(error instanceof Error ? error : new Error(String(error)));
     } finally {
-      console.log('[AUTH DEBUG] updateProfile FINALLY - Setando loading=false');
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    if (!loading && profile) {
-      console.log('[AUTH DEBUG] Navegação iniciando:', {
-        timestamp: new Date().toISOString(),
-        role: profile.role
-      });
-      
+    if (!loading && user && profile) {
       if (profile.role === 'student') {
         navigate('/dashboard/student');
       } else if (profile.role === 'manager') {
@@ -76,10 +53,6 @@ export const useAuthState = () => {
         navigate('/dashboard');
       }
     } else if (!loading && user && !profile) {
-      console.log('[AUTH DEBUG] Redirecionando para unauthorized:', {
-        timestamp: new Date().toISOString(),
-        hasUser: !!user
-      });
       navigate('/unauthorized');
     }
   }, [profile, loading, user, navigate]);
@@ -93,16 +66,10 @@ export const useAuthState = () => {
 
   useEffect(() => {
     let mounted = true;
-    console.log('[AUTH DEBUG] useEffect auth state iniciando');
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
         if (!mounted) return;
-        
-        console.log('[AUTH DEBUG] Auth state change:', {
-          event,
-          hasSession: !!currentSession
-        });
         
         try {
           setLoading(true);
@@ -123,7 +90,7 @@ export const useAuthState = () => {
             }
           }
         } catch (error) {
-          console.error('[AUTH DEBUG] Error in auth state change:', error);
+          console.error('Error in auth state change:', error);
           setError(error instanceof Error ? error : new Error(String(error)));
           setLoading(false);
         }
@@ -147,7 +114,7 @@ export const useAuthState = () => {
           setLoading(false);
         }
       } catch (error) {
-        console.error('[AUTH DEBUG] Error in initializeAuth:', error);
+        console.error('Error in initializeAuth:', error);
         setError(error instanceof Error ? error : new Error(String(error)));
         setLoading(false);
       }
