@@ -2,74 +2,82 @@ import { supabase } from '@/integrations/supabase/client';
 import { UserRole } from '@/types/user';
 
 export const fetchUserProfile = async (userId: string, userEmail?: string | null) => {
-  const startTime = new Date();
   console.log('[PROFILE DEBUG] fetchUserProfile iniciando:', {
-    timestamp: startTime.toISOString(),
+    timestamp: new Date().toISOString(),
     userId,
     email: userEmail || 'não fornecido'
   });
   
   try {
-    // Log pre-query
-    console.log('[PROFILE DEBUG] Iniciando query profiles...', {
-      timestamp: new Date().toISOString(),
-      action: 'PRE_QUERY'
-    });
-    
-    // Execute query with timeout protection
+    // Simplified query with only essential fields and increased timeout
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Query timeout')), 10000);
+      setTimeout(() => reject(new Error('Query timeout after 30s')), 30000);
     });
     
+    console.log('[PROFILE DEBUG] Iniciando query profiles simplificada...');
+    
+    // Simplified query for testing
     const queryPromise = supabase
       .from('profiles')
-      .select('role, name, avatar_url')
+      .select('id, role, name') // Minimal fields
       .eq('id', userId)
       .maybeSingle();
     
     const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
     
-    // Log immediate query result
     console.log('[PROFILE DEBUG] Resultado direto da query:', {
       timestamp: new Date().toISOString(),
       hasData: !!data,
       hasError: !!error,
-      data,
-      error
+      error: error ? { message: error.message, code: error.code } : null,
+      data: data ? { id: data.id, role: data.role } : null
     });
 
     if (error) {
       console.error('[PROFILE DEBUG] Erro na query:', {
         timestamp: new Date().toISOString(),
-        error
+        errorDetails: {
+          message: error.message,
+          code: error.code,
+          hint: error.hint,
+          details: error.details
+        }
       });
       
+      // If query failed and we have an email, try to create profile
       if (userEmail) {
-        console.log('[PROFILE DEBUG] Tentando criar perfil após erro');
+        console.log('[PROFILE DEBUG] Tentando criar perfil após erro na query');
         return await createDefaultProfile(userId, userEmail);
       }
       return null;
     }
 
-    if (!data) {
+    // If no data found but we have email, create profile
+    if (!data && userEmail) {
       console.log('[PROFILE DEBUG] Perfil não encontrado, tentando criar');
-      if (userEmail) {
-        return await createDefaultProfile(userId, userEmail);
-      }
+      return await createDefaultProfile(userId, userEmail);
+    }
+
+    if (!data) {
+      console.log('[PROFILE DEBUG] Perfil não encontrado e sem email para criar');
       return null;
     }
 
     console.log('[PROFILE DEBUG] Perfil encontrado com sucesso:', {
       timestamp: new Date().toISOString(),
-      profile: data
+      profile: { id: data.id, role: data.role }
     });
     
     return data;
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('[PROFILE DEBUG] Erro crítico em fetchUserProfile:', {
       timestamp: new Date().toISOString(),
-      error
+      error: {
+        message: error.message,
+        stack: error.stack,
+        code: error.code
+      }
     });
     return null;
   }
