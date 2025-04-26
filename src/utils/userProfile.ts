@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { UserRole } from '@/types/user';
 
@@ -10,36 +9,6 @@ export const fetchUserProfile = async (userId: string, userEmail?: string | null
       userId, 
       userEmail: userEmail || 'não fornecido' 
     });
-    
-    // Teste de conexão antes de buscar perfil
-    const connectionStart = new Date();
-    try {
-      console.log('[DIAGNÓSTICO PERFIL] Iniciando teste de conexão...', {
-        timestamp: connectionStart.toISOString()
-      });
-      
-      const { error: pingError } = await supabase
-        .from('profiles')
-        .select('count')
-        .limit(1);
-        
-      const connectionEnd = new Date();
-      console.log('[DIAGNÓSTICO PERFIL] Teste de conexão concluído:', {
-        timestamp: connectionEnd.toISOString(),
-        duration: connectionEnd.getTime() - connectionStart.getTime() + 'ms',
-        status: pingError ? 'ERRO' : 'OK'
-      });
-      
-      if (pingError) {
-        console.error('[DIAGNÓSTICO PERFIL] Erro no teste de conexão:', {
-          code: pingError.code,
-          message: pingError.message,
-          details: pingError.details
-        });
-      }
-    } catch (pingEx) {
-      console.error('[DIAGNÓSTICO PERFIL] Exceção no teste de conexão:', pingEx);
-    }
     
     console.log('[DIAGNÓSTICO PERFIL] Iniciando select na tabela profiles...', {
       timestamp: new Date().toISOString()

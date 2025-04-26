@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -21,7 +20,6 @@ import AdminDashboard from "./pages/dashboard/admin/Index";
 import ManagerDashboard from "./pages/dashboard/manager/Index";
 import StudentDashboard from "./pages/dashboard/student/Index";
 import UnauthorizedPage from "./pages/Unauthorized";
-import SupabaseSetupPage from "./pages/admin/SupabaseSetup";
 
 // Student Pages
 import StudentExams from "./pages/student/Exams";
@@ -64,7 +62,6 @@ function App() {
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/unauthorized" element={<UnauthorizedPage />} />
-              <Route path="/admin/supabase-setup" element={<SupabaseSetupPage />} />
               
               {/* Protected Student Routes - Note the order! */}
               <Route 
