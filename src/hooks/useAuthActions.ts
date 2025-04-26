@@ -2,7 +2,6 @@ import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/components/ui/sonner';
-import { UserRole } from '@/types/user';
 
 export const useAuthActions = () => {
   const navigate = useNavigate();
@@ -16,21 +15,12 @@ export const useAuthActions = () => {
         throw new Error('Email e senha são obrigatórios');
       }
       
-      // Set a timeout to prevent infinite loading
-      const loginTimeout = setTimeout(() => {
-        console.error('[DIAGNÓSTICO LOGIN] Timeout atingido (10s)');
-        throw new Error('Tempo limite excedido. Tente novamente.');
-      }, 10000);
-      
       console.log('[DIAGNÓSTICO LOGIN] Chamando supabase.auth.signInWithPassword...');
       
       const { data, error } = await supabase.auth.signInWithPassword({ 
         email, 
         password 
       });
-      
-      // Clear timeout as we got a response
-      clearTimeout(loginTimeout);
       
       if (error) {
         console.error('[DIAGNÓSTICO LOGIN] Erro no signInWithPassword:', error);
@@ -57,43 +47,14 @@ export const useAuthActions = () => {
         sessionExpiry: data.session?.expires_at
       });
       
-      // Determine user role and redirect
-      console.log('[DIAGNÓSTICO LOGIN] Buscando perfil do usuário...');
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', data.user.id)
-        .single();
-      
-      if (profileError) {
-        console.error('[DIAGNÓSTICO LOGIN] Erro ao buscar perfil:', profileError);
-        throw new Error('Erro ao carregar perfil do usuário');
-      }
-      
-      console.log('[DIAGNÓSTICO LOGIN] Perfil encontrado:', profileData);
-      
-      // Show success message
       toast.success('Login realizado com sucesso');
-      
-      // Redirect based on role
-      console.log('[DIAGNÓSTICO LOGIN] Redirecionando com base no papel:', profileData.role);
-      
-      if (profileData?.role === 'student') {
-        navigate('/dashboard/student');
-      } else if (profileData?.role === 'manager') {
-        navigate('/dashboard/manager');
-      } else if (profileData?.role === 'admin') {
-        navigate('/dashboard/admin');
-      } else {
-        navigate('/dashboard');
-      }
       
     } catch (error: any) {
       console.error('[DIAGNÓSTICO LOGIN] Erro durante o processo de login:', error);
       console.error('[DIAGNÓSTICO LOGIN] Stack trace:', error.stack);
-      throw error; // Re-throw to be handled by the form
+      throw error;
     }
-  }, [navigate]);
+  }, []);
 
   const loginWithGoogle = useCallback(async () => {
     try {
