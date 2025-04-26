@@ -3,45 +3,46 @@ import { UserRole } from '@/types/user';
 
 export const fetchUserProfile = async (userId: string, userEmail?: string | null) => {
   const startTime = new Date();
+  console.log('[PROFILE DEBUG] fetchUserProfile iniciando:', {
+    timestamp: startTime.toISOString(),
+    userId,
+    email: userEmail || 'não fornecido'
+  });
+  
   try {
-    console.log('[DIAGNÓSTICO PERFIL] Iniciando busca de perfil:', { 
-      timestamp: startTime.toISOString(),
-      userId, 
-      userEmail: userEmail || 'não fornecido' 
+    console.log('[PROFILE DEBUG] Iniciando query profiles...', {
+      timestamp: new Date().toISOString(),
+      action: 'PRE_QUERY'
     });
     
-    console.log('[DIAGNÓSTICO PERFIL] Iniciando select na tabela profiles...', {
-      timestamp: new Date().toISOString()
-    });
-    
-    const queryStart = new Date();
     const { data, error } = await supabase
       .from('profiles')
       .select('role, name, avatar_url')
       .eq('id', userId)
       .maybeSingle();
-    const queryEnd = new Date();
-    
-    console.log('[DIAGNÓSTICO PERFIL] Query profiles concluída:', {
-      timestamp: queryEnd.toISOString(),
-      duration: queryEnd.getTime() - queryStart.getTime() + 'ms',
+      
+    console.log('[PROFILE DEBUG] Query profiles completada:', {
+      timestamp: new Date().toISOString(),
+      action: 'POST_QUERY',
       hasData: !!data,
-      hasError: !!error
+      hasError: !!error,
+      errorDetails: error ? {
+        code: error.code,
+        message: error.message
+      } : null,
+      profileData: data
     });
 
     if (error) {
-      console.error('[DIAGNÓSTICO PERFIL] Erro ao buscar perfil:', {
+      console.log('[PROFILE DEBUG] Tratando erro da query...', {
         timestamp: new Date().toISOString(),
-        error: {
-          code: error.code,
-          message: error.message,
-          details: error.details
-        }
+        action: 'HANDLE_ERROR'
       });
       
       if (userEmail) {
-        console.log('[DIAGNÓSTICO PERFIL] Tentando criar perfil padrão...', {
-          timestamp: new Date().toISOString()
+        console.log('[PROFILE DEBUG] Tentando criar perfil padrão após erro...', {
+          timestamp: new Date().toISOString(),
+          action: 'CREATE_DEFAULT_START'
         });
         return await createDefaultProfile(userId, userEmail);
       }
@@ -49,9 +50,11 @@ export const fetchUserProfile = async (userId: string, userEmail?: string | null
     }
 
     if (!data) {
-      console.log('[DIAGNÓSTICO PERFIL] Perfil não encontrado, tentando criar perfil padrão...', {
-        timestamp: new Date().toISOString()
+      console.log('[PROFILE DEBUG] Perfil não encontrado, tentando criar padrão...', {
+        timestamp: new Date().toISOString(),
+        action: 'NOT_FOUND'
       });
+      
       if (userEmail) {
         return await createDefaultProfile(userId, userEmail);
       }
@@ -59,15 +62,19 @@ export const fetchUserProfile = async (userId: string, userEmail?: string | null
     }
 
     const endTime = new Date();
-    console.log('[DIAGNÓSTICO PERFIL] Perfil encontrado com sucesso:', {
+    console.log('[PROFILE DEBUG] Perfil encontrado com sucesso:', {
       timestamp: endTime.toISOString(),
+      action: 'SUCCESS',
       totalDuration: endTime.getTime() - startTime.getTime() + 'ms',
-      data
+      profile: data
     });
+    
     return data;
+    
   } catch (error) {
-    console.error('[DIAGNÓSTICO PERFIL] Erro crítico em fetchUserProfile:', {
+    console.error('[PROFILE DEBUG] Erro crítico em fetchUserProfile:', {
       timestamp: new Date().toISOString(),
+      action: 'CRITICAL_ERROR',
       error
     });
     return null;
@@ -76,7 +83,7 @@ export const fetchUserProfile = async (userId: string, userEmail?: string | null
 
 export const createDefaultProfile = async (userId: string, email: string) => {
   const startTime = new Date();
-  console.log('[DIAGNÓSTICO PERFIL] Iniciando criação de perfil padrão:', {
+  console.log('[PROFILE DEBUG] Iniciando criação de perfil padrão:', {
     timestamp: startTime.toISOString(),
     userId,
     email
@@ -87,7 +94,7 @@ export const createDefaultProfile = async (userId: string, email: string) => {
   else if (email.includes('manager')) defaultRole = "manager";
   
   try {
-    console.log('[DIAGNÓSTICO PERFIL] Inserindo perfil com role:', defaultRole, {
+    console.log('[PROFILE DEBUG] Inserindo perfil com role:', defaultRole, {
       timestamp: new Date().toISOString()
     });
     
@@ -106,7 +113,7 @@ export const createDefaultProfile = async (userId: string, email: string) => {
       .single();
     const createEnd = new Date();
       
-    console.log('[DIAGNÓSTICO PERFIL] Tentativa de criação concluída:', {
+    console.log('[PROFILE DEBUG] Tentativa de criação concluída:', {
       timestamp: createEnd.toISOString(),
       duration: createEnd.getTime() - createStart.getTime() + 'ms',
       success: !error,
@@ -114,26 +121,25 @@ export const createDefaultProfile = async (userId: string, email: string) => {
     });
       
     if (error) {
-      console.error('[DIAGNÓSTICO PERFIL] Erro ao criar perfil padrão:', {
+      console.error('[PROFILE DEBUG] Erro ao criar perfil padrão:', {
         timestamp: new Date().toISOString(),
         error: {
           code: error.code,
-          message: error.message,
-          details: error.details
+          message: error.message
         }
       });
       return null;
     }
     
     const endTime = new Date();
-    console.log('[DIAGNÓSTICO PERFIL] Perfil padrão criado com sucesso:', {
+    console.log('[PROFILE DEBUG] Perfil padrão criado com sucesso:', {
       timestamp: endTime.toISOString(),
       totalDuration: endTime.getTime() - startTime.getTime() + 'ms',
       data
     });
     return data;
   } catch (error) {
-    console.error('[DIAGNÓSTICO PERFIL] Erro crítico em createDefaultProfile:', {
+    console.error('[PROFILE DEBUG] Erro crítico em createDefaultProfile:', {
       timestamp: new Date().toISOString(),
       error
     });
