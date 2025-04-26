@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { supabase, getCurrentSession, getCurrentUser } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { UserRole } from '@/types/user';
 import { fetchUserProfile } from '@/utils/auth';
 import { useNavigate } from 'react-router-dom';
+import { toast } from '@/components/ui/sonner';
 
 interface ProfileType {
   role: UserRole;
@@ -12,7 +13,9 @@ interface ProfileType {
 }
 
 export const useAuthState = () => {
-  console.log('[DIAGNÓSTICO] useAuthState: Hook inicializando...');
+  console.log('[DIAGNÓSTICO AUTH] useAuthState: Hook inicializando...', {
+    timestamp: new Date().toISOString()
+  });
   
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<ProfileType | null>(null);
@@ -23,8 +26,11 @@ export const useAuthState = () => {
 
   const updateProfile = useCallback(async (currentUser: User) => {
     try {
-      console.log('[DIAGNÓSTICO] useAuthState.updateProfile: Buscando perfil para usuário:', currentUser.id, 'Email:', currentUser.email);
-      setLoading(true);
+      console.log('[DIAGNÓSTICO AUTH] updateProfile: Iniciando busca de perfil:', {
+        timestamp: new Date().toISOString(),
+        userId: currentUser.id,
+        email: currentUser.email
+      });
       
       const profileData = await fetchUserProfile(
         currentUser.id,
@@ -32,13 +38,18 @@ export const useAuthState = () => {
       );
       
       if (profileData) {
-        console.log('[DIAGNÓSTICO] useAuthState.updateProfile: Perfil carregado com sucesso:', profileData);
+        console.log('[DIAGNÓSTICO AUTH] updateProfile: Perfil carregado:', {
+          timestamp: new Date().toISOString(),
+          profileData
+        });
+        
         setProfile({
           role: profileData.role as UserRole,
           name: profileData.name,
           avatar_url: profileData.avatar_url
         });
         
+        // Navegação baseada no papel do usuário
         if (profileData.role === 'student') {
           navigate('/dashboard/student');
         } else if (profileData.role === 'manager') {
@@ -49,16 +60,31 @@ export const useAuthState = () => {
           navigate('/dashboard');
         }
       } else {
-        console.error('[DIAGNÓSTICO] useAuthState.updateProfile: Nenhum dado de perfil retornado para usuário:', currentUser.id);
+        console.error('[DIAGNÓSTICO AUTH] updateProfile: Falha ao carregar perfil:', {
+          timestamp: new Date().toISOString(),
+          userId: currentUser.id
+        });
         setProfile(null);
+        toast.error('Erro ao carregar perfil', {
+          description: 'Não foi possível recuperar suas informações'
+        });
         navigate('/unauthorized');
       }
     } catch (error) {
-      console.error('[DIAGNÓSTICO] useAuthState.updateProfile: Erro:', error);
+      console.error('[DIAGNÓSTICO AUTH] updateProfile: Erro crítico:', {
+        timestamp: new Date().toISOString(),
+        error
+      });
       setProfile(null);
       setError(error instanceof Error ? error : new Error(String(error)));
+      toast.error('Erro ao carregar perfil', {
+        description: 'Ocorreu um erro inesperado'
+      });
       navigate('/unauthorized');
     } finally {
+      console.log('[DIAGNÓSTICO AUTH] updateProfile: Finalizando e setando loading=false', {
+        timestamp: new Date().toISOString()
+      });
       setLoading(false);
     }
   }, [navigate]);
@@ -72,47 +98,48 @@ export const useAuthState = () => {
 
   useEffect(() => {
     let isMounted = true;
-    console.log('[DIAGNÓSTICO] useAuthState: Inicializando auth state...');
+    console.log('[DIAGNÓSTICO AUTH] useEffect: Inicializando auth state...', {
+      timestamp: new Date().toISOString()
+    });
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
         if (!isMounted) {
-          console.log('[DIAGNÓSTICO] useAuthState.onAuthStateChange: Componente desmontado, abortando');
+          console.log('[DIAGNÓSTICO AUTH] onAuthStateChange: Componente desmontado, abortando');
           return;
         }
         
         try {
-          console.log('[DIAGNÓSTICO] useAuthState.onAuthStateChange: Evento recebido:', event);
-          console.log('[DIAGNÓSTICO] useAuthState.onAuthStateChange: Sessão recebida:', currentSession ? 'Existe sessão' : 'Sem sessão');
+          console.log('[DIAGNÓSTICO AUTH] onAuthStateChange: Evento recebido:', {
+            timestamp: new Date().toISOString(),
+            event,
+            hasSession: !!currentSession
+          });
           
           setLoading(true);
           
           if (event === 'SIGNED_OUT') {
-            console.log('[DIAGNÓSTICO] useAuthState.onAuthStateChange: Evento SIGNED_OUT detectado, limpando estado...');
+            console.log('[DIAGNÓSTICO AUTH] onAuthStateChange: SIGNED_OUT, limpando estado');
             setUser(null);
             setSession(null);
             setProfile(null);
             setLoading(false);
-          } else if (event === 'SIGNED_IN') {
-            console.log('[DIAGNÓSTICO] useAuthState.onAuthStateChange: Evento SIGNED_IN detectado');
-            setSession(currentSession);
-            setUser(currentSession?.user ?? null);
-            
-            if (currentSession?.user) {
-              console.log('[DIAGNÓSTICO] useAuthState.onAuthStateChange: Atualizando perfil após login');
-              await updateProfile(currentSession.user);
-            }
-          } else if (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-            console.log(`[DIAGNÓSTICO] useAuthState.onAuthStateChange: Evento ${event} detectado`);
+          } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+            console.log('[DIAGNÓSTICO AUTH] onAuthStateChange: Evento de autenticação:', event);
             setSession(currentSession);
             setUser(currentSession?.user ?? null);
             
             if (currentSession?.user) {
               await updateProfile(currentSession.user);
+            } else {
+              setLoading(false);
             }
           }
         } catch (error) {
-          console.error('[DIAGNÓSTICO] useAuthState.onAuthStateChange: Erro no handler de evento:', error);
+          console.error('[DIAGNÓSTICO AUTH] onAuthStateChange: Erro:', {
+            timestamp: new Date().toISOString(),
+            error
+          });
           setError(error instanceof Error ? error : new Error(String(error)));
           setLoading(false);
         }
@@ -121,48 +148,53 @@ export const useAuthState = () => {
 
     const initializeAuth = async () => {
       try {
-        console.log('[DIAGNÓSTICO] useAuthState.initializeAuth: Obtendo sessão armazenada...');
-        const { data } = await getCurrentSession();
+        console.log('[DIAGNÓSTICO AUTH] initializeAuth: Iniciando...', {
+          timestamp: new Date().toISOString()
+        });
+        
+        const { data } = await supabase.auth.getSession();
         const currentSession = data.session;
         
         if (!isMounted) {
-          console.log('[DIAGNÓSTICO] useAuthState.initializeAuth: Componente desmontado, abortando');
+          console.log('[DIAGNÓSTICO AUTH] initializeAuth: Componente desmontado, abortando');
           return;
         }
         
-        console.log('[DIAGNÓSTICO] useAuthState.initializeAuth: Sessão recuperada:', currentSession ? 'existe' : 'null');
+        console.log('[DIAGNÓSTICO AUTH] initializeAuth: Sessão recuperada:', {
+          timestamp: new Date().toISOString(),
+          hasSession: !!currentSession
+        });
+        
         setSession(currentSession);
         
         if (currentSession?.user) {
-          console.log('[DIAGNÓSTICO] useAuthState.initializeAuth: Usuário da sessão armazenada:', currentSession.user.email);
           setUser(currentSession.user);
           await updateProfile(currentSession.user);
         } else {
-          console.log('[DIAGNÓSTICO] useAuthState.initializeAuth: Nenhuma sessão armazenada encontrada');
           setUser(null);
           setProfile(null);
+          setLoading(false);
         }
       } catch (error) {
-        console.error('[DIAGNÓSTICO] useAuthState.initializeAuth: Erro durante inicialização de auth:', error);
+        console.error('[DIAGNÓSTICO AUTH] initializeAuth: Erro:', {
+          timestamp: new Date().toISOString(),
+          error
+        });
         setUser(null);
         setProfile(null);
         setError(error instanceof Error ? error : new Error(String(error)));
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-          console.log('[DIAGNÓSTICO] useAuthState.initializeAuth: Inicialização completa, loading=false');
-        }
+        setLoading(false);
       }
     };
     
     initializeAuth();
     
     return () => {
-      console.log('[DIAGNÓSTICO] useAuthState: Limpando subscription de auth');
+      console.log('[DIAGNÓSTICO AUTH] Cleanup: Removendo subscription');
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, [updateProfile, clearAuthState]);
+  }, [updateProfile]);
 
   return {
     user,

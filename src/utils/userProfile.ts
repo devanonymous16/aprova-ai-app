@@ -4,7 +4,11 @@ import { UserRole } from '@/types/user';
 
 export const fetchUserProfile = async (userId: string, userEmail?: string | null) => {
   try {
-    console.log('[DIAGNÓSTICO] Buscando perfil para usuário:', userId, 'email:', userEmail || 'não fornecido');
+    console.log('[DIAGNÓSTICO PERFIL] Iniciando busca de perfil:', { 
+      timestamp: new Date().toISOString(),
+      userId, 
+      userEmail: userEmail || 'não fornecido' 
+    });
     
     // Teste de conexão antes de buscar perfil
     try {
@@ -12,14 +16,19 @@ export const fetchUserProfile = async (userId: string, userEmail?: string | null
         .from('profiles')
         .select('count')
         .limit(1);
-      console.log('[DIAGNÓSTICO] Teste de conexão antes de buscar perfil:', pingError ? 'ERRO' : 'OK');
+      console.log('[DIAGNÓSTICO PERFIL] Teste de conexão:', pingError ? 'ERRO' : 'OK');
       if (pingError) {
-        console.error('[DIAGNÓSTICO] Erro no teste de conexão:', pingError);
+        console.error('[DIAGNÓSTICO PERFIL] Erro no teste de conexão:', {
+          code: pingError.code,
+          message: pingError.message,
+          details: pingError.details
+        });
       }
     } catch (pingEx) {
-      console.error('[DIAGNÓSTICO] Exceção no teste de conexão:', pingEx);
+      console.error('[DIAGNÓSTICO PERFIL] Exceção no teste de conexão:', pingEx);
     }
     
+    console.log('[DIAGNÓSTICO PERFIL] Iniciando select na tabela profiles...');
     const { data, error } = await supabase
       .from('profiles')
       .select('role, name, avatar_url')
@@ -27,47 +36,57 @@ export const fetchUserProfile = async (userId: string, userEmail?: string | null
       .maybeSingle();
 
     if (error) {
-      console.error('[DIAGNÓSTICO] Erro ao buscar perfil:', error);
-      console.error('[DIAGNÓSTICO] Detalhes do erro:', { 
-        code: error.code, 
-        message: error.message,
-        hint: error.hint || 'Sem dica',
-        details: error.details || 'Sem detalhes'
+      console.error('[DIAGNÓSTICO PERFIL] Erro ao buscar perfil:', {
+        timestamp: new Date().toISOString(),
+        error: {
+          code: error.code,
+          message: error.message,
+          details: error.details
+        }
       });
       
       if (userEmail) {
-        console.log('[DIAGNÓSTICO] Perfil não encontrado, criando perfil padrão');
+        console.log('[DIAGNÓSTICO PERFIL] Tentando criar perfil padrão...');
         return await createDefaultProfile(userId, userEmail);
       }
       return null;
     }
 
     if (!data) {
-      console.log('[DIAGNÓSTICO] Perfil não encontrado, criando perfil padrão');
+      console.log('[DIAGNÓSTICO PERFIL] Perfil não encontrado, criando perfil padrão...');
       if (userEmail) {
         return await createDefaultProfile(userId, userEmail);
       }
       return null;
     }
 
-    console.log('[DIAGNÓSTICO] Perfil encontrado:', data);
+    console.log('[DIAGNÓSTICO PERFIL] Perfil encontrado com sucesso:', {
+      timestamp: new Date().toISOString(),
+      data
+    });
     return data;
   } catch (error) {
-    console.error('[DIAGNÓSTICO] Erro em fetchUserProfile:', error);
+    console.error('[DIAGNÓSTICO PERFIL] Erro crítico em fetchUserProfile:', {
+      timestamp: new Date().toISOString(),
+      error
+    });
     return null;
   }
 };
 
 export const createDefaultProfile = async (userId: string, email: string) => {
-  console.log('[DIAGNÓSTICO] Criando perfil padrão para:', userId, 'com email:', email);
+  console.log('[DIAGNÓSTICO PERFIL] Iniciando criação de perfil padrão:', {
+    timestamp: new Date().toISOString(),
+    userId,
+    email
+  });
   
-  // Definimos diretamente como o tipo esperado pelo Supabase
-  let defaultRole: "student" | "manager" | "admin" = "student";
+  let defaultRole: UserRole = "student";
   if (email.includes('admin')) defaultRole = "admin";
   else if (email.includes('manager')) defaultRole = "manager";
   
   try {
-    console.log('[DIAGNÓSTICO] Papel padrão atribuído com base no padrão de email:', defaultRole);
+    console.log('[DIAGNÓSTICO PERFIL] Inserindo perfil com role:', defaultRole);
     
     const profileData = {
       id: userId,
@@ -76,8 +95,6 @@ export const createDefaultProfile = async (userId: string, email: string) => {
       role: defaultRole
     };
     
-    console.log('[DIAGNÓSTICO] Dados do perfil para inserir:', profileData);
-    
     const { data, error } = await supabase
       .from('profiles')
       .insert(profileData)
@@ -85,20 +102,28 @@ export const createDefaultProfile = async (userId: string, email: string) => {
       .single();
       
     if (error) {
-      console.error('[DIAGNÓSTICO] Erro ao criar perfil padrão:', error);
-      console.error('[DIAGNÓSTICO] Detalhes do erro:', { 
-        code: error.code, 
-        message: error.message,
-        hint: error.hint || 'Sem dica',
-        details: error.details || 'Sem detalhes'
+      console.error('[DIAGNÓSTICO PERFIL] Erro ao criar perfil padrão:', {
+        timestamp: new Date().toISOString(),
+        error: {
+          code: error.code,
+          message: error.message,
+          details: error.details
+        }
       });
       return null;
     }
     
-    console.log('[DIAGNÓSTICO] Perfil padrão criado com sucesso:', data);
+    console.log('[DIAGNÓSTICO PERFIL] Perfil padrão criado com sucesso:', {
+      timestamp: new Date().toISOString(),
+      data
+    });
     return data;
   } catch (error) {
-    console.error('[DIAGNÓSTICO] Erro em createDefaultProfile:', error);
+    console.error('[DIAGNÓSTICO PERFIL] Erro crítico em createDefaultProfile:', {
+      timestamp: new Date().toISOString(),
+      error
+    });
     return null;
   }
 };
+
