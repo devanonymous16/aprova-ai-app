@@ -1,13 +1,12 @@
-
-import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ExamPosition, StudentExam, ExamLevelData, EducationLevel } from "@/types/student";
-import { ArrowLeft, Calendar, CircleDollarSign, Users, BookOpen, BarChart2, Clock, Check } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/sonner";
+import { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ExamPosition, StudentExam, ExamLevelData, EducationLevel } from '@/types/student';
+import { ArrowLeft, Calendar, CircleDollarSign, Users, BookOpen, BarChart2, Clock, Check } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/components/ui/sonner';
 
 export default function StudentExamDetail() {
   const { id } = useParams<{ id: string }>();
@@ -20,9 +19,40 @@ export default function StudentExamDetail() {
   
   useEffect(() => {
     const loadData = async () => {
-      setLoading(true);
+      console.log('ExamDetail: Iniciando busca de dados para ID:', id);
+      if (!id || !user) {
+        console.log('ExamDetail: ID ou user não disponível, abortando');
+        return;
+      }
+
       try {
-        // 1. Load exam position details with education level
+        console.log('ExamDetail: Setando isLoading = true');
+        setLoading(true);
+
+        // 1. First check student access
+        console.log('ExamDetail: Consultando student_exams...');
+        const { data: accessData, error: accessError } = await supabase
+          .from('student_exams')
+          .select('*')
+          .eq('student_id', user.id)
+          .eq('exam_position_id', id)
+          .maybeSingle();
+        
+        console.log('ExamDetail: Resultado student_exams:', { accessData, accessError });
+        
+        if (accessError) {
+          console.error('ExamDetail: Erro ao verificar acesso:', accessError);
+          toast.error('Erro ao verificar acesso ao exame');
+          return;
+        }
+
+        if (accessData) {
+          console.log('ExamDetail: Acesso confirmado, setando studentExam');
+          setStudentExam(accessData as StudentExam);
+        }
+
+        // 2. Load exam position details
+        console.log('ExamDetail: Consultando detalhes do cargo/nível...');
         const { data: examData, error: examError } = await supabase
           .from('exam_positions')
           .select(`
@@ -36,54 +66,44 @@ export default function StudentExamDetail() {
           .eq('id', id)
           .single();
           
+        console.log('ExamDetail: Resultado detalhes cargo/nível:', { examData, examError });
+
         if (examError) {
-          console.error("Error loading exam details:", examError);
-          toast.error("Erro ao carregar detalhes do exame");
+          console.error('ExamDetail: Erro ao carregar detalhes do exame:', examError);
+          toast.error('Erro ao carregar detalhes do exame');
           return;
         }
 
         if (!examData) {
-          toast.error("Exame não encontrado");
+          console.log('ExamDetail: Exame não encontrado');
+          toast.error('Exame não encontrado');
           return;
         }
 
+        console.log('ExamDetail: Atualizando estados com dados recebidos');
         setExam(examData as unknown as ExamPosition);
         if (examData.education_level) {
           setEducationLevel(examData.education_level[0] as EducationLevel);
         }
         
-        // 2. Check student access
-        if (user) {
-          const { data: accessData, error: accessError } = await supabase
-            .from('student_exams')
-            .select('*')
-            .eq('student_id', user.id)
-            .eq('exam_position_id', id)
-            .maybeSingle();
-            
-          if (accessError) {
-            console.error("Error checking access:", accessError);
-            toast.error("Erro ao verificar acesso");
-            return;
-          }
-
-          if (accessData) {
-            setStudentExam(accessData as unknown as StudentExam);
-          }
-        }
-        
-        setAccessChecked(true);
       } catch (error) {
-        console.error("Error in loadData:", error);
-        toast.error("Erro ao carregar dados");
+        console.error('ExamDetail: Erro durante busca de dados:', error);
+        toast.error('Erro ao carregar dados do exame');
       } finally {
+        console.log('ExamDetail: Tentando setar isLoading = false');
         setLoading(false);
+        setAccessChecked(true);
+        console.log('ExamDetail: Estados finais:', {
+          loading: false,
+          accessChecked: true,
+          hasExam: !!exam,
+          hasStudentExam: !!studentExam,
+          hasEducationLevel: !!educationLevel
+        });
       }
     };
     
-    if (id && user) {
-      loadData();
-    }
+    loadData();
   }, [id, user]);
   
   useEffect(() => {
@@ -118,7 +138,6 @@ export default function StudentExamDetail() {
     );
   }
   
-  // If student doesn't have access, show subscription info
   if (!studentExam && educationLevel) {
     const monthlyPayment = (educationLevel.full_price / 12).toFixed(2);
     
@@ -218,7 +237,6 @@ export default function StudentExamDetail() {
     );
   }
 
-  // Render different UIs based on access
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <Link to="/student/exams">
@@ -227,7 +245,6 @@ export default function StudentExamDetail() {
         </Button>
       </Link>
       
-      {/* Header section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="md:col-span-2">
           <div className="flex items-center gap-4 mb-2">
@@ -328,7 +345,6 @@ export default function StudentExamDetail() {
         </div>
       </div>
       
-      {/* Details cards section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <Card>
           <CardHeader>
