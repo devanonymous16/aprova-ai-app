@@ -150,10 +150,16 @@ export const testSupabaseConnection = async () => {
     
     const result = await Promise.race([connectionPromise, timeoutPromise]);
     console.log('[DIAGNÓSTICO] Teste de conexão OK:', result);
-    return { success: true, data: result };
+    return { 
+      success: true, 
+      data: result 
+    };
   } catch (error) {
     console.error('[DIAGNÓSTICO] Erro no teste de conexão:', error);
-    return { success: false, error };
+    return { 
+      success: false, 
+      error: error instanceof Error ? error : new Error(String(error)) 
+    };
   }
 };
 

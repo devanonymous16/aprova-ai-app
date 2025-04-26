@@ -36,7 +36,8 @@ export default function SupabaseSetupTester() {
         setConnectionDetails(result);
       } else {
         setConnectionStatus('error');
-        setConnectionError(result.message || 'Erro desconhecido');
+        // Use optional chaining and nullish coalescing to safely handle error messages
+        setConnectionError(result.error?.message ?? 'Erro desconhecido');
         setConnectionDetails(result);
       }
     } catch (error: any) {
