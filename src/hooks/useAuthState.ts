@@ -25,22 +25,27 @@ export const useAuthState = () => {
   const navigate = useNavigate();
 
   const updateProfile = useCallback(async (currentUser: User) => {
+    console.log('[DIAGNÓSTICO AUTH] updateProfile: Iniciando...', {
+      timestamp: new Date().toISOString(),
+      userId: currentUser.id,
+      email: currentUser.email
+    });
+    
     try {
-      console.log('[DIAGNÓSTICO AUTH] updateProfile: Iniciando busca de perfil:', {
-        timestamp: new Date().toISOString(),
-        userId: currentUser.id,
-        email: currentUser.email
-      });
-      
       const profileData = await fetchUserProfile(
         currentUser.id,
         currentUser.email
       );
       
+      console.log('[DIAGNÓSTICO AUTH] updateProfile: Resultado fetchUserProfile:', {
+        timestamp: new Date().toISOString(),
+        success: !!profileData
+      });
+      
       if (profileData) {
-        console.log('[DIAGNÓSTICO AUTH] updateProfile: Perfil carregado:', {
+        console.log('[DIAGNÓSTICO AUTH] updateProfile: Atualizando estado do perfil', {
           timestamp: new Date().toISOString(),
-          profileData
+          role: profileData.role
         });
         
         setProfile({
@@ -48,19 +53,8 @@ export const useAuthState = () => {
           name: profileData.name,
           avatar_url: profileData.avatar_url
         });
-        
-        // Navegação baseada no papel do usuário
-        if (profileData.role === 'student') {
-          navigate('/dashboard/student');
-        } else if (profileData.role === 'manager') {
-          navigate('/dashboard/manager');
-        } else if (profileData.role === 'admin') {
-          navigate('/dashboard/admin');
-        } else {
-          navigate('/dashboard');
-        }
       } else {
-        console.error('[DIAGNÓSTICO AUTH] updateProfile: Falha ao carregar perfil:', {
+        console.error('[DIAGNÓSTICO AUTH] updateProfile: Falha ao carregar perfil', {
           timestamp: new Date().toISOString(),
           userId: currentUser.id
         });
@@ -68,7 +62,6 @@ export const useAuthState = () => {
         toast.error('Erro ao carregar perfil', {
           description: 'Não foi possível recuperar suas informações'
         });
-        navigate('/unauthorized');
       }
     } catch (error) {
       console.error('[DIAGNÓSTICO AUTH] updateProfile: Erro crítico:', {
@@ -80,14 +73,35 @@ export const useAuthState = () => {
       toast.error('Erro ao carregar perfil', {
         description: 'Ocorreu um erro inesperado'
       });
-      navigate('/unauthorized');
     } finally {
       console.log('[DIAGNÓSTICO AUTH] updateProfile: Finalizando e setando loading=false', {
         timestamp: new Date().toISOString()
       });
       setLoading(false);
+      
+      if (profile) {
+        console.log('[DIAGNÓSTICO AUTH] updateProfile: Iniciando navegação pós-loading', {
+          timestamp: new Date().toISOString(),
+          role: profile.role
+        });
+        
+        if (profile.role === 'student') {
+          navigate('/dashboard/student');
+        } else if (profile.role === 'manager') {
+          navigate('/dashboard/manager');
+        } else if (profile.role === 'admin') {
+          navigate('/dashboard/admin');
+        } else {
+          navigate('/dashboard');
+        }
+      } else {
+        console.log('[DIAGNÓSTICO AUTH] updateProfile: Redirecionando para /unauthorized', {
+          timestamp: new Date().toISOString()
+        });
+        navigate('/unauthorized');
+      }
     }
-  }, [navigate]);
+  }, [navigate, profile]);
 
   const clearAuthState = useCallback(() => {
     console.log('[DIAGNÓSTICO LOGOUT] useAuthState.clearAuthState: Limpando estado de autenticação explicitamente');
