@@ -35,18 +35,13 @@ export const useAuthState = () => {
         profile: profileData
       });
       
-      if (profileData) {
-        setProfile({
-          role: profileData.role as UserRole,
-          name: profileData.name,
-          avatar_url: profileData.avatar_url
-        });
-      } else {
+      setProfile(null);
+      
+      if (!profileData) {
         console.error('[AUTH DEBUG] Perfil não encontrado:', {
           timestamp: new Date().toISOString(),
           userId: currentUser.id
         });
-        setProfile(null);
         toast.error('Erro ao carregar perfil', {
           description: 'Não foi possível recuperar suas informações'
         });
@@ -59,6 +54,7 @@ export const useAuthState = () => {
       setProfile(null);
       setError(error instanceof Error ? error : new Error(String(error)));
     } finally {
+      console.log('[AUTH DEBUG] updateProfile FINALLY - Setando loading=false');
       setLoading(false);
     }
   }, []);
