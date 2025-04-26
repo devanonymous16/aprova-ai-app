@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await authActionsLogout();
     } catch (error) {
-      console.error('Logout error in AuthContext:', error);
+      console.error('Logout error:', error);
       window.location.href = '/login';
     }
   }, [authActionsLogout]);

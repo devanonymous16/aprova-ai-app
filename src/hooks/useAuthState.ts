@@ -4,7 +4,6 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { UserRole } from '@/types/user';
 import { fetchUserProfile } from '@/utils/auth';
-import { useNavigate } from 'react-router-dom';
 import { toast } from '@/components/ui/sonner';
 
 interface ProfileType {
@@ -19,7 +18,6 @@ export const useAuthState = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const navigate = useNavigate();
 
   const updateProfile = useCallback(async (currentUser: User) => {
     if (!currentUser.id) {
@@ -46,21 +44,6 @@ export const useAuthState = () => {
   }, []);
 
   useEffect(() => {
-    if (!loading && user && profile) {
-      const targetRoute = profile.role === 'student' 
-        ? '/dashboard/student'
-        : profile.role === 'manager'
-          ? '/dashboard/manager'
-          : profile.role === 'admin'
-            ? '/dashboard/admin'
-            : '/dashboard';
-      navigate(targetRoute);
-    } else if (!loading && user && !profile) {
-      navigate('/unauthorized');
-    }
-  }, [profile, loading, user, navigate]);
-
-  useEffect(() => {
     let mounted = true;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -75,7 +58,6 @@ export const useAuthState = () => {
             setSession(null);
             setProfile(null);
             setError(null);
-            window.location.href = '/login';
           } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
             setSession(currentSession);
             setUser(currentSession?.user ?? null);

@@ -1,3 +1,4 @@
+
 import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -58,7 +59,6 @@ export const useAuthActions = () => {
 
   const logout = useCallback(async () => {
     try {
-      // Clear Supabase session
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
 
@@ -71,13 +71,13 @@ export const useAuthActions = () => {
       
       supabaseKeys.forEach(key => localStorage.removeItem(key));
       
-      // Double-check session is cleared
-      const { data: checkSession } = await supabase.auth.getSession();
-      if (checkSession.session) {
-        localStorage.clear();
-      }
+      // The SIGNED_OUT event in onAuthStateChange will handle state cleanup
+      toast.success('Logout realizado com sucesso');
       
-      // Let onAuthStateChange handle state cleanup and navigation
+      // Force navigation on success - this ensures we navigate even if the event doesn't fire
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 300);
     } catch (error: any) {
       console.error('Logout error:', error);
       toast.error('Erro ao fazer logout', {
@@ -98,31 +98,10 @@ export const useAuthActions = () => {
     }
   ) => {
     try {
-      console.log('[DIAGNÓSTICO] Registrando novo usuário:', email);
-      console.log('[DIAGNÓSTICO] Dados de registro:', { 
-        name: metadata.name, 
-        birth_date: metadata.birth_date, 
-        cpf: 'oculto por privacidade'
-      });
-      
       if (!email || !password) {
-        console.error('[DIAGNÓSTICO] Email ou senha ausentes');
         throw new Error('Email e senha são obrigatórios');
       }
       
-      // Teste de conexão antes de tentar cadastro
-      try {
-        const { error: pingError } = await supabase.from('profiles').select('count').limit(1);
-        console.log('[DIAGNÓSTICO] Teste de conexão antes do cadastro:', pingError ? 'ERRO' : 'OK');
-        if (pingError) {
-          console.error('[DIAGNÓSTICO] Erro no teste de conexão:', pingError);
-        }
-      } catch (pingEx) {
-        console.error('[DIAGNÓSTICO] Exceção no teste de conexão:', pingEx);
-      }
-      
-      // 1. Signup com Supabase Auth
-      console.log('[DIAGNÓSTICO] Chamando supabase.auth.signUp...');
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -137,22 +116,11 @@ export const useAuthActions = () => {
         }
       });
       
-      if (error) {
-        console.error('[DIAGNÓSTICO] Erro no cadastro:', error);
-        console.error('[DIAGNÓSTICO] Detalhes do erro:', { 
-          code: error.code, 
-          message: error.message,
-          status: error.status
-        });
-        throw error;
-      }
+      if (error) throw error;
 
       if (!data.user) {
-        console.error('[DIAGNÓSTICO] Nenhum usuário retornado após cadastro bem-sucedido');
         throw new Error('Erro ao processar cadastro');
       }
-
-      console.log('[DIAGNÓSTICO] Usuário registrado com sucesso:', data.user.id);
       
       toast.success('Conta criada com sucesso', {
         description: 'Verifique seu email para confirmar o cadastro'
@@ -163,7 +131,7 @@ export const useAuthActions = () => {
         navigate('/login');
       }, 1500);
     } catch (error: any) {
-      console.error('[DIAGNÓSTICO] Erro no cadastro:', error);
+      console.error('Signup error:', error);
       toast.error('Erro no cadastro', {
         description: error.message || 'Não foi possível criar a conta'
       });
@@ -173,19 +141,17 @@ export const useAuthActions = () => {
 
   const forgotPassword = useCallback(async (email: string) => {
     try {
-      console.log('Enviando email de recuperação para:', email);
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
       
-      if (error) {
-        console.error('Erro ao enviar email de recuperação:', error);
-        throw error;
-      }
+      if (error) throw error;
       
-      console.log('Email de recuperação enviado com sucesso');
+      toast.success('Email de recuperação enviado', {
+        description: 'Verifique sua caixa de entrada'
+      });
     } catch (error: any) {
-      console.error('Erro no processo de recuperação de senha:', error);
+      console.error('Password reset error:', error);
       toast.error('Erro ao enviar email de recuperação', {
         description: error.message || 'Verifique se o email está correto'
       });
@@ -195,21 +161,16 @@ export const useAuthActions = () => {
 
   const resetPassword = useCallback(async (newPassword: string) => {
     try {
-      console.log('Alterando senha...');
       const { error } = await supabase.auth.updateUser({
         password: newPassword
       });
       
-      if (error) {
-        console.error('Erro ao alterar senha:', error);
-        throw error;
-      }
+      if (error) throw error;
       
-      console.log('Senha alterada com sucesso');
       toast.success('Senha alterada com sucesso');
       navigate('/login');
     } catch (error: any) {
-      console.error('Erro no processo de alteração de senha:', error);
+      console.error('Password update error:', error);
       toast.error('Erro ao alterar senha', {
         description: error.message || 'Por favor, tente novamente ou solicite um novo link'
       });
