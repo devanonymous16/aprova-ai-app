@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ExamPosition, StudentExam, ExamLevelData, EducationLevel } from '@/types/student';
-import { ArrowLeft, Calendar, CircleDollarSign, Users, BookOpen, BarChart2, Clock, Check } from 'lucide-react';
+import { ArrowLeft, Calendar, CircleDollarSign, Users, BookOpen, BarChart2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/sonner';
@@ -17,6 +17,16 @@ export default function StudentExamDetail() {
   const [loading, setLoading] = useState(true);
   const [accessChecked, setAccessChecked] = useState(false);
   
+  useEffect(() => {
+    console.log('ExamDetail: Component mounted', {
+      examId: id,
+      hasUser: !!user,
+      userId: user?.id,
+      loading,
+      accessChecked
+    });
+  }, []);
+
   useEffect(() => {
     const loadData = async () => {
       console.log('ExamDetail: Iniciando busca de dados para ID:', id);
@@ -113,6 +123,16 @@ export default function StudentExamDetail() {
       document.title = "Forefy | Detalhes do Exame";
     }
   }, [exam]);
+  
+  useEffect(() => {
+    console.log('ExamDetail: States updated:', {
+      loading,
+      accessChecked,
+      hasExam: !!exam,
+      hasStudentExam: !!studentExam,
+      hasEducationLevel: !!educationLevel
+    });
+  }, [loading, accessChecked, exam, studentExam, educationLevel]);
   
   if (loading || !accessChecked) {
     return (
