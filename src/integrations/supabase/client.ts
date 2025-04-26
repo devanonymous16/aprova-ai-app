@@ -18,12 +18,15 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, 
     storage: localStorage,
     detectSessionInUrl: true,
     flowType: 'implicit',
-    debug: true // Ativar debug para logs detalhados
+    debug: true
   },
   global: {
     headers: {
       'x-client-info': 'aprova-ai-web'
     }
+  },
+  db: {
+    schema: 'public'
   }
 });
 
@@ -133,6 +136,26 @@ export const getCurrentUser = async () => {
 
 // Exportando as funções existentes
 export { testSupabaseConnection } from '@/utils/supabaseSetup';
+
+// Add connection test function with timeout
+export const testSupabaseConnection = async () => {
+  try {
+    console.log('[DIAGNÓSTICO] Testando conexão com timeout...');
+    
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Timeout na conexão')), 5000);
+    });
+    
+    const connectionPromise = supabase.auth.getSession();
+    
+    const result = await Promise.race([connectionPromise, timeoutPromise]);
+    console.log('[DIAGNÓSTICO] Teste de conexão OK:', result);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('[DIAGNÓSTICO] Erro no teste de conexão:', error);
+    return { success: false, error };
+  }
+};
 
 // Chamar teste de conexão automaticamente na inicialização 
 // para verificar se a configuração está correta

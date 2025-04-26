@@ -1,4 +1,3 @@
-
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,11 +38,37 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (values: z.infer<typeof loginSchema>) => {
+    console.log('[DIAGNÓSTICO LOGIN] Iniciando tentativa de login com email:', values.email);
+    
     try {
+      console.log('[DIAGNÓSTICO LOGIN] Validando formulário...');
+      
+      // Clear any existing error states
+      form.clearErrors();
+      
+      // Set loading state
+      form.reset({ ...form.getValues() }, { keepValues: true });
+      
+      console.log('[DIAGNÓSTICO LOGIN] Chamando função login do AuthContext...');
       await login(values.email, values.password);
-      // Redirecionamento é tratado no hook de login
-    } catch (error) {
-      // Error handling is done in the login method
+      
+      console.log('[DIAGNÓSTICO LOGIN] Login bem-sucedido, aguardando redirecionamento...');
+      
+    } catch (error: any) {
+      console.error('[DIAGNÓSTICO LOGIN] Erro no processo de login:', error);
+      console.error('[DIAGNÓSTICO LOGIN] Detalhes do erro:', {
+        message: error.message,
+        stack: error.stack,
+        code: error.code,
+      });
+      
+      // Reset form state
+      form.reset({ ...values }, { keepValues: true });
+      
+      // Show error toast with detailed message
+      toast.error('Erro no login', {
+        description: error.message || 'Não foi possível fazer login. Tente novamente.'
+      });
     }
   };
   
