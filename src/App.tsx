@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,6 +6,7 @@ import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import MainLayout from "./components/layout/MainLayout";
 import RoleGuard from "./components/RoleGuard";
+import { useState, useEffect } from "react";
 
 // Pages
 import HomePage from "./pages/Index";
@@ -21,7 +21,6 @@ import ManagerDashboard from "./pages/dashboard/manager/Index";
 import StudentDashboard from "./pages/dashboard/student/Index";
 import UnauthorizedPage from "./pages/Unauthorized";
 import SupabaseSetupPage from "./pages/admin/SupabaseSetup";
-import { useState, useEffect } from "react";
 
 // Student Pages
 import StudentExams from "./pages/student/Exams";
@@ -34,16 +33,11 @@ import StudentProfile from "./pages/student/Profile";
 
 function App() {
   console.log('[DIAGNÓSTICO] App.tsx: Componente App renderizando...');
+  
   const [queryClient] = useState(() => {
     console.log('[DIAGNÓSTICO] App.tsx: Criando QueryClient');
     return new QueryClient();
   });
-  
-  // Simple test component to verify routing works without RoleGuard
-  const TestComponent = () => {
-    console.log('[DIAGNÓSTICO] App.tsx: TestComponent renderizando');
-    return <div className="p-8 text-center">Teste OK - Roteamento funcionando</div>;
-  };
   
   useEffect(() => {
     console.log('[DIAGNÓSTICO] App.tsx: useEffect montagem do App executando');
@@ -56,21 +50,12 @@ function App() {
   
   return (
     <QueryClientProvider client={queryClient}>
-      {console.log('[DIAGNÓSTICO] App.tsx: Dentro do QueryClientProvider')}
       <AuthProvider>
-        {console.log('[DIAGNÓSTICO] App.tsx: Dentro do AuthProvider')}
         <TooltipProvider>
-          {console.log('[DIAGNÓSTICO] App.tsx: Dentro do TooltipProvider')}
           <Toaster />
           <Sonner />
           <MainLayout>
-            {console.log('[DIAGNÓSTICO] App.tsx: Dentro do MainLayout')}
             <Routes>
-              {console.log('[DIAGNÓSTICO] App.tsx: Configurando rotas')}
-              
-              {/* Routa simples de teste para diagnóstico */}
-              <Route path="/teste" element={<TestComponent />} />
-              
               {/* Rotas públicas */}
               <Route path="/" element={<HomePage />} />
               <Route path="/login" element={<LoginPage />} />
@@ -79,127 +64,22 @@ function App() {
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/unauthorized" element={<UnauthorizedPage />} />
               <Route path="/admin/supabase-setup" element={<SupabaseSetupPage />} />
+              <Route path="/teste" element={<TestComponent />} />
               
-              {/* Rotas protegidas - TEMPORARIAMENTE SIMPLIFICADAS PARA DIAGNÓSTICO */}
-              {/* Comentando temporariamente rotas protegidas para isolar o problema */}
-              {/*
-              <Route 
-                path="/dashboard" 
-                element={
-                  <RoleGuard allowedRoles={["student", "manager", "admin"]}>
-                    <DashboardPage />
-                  </RoleGuard>
-                } 
-              />
-              
-              <Route 
-                path="/dashboard/admin" 
-                element={
-                  <RoleGuard allowedRoles="admin">
-                    <AdminDashboard />
-                  </RoleGuard>
-                } 
-              />
-              
-              <Route 
-                path="/dashboard/manager" 
-                element={
-                  <RoleGuard allowedRoles="manager">
-                    <ManagerDashboard />
-                  </RoleGuard>
-                } 
-              />
-              
-              <Route 
-                path="/dashboard/student" 
-                element={
-                  <RoleGuard allowedRoles="student">
-                    <StudentDashboard />
-                  </RoleGuard>
-                } 
-              />
-              
-              <Route 
-                path="/student/dashboard" 
-                element={
-                  <RoleGuard allowedRoles="student">
-                    <StudentDashboard />
-                  </RoleGuard>
-                } 
-              />
-              
-              <Route 
-                path="/student/exams" 
-                element={
-                  <RoleGuard allowedRoles="student">
-                    <StudentExams />
-                  </RoleGuard>
-                } 
-              />
-              
-              <Route 
-                path="/student/exams/:id" 
-                element={
-                  <RoleGuard allowedRoles="student">
-                    <StudentExamDetail />
-                  </RoleGuard>
-                } 
-              />
-              
-              <Route 
-                path="/student/autodiagnosis/:examPositionId" 
-                element={
-                  <RoleGuard allowedRoles="student">
-                    <StudentAutoDiagnosis />
-                  </RoleGuard>
-                } 
-              />
-              
-              <Route 
-                path="/student/study-plan" 
-                element={
-                  <RoleGuard allowedRoles="student">
-                    <StudentStudyPlan />
-                  </RoleGuard>
-                } 
-              />
-              
-              <Route 
-                path="/student/solve/:subtopicId" 
-                element={
-                  <RoleGuard allowedRoles="student">
-                    <StudentSolveQuestion />
-                  </RoleGuard>
-                } 
-              />
-              
-              <Route 
-                path="/student/simulado/:simuladoId" 
-                element={
-                  <RoleGuard allowedRoles="student">
-                    <StudentSimulado />
-                  </RoleGuard>
-                } 
-              />
-              
-              <Route 
-                path="/student/profile" 
-                element={
-                  <RoleGuard allowedRoles="student">
-                    <StudentProfile />
-                  </RoleGuard>
-                } 
-              />
-              */}
-              
+              {/* Rotas protegidas comentadas temporariamente para diagnóstico */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-            {console.log('[DIAGNÓSTICO] App.tsx: Rotas configuradas')}
           </MainLayout>
         </TooltipProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
 }
+
+// Simple test component for routing diagnosis
+const TestComponent = () => {
+  console.log('[DIAGNÓSTICO] App.tsx: TestComponent renderizando');
+  return <div className="p-8 text-center">Teste OK - Roteamento funcionando</div>;
+};
 
 export default App;

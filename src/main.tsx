@@ -16,9 +16,7 @@ if (rootElement) {
   
   root.render(
     <StrictMode>
-      {console.log('[DIAGNÓSTICO] main.tsx: Renderizando dentro do StrictMode')}
       <BrowserRouter>
-        {console.log('[DIAGNÓSTICO] main.tsx: BrowserRouter inicializado')}
         <App />
       </BrowserRouter>
     </StrictMode>

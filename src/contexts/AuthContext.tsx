@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useCallback, ReactNode, useEffect } from 'react';
 import { useAuthState } from '@/hooks/useAuthState';
 import { useAuthActions } from '@/hooks/useAuthActions';
@@ -107,7 +106,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       forgotPassword,
       resetPassword,
     }}>
-      {console.log('[DIAGNÓSTICO] AuthContext: Renderizando children do provider')}
       {children}
     </AuthContext.Provider>
   );
