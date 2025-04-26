@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -56,7 +57,7 @@ function App() {
           <Sonner />
           <MainLayout>
             <Routes>
-              {/* Rotas públicas */}
+              {/* Public routes */}
               <Route path="/" element={<HomePage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
@@ -64,9 +65,100 @@ function App() {
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/unauthorized" element={<UnauthorizedPage />} />
               <Route path="/admin/supabase-setup" element={<SupabaseSetupPage />} />
-              <Route path="/teste" element={<TestComponent />} />
               
-              {/* Rotas protegidas comentadas temporariamente para diagnóstico */}
+              {/* Protected Student Routes - Note the order! */}
+              <Route 
+                path="/student/exams/:id" 
+                element={
+                  <RoleGuard allowedRoles="student">
+                    <StudentExamDetail />
+                  </RoleGuard>
+                }
+              />
+              <Route 
+                path="/student/exams" 
+                element={
+                  <RoleGuard allowedRoles="student">
+                    <StudentExams />
+                  </RoleGuard>
+                }
+              />
+              <Route 
+                path="/student/autodiagnosis/:examId" 
+                element={
+                  <RoleGuard allowedRoles="student">
+                    <StudentAutoDiagnosis />
+                  </RoleGuard>
+                }
+              />
+              <Route 
+                path="/student/study-plan" 
+                element={
+                  <RoleGuard allowedRoles="student">
+                    <StudentStudyPlan />
+                  </RoleGuard>
+                }
+              />
+              <Route 
+                path="/student/solve/:questionId" 
+                element={
+                  <RoleGuard allowedRoles="student">
+                    <StudentSolveQuestion />
+                  </RoleGuard>
+                }
+              />
+              <Route 
+                path="/student/simulado/:examId" 
+                element={
+                  <RoleGuard allowedRoles="student">
+                    <StudentSimulado />
+                  </RoleGuard>
+                }
+              />
+              <Route 
+                path="/student/profile" 
+                element={
+                  <RoleGuard allowedRoles="student">
+                    <StudentProfile />
+                  </RoleGuard>
+                }
+              />
+              
+              {/* Protected Dashboard Routes */}
+              <Route 
+                path="/dashboard" 
+                element={
+                  <RoleGuard allowedRoles={["student", "manager", "admin"]}>
+                    <DashboardPage />
+                  </RoleGuard>
+                }
+              />
+              <Route 
+                path="/dashboard/admin" 
+                element={
+                  <RoleGuard allowedRoles="admin">
+                    <AdminDashboard />
+                  </RoleGuard>
+                }
+              />
+              <Route 
+                path="/dashboard/manager" 
+                element={
+                  <RoleGuard allowedRoles="manager">
+                    <ManagerDashboard />
+                  </RoleGuard>
+                }
+              />
+              <Route 
+                path="/dashboard/student" 
+                element={
+                  <RoleGuard allowedRoles="student">
+                    <StudentDashboard />
+                  </RoleGuard>
+                }
+              />
+              
+              {/* Catch-all route - Must be last! */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </MainLayout>
