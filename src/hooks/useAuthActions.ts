@@ -1,4 +1,3 @@
-
 import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -8,17 +7,20 @@ export const useAuthActions = () => {
   const navigate = useNavigate();
 
   const login = useCallback(async (email: string, password: string) => {
+    console.log('[login] Iniciando login com email:', email);
     try {
       if (!email || !password) {
         throw new Error('Email e senha são obrigatórios');
       }
       
+      console.log('[login] Chamando supabase.auth.signInWithPassword');
       const { data, error } = await supabase.auth.signInWithPassword({ 
         email, 
         password 
       });
       
       if (error) {
+        console.error('[login] Erro retornado pelo Supabase:', error);
         if (error.message.includes('Invalid login credentials')) {
           throw new Error('Email ou senha inválidos');
         }
@@ -26,13 +28,20 @@ export const useAuthActions = () => {
       }
       
       if (!data.user) {
+        console.error('[login] Login sem erro, mas sem usuário retornado');
         throw new Error('Erro ao processar login: usuário não encontrado');
       }
       
+      console.log('[login] Login bem-sucedido para:', data.user.email);
+      console.log('[login] Evento SIGNED_IN deve ser disparado pelo Supabase auth');
+      
       toast.success('Login realizado com sucesso');
+
+      // O redirecionamento deve acontecer após o processamento completo
+      // feito pelo callback onAuthStateChange em useAuthState
       
     } catch (error: any) {
-      console.error('Login error:', error);
+      console.error('[login] Erro capturado:', error);
       throw error;
     }
   }, []);

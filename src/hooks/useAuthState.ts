@@ -24,8 +24,12 @@ export const useAuthState = () => {
       throw new Error('User ID required to fetch profile');
     }
 
+    console.log('[updateProfile] Iniciando fetchUserProfile para user ID:', currentUser.id);
+    
     try {
       const profileData = await fetchUserProfile(currentUser.id, currentUser.email);
+      
+      console.log('[updateProfile] fetchUserProfile concluído:', profileData ? 'Dados encontrados' : 'Sem dados');
       
       if (profileData) {
         setProfile(profileData);
@@ -36,64 +40,91 @@ export const useAuthState = () => {
         });
       }
     } catch (error) {
+      console.error('[updateProfile] Erro ao buscar perfil:', error);
       setProfile(null);
       setError(error instanceof Error ? error : new Error(String(error)));
     } finally {
+      console.log('[updateProfile] Finalizando e definindo loading=false');
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
+    console.log('[AUTH EFFECT] Configurando onAuthStateChange listener...');
     let mounted = true;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
-        if (!mounted) return;
+        console.log('>>> [onAuthStateChange CALLBACK INICIADO] Evento:', event, 'Sessão Existe:', !!currentSession);
+        
+        if (!mounted) {
+          console.log('>>> [onAuthStateChange] Componente desmontado, ignorando evento');
+          return;
+        }
 
         try {
+          console.log('>>> [onAuthStateChange] Definindo loading=true');
           setLoading(true);
 
           if (event === 'SIGNED_OUT') {
+            console.log('>>> [onAuthStateChange] Evento SIGNED_OUT, limpando estados');
             setUser(null);
             setSession(null);
             setProfile(null);
             setError(null);
+            console.log('>>> [onAuthStateChange] Estados limpos após SIGNED_OUT');
           } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+            console.log('>>> [onAuthStateChange] Evento', event, 'atualizando estados');
             setSession(currentSession);
             setUser(currentSession?.user ?? null);
 
             if (currentSession?.user) {
+              console.log('>>> [onAuthStateChange] Chamando updateProfile com user:', currentSession.user.email);
               await updateProfile(currentSession.user);
             }
           }
         } catch (error) {
-          console.error('Auth state change error:', error);
+          console.error('>>> [onAuthStateChange] Erro:', error);
           setError(error instanceof Error ? error : new Error(String(error)));
         } finally {
-          if (mounted) setLoading(false);
+          if (mounted) {
+            console.log('>>> [onAuthStateChange] Finalizando (mounted=true), definindo loading=false');
+            setLoading(false);
+          } else {
+            console.log('>>> [onAuthStateChange] Finalizando (mounted=false), não alterando estado');
+          }
         }
       }
     );
 
+    console.log('[AUTH EFFECT] Listener configurado. Subscription:', subscription);
+
     const initializeAuth = async () => {
+      console.log('[initializeAuth] Iniciando verificação de sessão existente');
       try {
         const { data } = await supabase.auth.getSession();
         
-        if (!mounted) return;
+        if (!mounted) {
+          console.log('[initializeAuth] Componente desmontado, ignorando resultados');
+          return;
+        }
 
         const currentSession = data.session;
+        console.log('[initializeAuth] Sessão existente:', currentSession ? 'Sim' : 'Não');
         setSession(currentSession);
 
         if (currentSession?.user) {
+          console.log('[initializeAuth] Usuário encontrado na sessão:', currentSession.user.email);
           setUser(currentSession.user);
           await updateProfile(currentSession.user);
         } else {
+          console.log('[initializeAuth] Sem usuário na sessão, limpando estados');
           setUser(null);
           setProfile(null);
           setLoading(false);
         }
       } catch (error) {
-        console.error('Auth initialization error:', error);
+        console.error('[initializeAuth] Erro:', error);
         setError(error instanceof Error ? error : new Error(String(error)));
         setLoading(false);
       }
@@ -102,6 +133,7 @@ export const useAuthState = () => {
     initializeAuth();
 
     return () => {
+      console.log('[AUTH EFFECT CLEANUP] Limpando listener.');
       mounted = false;
       subscription.unsubscribe();
     };
