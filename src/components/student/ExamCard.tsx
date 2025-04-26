@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -13,7 +12,10 @@ interface ExamCardProps {
 
 export default function ExamCard({ exam, type }: ExamCardProps) {
   const isStudentExam = 'progress_percentage' in exam;
+  
   const examData = isStudentExam ? (exam as StudentExam).exam_position : exam as ExamPosition;
+  
+  const examPositionId = examData.id;
   
   return (
     <Card className="flex flex-col h-full transition-all hover:shadow-md">
@@ -76,13 +78,13 @@ export default function ExamCard({ exam, type }: ExamCardProps) {
       </CardContent>
       <CardFooter>
         {type === "subscribed" ? (
-          <Link to={`/student/exams/${isStudentExam ? (exam as StudentExam).id : examData.id}`} className="w-full">
+          <Link to={`/student/exams/${examPositionId}`} className="w-full">
             <Button className="w-full">
               Continuar estudos <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
         ) : (
-          <Link to={`/student/exams/${examData.id}`} className="w-full">
+          <Link to={`/student/exams/${examPositionId}`} className="w-full">
             <Button variant="outline" className="w-full">
               Ver detalhes
             </Button>
