@@ -13,7 +13,7 @@ export default function StudentDashboard() {
   const { profile, user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const { exams: subscribedExams, loading: examsLoading } = useStudentExams(user?.id);
-  const { data: recommendedExams, isLoading: recommendedExamsLoading } = useRecommendedExams(searchQuery);
+  const { data: recommendedExams, isLoading: recommendedExamsLoading } = useRecommendedExams(searchQuery, true);
   const [overallProgress, setOverallProgress] = useState(0);
   const [metrics, setMetrics] = useState({
     questionsResolved: 0,

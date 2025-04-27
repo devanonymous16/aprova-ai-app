@@ -1,6 +1,8 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from '@/integrations/supabase/client';
 import { Exam, ExamInstitution, ExamDate, ExamPosition } from "@/types/student";
+import { toast } from "@/components/ui/sonner";
 
 type RecommendedExamQueryResult = Exam & {
   exam_institution: Pick<ExamInstitution, 'id' | 'name' | 'logo_institution'> | null;
@@ -8,17 +10,17 @@ type RecommendedExamQueryResult = Exam & {
   exam_positions: Pick<ExamPosition, 'id' | 'name' | 'vagas' | 'salario_inicial'>[] | null;
 };
 
-export function useRecommendedExams(enabled: boolean = true) {
+export function useRecommendedExams(searchQuery: string = "", enabled: boolean = true) {
   return useQuery<RecommendedExamQueryResult[], Error>({
-    queryKey: ['recommendedExams'],
+    queryKey: ['recommendedExams', searchQuery],
     queryFn: async () => {
-      console.log(`[useRecommendedExams] Buscando exames recomendados.`);
+      console.log(`[useRecommendedExams] Buscando exames recomendados. Search: "${searchQuery}"`);
 
       const selectString = `
-        id, status, exam_institution_id, exam_date_id, base64Image, /* Colunas de exams */
+        id, status, exam_institution_id, exam_date_id, base64Image,
         exam_institution:exam_institutions ( id, name, logo_institution ),
-        exam_date:exam_dates ( id, date ), /* Buscando exam_dates */
-        exam_positions ( id, name, vagas, salario_inicial ) /* Colunas de exam_positions */
+        exam_date:exam_dates ( id, date ),
+        exam_positions ( id, name, vagas, salario_inicial )
       `;
 
       let query = supabase
@@ -26,7 +28,15 @@ export function useRecommendedExams(enabled: boolean = true) {
         .select(selectString)
         .in('status', ['aberto', 'previsto']);
 
-      query = query.limit(20); 
+      // Add search filter if query is provided
+      if (searchQuery) {
+        query = query.or(`
+          exam_positions.name.ilike.%${searchQuery}%,
+          exam_institutions.name.ilike.%${searchQuery}%
+        `);
+      }
+
+      query = query.limit(20);
       console.log('[useRecommendedExams] Executando query Supabase...');
       const { data, error } = await query;
 
@@ -56,11 +66,9 @@ export function useRecommendedExams(enabled: boolean = true) {
 
       console.log('[useRecommendedExams] Dados após filtro de data:', filteredData);
 
-
       return filteredData.slice(0, 6);
-
     },
-    enabled: enabled,
+    enabled,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 10,
   });
