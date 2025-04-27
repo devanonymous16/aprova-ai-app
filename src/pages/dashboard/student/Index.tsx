@@ -1,21 +1,19 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { fetchSuggestedExams, fetchOverallProgress, fetchStudentMetrics } from '@/services/mockStudentData';
+import { fetchOverallProgress, fetchStudentMetrics } from '@/services/mockStudentData';
 import { useStudentExams } from '@/hooks/useStudentExams';
 import { useRecommendedExams } from '@/hooks/useRecommendedExams';
 import DashboardHeader from '@/components/student/dashboard/DashboardHeader';
 import ProgressOverview from '@/components/student/dashboard/ProgressOverview';
 import ExamsSection from '@/components/student/dashboard/ExamsSection';
 import TopicPerformanceChart from '@/components/student/TopicPerformanceChart';
-import { ExamPosition } from '@/types/student'; // Add this import
 
 export default function StudentDashboard() {
   const { profile, user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const { exams: subscribedExams, loading: examsLoading } = useStudentExams(user?.id);
-  const { data: recommendedExams, isLoading: recommendedExamsLoading } = useRecommendedExams();
-  const [suggestedExams, setSuggestedExams] = useState<ExamPosition[]>([]);
+  const { data: recommendedExams, isLoading: recommendedExamsLoading } = useRecommendedExams(searchQuery);
   const [overallProgress, setOverallProgress] = useState(0);
   const [metrics, setMetrics] = useState({
     questionsResolved: 0,
@@ -25,7 +23,7 @@ export default function StudentDashboard() {
     practiceTime: { hours: 0, minutes: 0 }
   });
   const [loading, setLoading] = useState(true);
-  
+
   useEffect(() => {
     document.title = 'Forefy | Dashboard do Estudante';
     
@@ -33,13 +31,11 @@ export default function StudentDashboard() {
       setLoading(true);
       try {
         if (user) {
-          const [suggested, progress, studentMetrics] = await Promise.all([
-            fetchSuggestedExams(),
+          const [progress, studentMetrics] = await Promise.all([
             fetchOverallProgress(user.id),
             fetchStudentMetrics(user.id)
           ]);
           
-          setSuggestedExams(suggested);
           setOverallProgress(progress);
           setMetrics(studentMetrics);
         }
@@ -65,7 +61,6 @@ export default function StudentDashboard() {
       <ExamsSection
         loading={loading || examsLoading}
         subscribedExams={subscribedExams}
-        suggestedExams={suggestedExams}
         recommendedExams={recommendedExams}
         recommendedExamsLoading={recommendedExamsLoading}
         searchQuery={searchQuery}

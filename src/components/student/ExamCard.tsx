@@ -1,9 +1,8 @@
-
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ExamPosition, StudentExam } from "@/types/student";
-import { Calendar, ArrowRight } from "lucide-react";
+import { Calendar, ArrowRight, Building2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface ExamCardProps {
@@ -12,22 +11,27 @@ interface ExamCardProps {
 }
 
 export default function ExamCard({ exam, type }: ExamCardProps) {
-  // For subscribed exams, get the exam position data
   const examData = 'exam_position' in exam ? exam.exam_position : exam;
   
-  if (!examData) return null; // Safety check for null exam_position
+  if (!examData) return null;
   
   const examPositionId = examData.id;
   const institutionName = examData.exam?.exam_institution?.name;
+  const logoBase64 = examData.exam?.base64Image;
   
   return (
     <Card className="flex flex-col h-full transition-all hover:shadow-md">
       <CardHeader className="pb-2">
-        <div className="flex justify-between items-start">
-          <div>
-            <h3 className="font-bold text-lg">{examData.name}</h3>
-            <p className="text-muted-foreground text-sm">{institutionName || 'Instituição não especificada'}</p>
-          </div>
+        <div className="flex items-center justify-between">
+          {logoBase64 ? (
+            <img 
+              src={`data:image/png;base64,${logoBase64}`}
+              alt={institutionName || 'Logo da instituição'}
+              className="h-12 w-auto object-contain"
+            />
+          ) : (
+            <Building2 className="h-12 w-12 text-muted-foreground" />
+          )}
           {examData.status === "open" && (
             <div className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
               Inscrições abertas
@@ -43,6 +47,10 @@ export default function ExamCard({ exam, type }: ExamCardProps) {
               Encerrado
             </div>
           )}
+        </div>
+        <div className="mt-3">
+          <h3 className="font-bold text-lg">{examData.name}</h3>
+          <p className="text-muted-foreground text-sm">{institutionName || 'Instituição não especificada'}</p>
         </div>
       </CardHeader>
       <CardContent className="flex-grow">

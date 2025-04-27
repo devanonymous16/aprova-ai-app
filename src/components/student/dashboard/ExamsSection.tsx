@@ -1,3 +1,4 @@
+
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { BookOpen, ChevronRight } from 'lucide-react';
@@ -9,7 +10,6 @@ import SearchBar from '@/components/student/SearchBar';
 interface ExamsSectionProps {
   loading: boolean;
   subscribedExams: StudentExam[];
-  suggestedExams: ExamPosition[];
   recommendedExams?: Exam[];
   recommendedExamsLoading?: boolean;
   searchQuery: string;
@@ -19,24 +19,16 @@ interface ExamsSectionProps {
 export default function ExamsSection({
   loading,
   subscribedExams,
-  suggestedExams,
   recommendedExams = [],
   recommendedExamsLoading = false,
   searchQuery,
   onSearchChange,
 }: ExamsSectionProps) {
-  // Filter subscribed exams with proper null checks and correct property paths
   const filteredSubscribedExams = subscribedExams.filter(exam => 
     exam.exam_position && (
       exam.exam_position.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (exam.exam_position.exam?.exam_institution?.name || '').toLowerCase().includes(searchQuery.toLowerCase())
     )
-  );
-  
-  // Filter suggested exams
-  const filteredSuggestedExams = suggestedExams.filter(exam => 
-    exam.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (exam.exam?.exam_institution?.name || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -104,30 +96,6 @@ export default function ExamsSection({
           </p>
         )}
       </div>
-      
-      {suggestedExams.length > 0 && (
-        <div className="mb-10">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">Concursos Recomendados</h2>
-          </div>
-          
-          {loading ? (
-            <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-            </div>
-          ) : filteredSuggestedExams.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredSuggestedExams.slice(0, 3).map(exam => (
-                <ExamCard key={exam.id} exam={exam} type="suggested" />
-              ))}
-            </div>
-          ) : (
-            <p className="text-center py-8 text-muted-foreground">
-              Nenhum concurso sugerido encontrado para "{searchQuery}"
-            </p>
-          )}
-        </div>
-      )}
     </>
   );
 }

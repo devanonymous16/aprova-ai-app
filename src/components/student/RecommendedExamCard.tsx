@@ -1,11 +1,10 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Exam, ExamPosition } from "@/types/student";
-import { Calendar } from "lucide-react";
+import { Exam } from "@/types/student";
+import { Calendar, Building2 } from "lucide-react";
 
 interface RecommendedExamCardProps {
   exam: Exam;
@@ -24,13 +23,16 @@ export default function RecommendedExamCard({ exam }: RecommendedExamCardProps) 
   return (
     <Card className="flex flex-col h-full hover:shadow-md transition-all">
       <CardHeader className="space-y-2">
-        <div className="flex items-start justify-between">
-          <div>
-            <h3 className="text-lg font-semibold">{exam.exam_institution.name}</h3>
-            <p className="text-sm text-muted-foreground">
-              {exam.exam_positions.length} {exam.exam_positions.length === 1 ? 'cargo disponível' : 'cargos disponíveis'}
-            </p>
-          </div>
+        <div className="flex items-center justify-between">
+          {exam.base64Image ? (
+            <img 
+              src={`data:image/png;base64,${exam.base64Image}`}
+              alt={exam.exam_institution?.name}
+              className="h-12 w-auto object-contain"
+            />
+          ) : (
+            <Building2 className="h-12 w-12 text-muted-foreground" />
+          )}
           {exam.status === "open" && (
             <div className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
               Inscrições abertas
@@ -41,6 +43,12 @@ export default function RecommendedExamCard({ exam }: RecommendedExamCardProps) 
               Em breve
             </div>
           )}
+        </div>
+        <div className="mt-3">
+          <h3 className="text-lg font-semibold">{exam.exam_institution?.name}</h3>
+          <p className="text-sm text-muted-foreground">
+            {exam.exam_positions?.length} {exam.exam_positions?.length === 1 ? 'cargo disponível' : 'cargos disponíveis'}
+          </p>
         </div>
       </CardHeader>
       
