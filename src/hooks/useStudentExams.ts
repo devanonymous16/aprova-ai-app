@@ -44,8 +44,6 @@ export const useStudentExams = (studentId: string | undefined) => {
     exam_position_id,
     access_type,
     created_at,
-    status,
-    progress_percentage,
     exam_position:exam_positions!inner (
       id,
       name,
@@ -53,18 +51,18 @@ export const useStudentExams = (studentId: string | undefined) => {
       salario_inicial,
       exam_id,
       exam_level_of_education_id,
-      created_at,
-      exam:exams!inner (
-        id,
-        status,
-        exam_institution_id,
-        exam_date_id,
-        created_at,
-        exam_institution:exam_institutions!inner (
-          id,
-          name
-        )
-      )
+      created_at
+    ),
+    exam:exams!inner (
+      id,
+      status,
+      exam_institution_id,
+      exam_date_id,
+      created_at
+    ),
+    exam_institution:exam_institutions!inner (
+      id,
+      name
     )
   `;
 
