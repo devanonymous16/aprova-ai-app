@@ -1,43 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { StudentExam, ExamPosition } from '@/types/student';
+import { StudentExam } from '@/types/student';
 import { toast } from '@/components/ui/sonner';
 
-type StudentExamQueryResult = {
-  id: any;
-  student_id: any;
-  exam_id: any;
-  exam_position_id: any;
-  access_type: any;
-  created_at: any;
-  updated_at: any;
-  status: any;
-  progress_percentage: any;
-  exam_position: {
-    id: any;
-    name: string;
-    vagas: number | null;
-    salario_inicial: number | null;
-    exam_id: any;
-    exam_level_of_education_id: any;
-    created_at: any;
-    exam: {
-      id: any;
-      status: string | null;
-      exam_institution_id: any;
-      exam_date_id: any;
-      created_at: any;
-      exam_institution: {
-        id: any;
-        name: string;
-      } | null;
-    } | null;
-  } | null;
-};
-
-
 export const useStudentExams = (studentId: string | undefined) => {
-
   const [exams, setExams] = useState<StudentExam[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -56,78 +22,29 @@ export const useStudentExams = (studentId: string | undefined) => {
     setError(null);
 
     try {
-      console.log('[useStudentExams] Executando query Supabase com JOINs...');
+      console.log('[useStudentExams] Executando query Supabase SIMPLIFICADA (select *)...');
 
-      const selectString = `
-        id,
-        student_id,
-        exam_id,
-        exam_position_id,
-        access_type,
-        created_at,
-        updated_at,
-        status,
-        progress_percentage,
-        exam_position:exam_positions!inner (
-          id,
-          name,
-          vagas,
-          salario_inicial,
-          exam_id,
-          exam_level_of_education_id,
-          created_at,
-          exam:exams!inner (
-            id,
-            status,
-            exam_institution_id,
-            exam_date_id,
-            created_at,
-            exam_institution:exam_institutions!inner (
-              id,
-              name
-            )
-          )
-        )
-      `;
-
-      const { data: queryData, error: queryError } = await supabase
+      const { data: rawData, error: queryError } = await supabase
         .from('student_exams')
-        .select(selectString)
+        .select(`*`) // APENAS O ASTERISCO
         .eq('student_id', studentId);
 
-      console.log('[useStudentExams] Resultado BRUTO da query:', { queryData, queryError });
+      console.log('[useStudentExams] Resultado BRUTO da query SIMPLIFICADA:', { rawData, queryError });
 
       if (queryError) {
-        console.error('[useStudentExams] Erro na query Supabase:', queryError);
+        console.error('[useStudentExams] Erro na query Supabase SIMPLIFICADA:', queryError);
         throw queryError;
       }
 
-      if (queryData) {
-         console.log('[useStudentExams] Iniciando formatação dos dados recebidos...');
-
-         const typedData = queryData as StudentExamQueryResult[];
-
-         const formattedExams = typedData.map(item => {
-
-             return {
-                 ...item,
-
-                 exam_position: item.exam_position ? {
-                     ...item.exam_position,
-                     exam: item.exam_position.exam ? {
-                         ...item.exam_position.exam,
-                         exam_institution: item.exam_position.exam.exam_institution ?? null
-                     } : null
-                 } : null
-             } as StudentExam;
-         });
-
-         console.log('[useStudentExams] Mapeamento/Formatação concluído. Exames:', formattedExams);
-         setExams(formattedExams);
+      if (rawData) {
+          console.log('[useStudentExams] Dados brutos recebidos (sem mapeamento):', rawData);
+          setExams(rawData as any); // Usando 'as any' APENAS PARA ESTE TESTE
       } else {
-         console.log('[useStudentExams] Nenhum dado recebido da query.');
-         setExams([]);
+          console.log('[useStudentExams] Nenhum dado bruto recebido (query simplificada).');
+          setExams([]);
       }
+
+      setError(null);
 
     } catch (err) {
       console.error('[useStudentExams] Erro CATCH no fetchExams:', err);
@@ -140,7 +57,6 @@ export const useStudentExams = (studentId: string | undefined) => {
       console.log('[useStudentExams] fetchExams FINALLY - Setando isLoading=false');
       setLoading(false);
     }
-
   }, [studentId]);
 
   useEffect(() => {
