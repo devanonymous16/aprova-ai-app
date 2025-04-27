@@ -17,18 +17,17 @@ export function useRecommendedExams(searchQuery: string = "", enabled: boolean =
       console.log(`[useRecommendedExams] Buscando exames recomendados. Search: "${searchQuery}"`);
 
       const selectString = `
-        id, status, exam_institution_id, exam_date_id, base64Image,
-        exam_institution:exam_institutions ( id, name, logo_institution ),
-        exam_date:exam_dates ( id, date ),
-        exam_positions ( id, name, vagas, salario_inicial )
-      `;
+  id, status, exam_institution_id, exam_date_id, created_at, base64Image,
+  exam_institutions ( id, name, logo_institution, created_at ),
+  exam_dates ( id, date, created_at ),
+  exam_positions ( id, name, vagas, salario_inicial, exam_id, exam_level_of_education_id, created_at )
+`;
 
       let query = supabase
         .from('exams')
         .select(selectString)
         .in('status', ['aberto', 'previsto']);
 
-      // Add search filter if query is provided
       if (searchQuery) {
         query = query.or(`
           exam_positions.name.ilike.%${searchQuery}%,
