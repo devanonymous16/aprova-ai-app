@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchSuggestedExams, fetchOverallProgress, fetchStudentMetrics } from '@/services/mockStudentData';
@@ -7,6 +8,7 @@ import DashboardHeader from '@/components/student/dashboard/DashboardHeader';
 import ProgressOverview from '@/components/student/dashboard/ProgressOverview';
 import ExamsSection from '@/components/student/dashboard/ExamsSection';
 import TopicPerformanceChart from '@/components/student/TopicPerformanceChart';
+import { ExamPosition } from '@/types/student'; // Add this import
 
 export default function StudentDashboard() {
   const { profile, user } = useAuth();
