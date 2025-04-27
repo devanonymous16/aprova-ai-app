@@ -3,42 +3,44 @@ export type SubscriptionStatus = 'active' | 'canceled' | 'pending' | 'expired';
 export type QuestionDifficulty = 'easy' | 'medium' | 'hard';
 export type QuestionStatus = 'correct' | 'incorrect' | 'skipped';
 
-export interface ExamPosition {
+export interface ExamInstitution {
   id: string;
-  title: string;
-  organization: string;
-  department?: string;
-  vacancy_count?: number;
-  salary?: number;
-  registration_deadline?: string;
-  exam_date?: string;
-  description?: string;
-  status?: 'open' | 'closed' | 'upcoming';
-  image_url?: string;
-  created_at: string;
+  name: string;
 }
 
-export interface Subscription {
+export interface Exam {
   id: string;
-  student_id: string;
-  plan_id: string;
-  exam_position_id: string;
-  status: SubscriptionStatus;
-  started_at: string;
-  expires_at: string;
+  status: 'open' | 'closed' | 'upcoming';
+  exam_institution_id: string;
+  exam_date_id: string;
   created_at: string;
-  updated_at: string;
+  exam_institution: ExamInstitution | null;
+}
+
+export interface ExamPosition {
+  id: string;
+  name: string;
+  vagas: number | null;
+  salario_inicial: number | null;
+  exam_id: string;
+  exam_level_of_education_id: string;
+  exam_date?: string;
+  created_at: string;
+  exam: Exam | null;
+  status?: 'open' | 'closed' | 'upcoming';
 }
 
 export interface StudentExam {
   id: string;
   student_id: string;
-  exam_position_id: string;  // Updated from exam_positions_id
-  status: ExamPositionStatus;
-  progress_percentage: number;
+  exam_id: string;
+  exam_position_id: string;
+  access_type: string;
   created_at: string;
+  exam_position: ExamPosition | null;
+  progress_percentage: number;
+  status: ExamPositionStatus;
   updated_at: string;
-  exam_position: ExamPosition;
 }
 
 export interface Topic {
