@@ -24,34 +24,33 @@ export const useStudentExams = (studentId: string | undefined) => {
 
     try {
       const selectString = `
-  id,
-  student_id,
-  exam_id,
-  exam_position_id,
-  access_type,
-  created_at,
-  exam_position:exam_positions (
     id,
-    name,
-    vagas,
-    salario_inicial,
+    student_id,
     exam_id,
-    exam_level_of_education_id,
+    exam_position_id,
+    access_type,
     created_at,
-    exam:exams (
+    exam_position:exam_positions!inner (
       id,
-      status,
-      exam_institution_id,
-      exam_date_id,
+      name,
+      vagas,
+      salario_inicial,
+      exam_id,
+      exam_level_of_education_id,
       created_at,
-      exam_institution:exam_institutions (
+      exam:exams!inner (
         id,
-        name,
-        logo_institution
+        status,
+        exam_institution_id,
+        created_at,
+        exam_institution:exam_institutions!inner (
+          id,
+          name,
+          logo_institution
+        )
       )
     )
-  )
-`;
+  `;
 
       const { data: queryData, error: queryError } = await supabase
         .from('student_exams')
