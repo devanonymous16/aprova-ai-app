@@ -27,6 +27,7 @@ export const useAuthState = () => {
     console.log('[updateProfile] Iniciando fetchUserProfile para user ID:', currentUser.id);
     
     try {
+      setLoading(true);
       const profileData = await fetchUserProfile(currentUser.id, currentUser.email);
       
       console.log('[updateProfile] fetchUserProfile concluído:', profileData ? 'Dados encontrados' : 'Sem dados');
@@ -49,6 +50,7 @@ export const useAuthState = () => {
     }
   }, []);
 
+  // Effect para configurar o listener de autenticação
   useEffect(() => {
     console.log('[AUTH EFFECT] Configurando onAuthStateChange listener...');
     let mounted = true;
@@ -62,37 +64,17 @@ export const useAuthState = () => {
           return;
         }
 
-        try {
-          console.log('>>> [onAuthStateChange] Definindo loading=true');
-          setLoading(true);
-
-          if (event === 'SIGNED_OUT') {
-            console.log('>>> [onAuthStateChange] Evento SIGNED_OUT, limpando estados');
-            setUser(null);
-            setSession(null);
-            setProfile(null);
-            setError(null);
-            console.log('>>> [onAuthStateChange] Estados limpos após SIGNED_OUT');
-          } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-            console.log('>>> [onAuthStateChange] Evento', event, 'atualizando estados');
-            setSession(currentSession);
-            setUser(currentSession?.user ?? null);
-
-            if (currentSession?.user) {
-              console.log('>>> [onAuthStateChange] Chamando updateProfile com user:', currentSession.user.email);
-              await updateProfile(currentSession.user);
-            }
-          }
-        } catch (error) {
-          console.error('>>> [onAuthStateChange] Erro:', error);
-          setError(error instanceof Error ? error : new Error(String(error)));
-        } finally {
-          if (mounted) {
-            console.log('>>> [onAuthStateChange] Finalizando (mounted=true), definindo loading=false');
-            setLoading(false);
-          } else {
-            console.log('>>> [onAuthStateChange] Finalizando (mounted=false), não alterando estado');
-          }
+        if (event === 'SIGNED_OUT') {
+          console.log('>>> [onAuthStateChange] Evento SIGNED_OUT, limpando estados');
+          setUser(null);
+          setSession(null);
+          setProfile(null);
+          setError(null);
+          setLoading(false);
+        } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+          console.log('>>> [onAuthStateChange] Evento', event, 'atualizando estados básicos');
+          setSession(currentSession);
+          setUser(currentSession?.user ?? null);
         }
       }
     );
@@ -111,12 +93,12 @@ export const useAuthState = () => {
 
         const currentSession = data.session;
         console.log('[initializeAuth] Sessão existente:', currentSession ? 'Sim' : 'Não');
+        
         setSession(currentSession);
-
+        
         if (currentSession?.user) {
           console.log('[initializeAuth] Usuário encontrado na sessão:', currentSession.user.email);
           setUser(currentSession.user);
-          await updateProfile(currentSession.user);
         } else {
           console.log('[initializeAuth] Sem usuário na sessão, limpando estados');
           setUser(null);
@@ -137,7 +119,20 @@ export const useAuthState = () => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [updateProfile]);
+  }, []);
+
+  // Effect para gerenciar o carregamento do perfil quando user muda
+  useEffect(() => {
+    console.log('[PROFILE EFFECT] User mudou:', user?.email);
+    
+    if (user) {
+      console.log('[PROFILE EFFECT] User existe, iniciando updateProfile');
+      updateProfile(user);
+    } else {
+      console.log('[PROFILE EFFECT] User null, limpando profile');
+      setProfile(null);
+    }
+  }, [user, updateProfile]);
 
   return {
     user,
