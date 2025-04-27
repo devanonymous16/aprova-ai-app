@@ -30,7 +30,7 @@ export const useStudentExams = (studentId: string | undefined) => {
             progress_percentage,
             created_at,
             updated_at,
-            exam_position:exam_positions(
+            exam_position:exam_positions!exam_position_id(
               id,
               title,
               organization,
