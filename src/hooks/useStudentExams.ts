@@ -30,7 +30,7 @@ export const useStudentExams = (studentId: string | undefined) => {
             progress_percentage,
             created_at,
             updated_at,
-            exam_position:exam_positions!exam_position_id(
+            exam_position:exam_positions(
               id,
               title,
               organization,
@@ -49,8 +49,23 @@ export const useStudentExams = (studentId: string | undefined) => {
 
         if (error) throw error;
 
-        console.log('[useStudentExams] Fetched data:', data);
-        setExams(data as StudentExam[] || []);
+        console.log('[useStudentExams] Fetched raw data:', data);
+        
+        // Transform the data to match our StudentExam type by handling the array
+        const formattedExams: StudentExam[] = data?.map((item: any) => {
+          // Extract the first exam_position from the array or set to null if empty
+          const examPosition = Array.isArray(item.exam_position) && item.exam_position.length > 0 
+            ? item.exam_position[0] 
+            : null;
+            
+          return {
+            ...item,
+            exam_position: examPosition
+          };
+        }) || [];
+        
+        console.log('[useStudentExams] Formatted exams data:', formattedExams);
+        setExams(formattedExams);
       } catch (err) {
         console.error('[useStudentExams] Error fetching exams:', err);
         setError(err instanceof Error ? err : new Error(String(err)));
