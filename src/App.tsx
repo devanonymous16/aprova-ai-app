@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import { useAuthNavigation } from "./hooks/useAuthNavigation";
 import MainLayout from "./components/layout/MainLayout";
 import RoleGuard from "./components/RoleGuard";
 import { useState, useEffect } from "react";
@@ -30,145 +31,136 @@ import StudentSolveQuestion from "./pages/student/SolveQuestion";
 import StudentSimulado from "./pages/student/Simulado";
 import StudentProfile from "./pages/student/Profile";
 
-function App() {
-  console.log('[DIAGNÓSTICO] App.tsx: Componente App renderizando...');
+function AppContent() {
+  useAuthNavigation();
   
+  return (
+    <MainLayout>
+      <Routes>
+        {/* Public routes */}
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/unauthorized" element={<UnauthorizedPage />} />
+        
+        {/* Protected Student Routes - Note the order! */}
+        <Route 
+          path="/student/exams/:id" 
+          element={
+            <RoleGuard allowedRoles="student">
+              <StudentExamDetail />
+            </RoleGuard>
+          }
+        />
+        <Route 
+          path="/student/exams" 
+          element={
+            <RoleGuard allowedRoles="student">
+              <StudentExams />
+            </RoleGuard>
+          }
+        />
+        <Route 
+          path="/student/autodiagnosis/:examId" 
+          element={
+            <RoleGuard allowedRoles="student">
+              <StudentAutoDiagnosis />
+            </RoleGuard>
+          }
+        />
+        <Route 
+          path="/student/study-plan" 
+          element={
+            <RoleGuard allowedRoles="student">
+              <StudentStudyPlan />
+            </RoleGuard>
+          }
+        />
+        <Route 
+          path="/student/solve/:questionId" 
+          element={
+            <RoleGuard allowedRoles="student">
+              <StudentSolveQuestion />
+            </RoleGuard>
+          }
+        />
+        <Route 
+          path="/student/simulado/:examId" 
+          element={
+            <RoleGuard allowedRoles="student">
+              <StudentSimulado />
+            </RoleGuard>
+          }
+        />
+        <Route 
+          path="/student/profile" 
+          element={
+            <RoleGuard allowedRoles="student">
+              <StudentProfile />
+            </RoleGuard>
+          }
+        />
+        
+        {/* Protected Dashboard Routes */}
+        <Route 
+          path="/dashboard" 
+          element={
+            <RoleGuard allowedRoles={["student", "manager", "admin"]}>
+              <DashboardPage />
+            </RoleGuard>
+          }
+        />
+        <Route 
+          path="/dashboard/admin" 
+          element={
+            <RoleGuard allowedRoles="admin">
+              <AdminDashboard />
+            </RoleGuard>
+          }
+        />
+        <Route 
+          path="/dashboard/manager" 
+          element={
+            <RoleGuard allowedRoles="manager">
+              <ManagerDashboard />
+            </RoleGuard>
+          }
+        />
+        <Route 
+          path="/dashboard/student" 
+          element={
+            <RoleGuard allowedRoles="student">
+              <StudentDashboard />
+            </RoleGuard>
+          }
+        />
+        
+        {/* Catch-all route - Must be last! */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </MainLayout>
+  );
+}
+
+function App() {
   const [queryClient] = useState(() => {
     console.log('[DIAGNÓSTICO] App.tsx: Criando QueryClient');
     return new QueryClient();
   });
-  
-  useEffect(() => {
-    console.log('[DIAGNÓSTICO] App.tsx: useEffect montagem do App executando');
-    return () => {
-      console.log('[DIAGNÓSTICO] App.tsx: useEffect desmontagem do App executando');
-    };
-  }, []);
-  
-  console.log('[DIAGNÓSTICO] App.tsx: Iniciando renderização do App com QueryClientProvider');
-  
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <MainLayout>
-            <Routes>
-              {/* Public routes */}
-              <Route path="/" element={<HomePage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/signup" element={<SignupPage />} />
-              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-              <Route path="/reset-password" element={<ResetPasswordPage />} />
-              <Route path="/unauthorized" element={<UnauthorizedPage />} />
-              
-              {/* Protected Student Routes - Note the order! */}
-              <Route 
-                path="/student/exams/:id" 
-                element={
-                  <RoleGuard allowedRoles="student">
-                    <StudentExamDetail />
-                  </RoleGuard>
-                }
-              />
-              <Route 
-                path="/student/exams" 
-                element={
-                  <RoleGuard allowedRoles="student">
-                    <StudentExams />
-                  </RoleGuard>
-                }
-              />
-              <Route 
-                path="/student/autodiagnosis/:examId" 
-                element={
-                  <RoleGuard allowedRoles="student">
-                    <StudentAutoDiagnosis />
-                  </RoleGuard>
-                }
-              />
-              <Route 
-                path="/student/study-plan" 
-                element={
-                  <RoleGuard allowedRoles="student">
-                    <StudentStudyPlan />
-                  </RoleGuard>
-                }
-              />
-              <Route 
-                path="/student/solve/:questionId" 
-                element={
-                  <RoleGuard allowedRoles="student">
-                    <StudentSolveQuestion />
-                  </RoleGuard>
-                }
-              />
-              <Route 
-                path="/student/simulado/:examId" 
-                element={
-                  <RoleGuard allowedRoles="student">
-                    <StudentSimulado />
-                  </RoleGuard>
-                }
-              />
-              <Route 
-                path="/student/profile" 
-                element={
-                  <RoleGuard allowedRoles="student">
-                    <StudentProfile />
-                  </RoleGuard>
-                }
-              />
-              
-              {/* Protected Dashboard Routes */}
-              <Route 
-                path="/dashboard" 
-                element={
-                  <RoleGuard allowedRoles={["student", "manager", "admin"]}>
-                    <DashboardPage />
-                  </RoleGuard>
-                }
-              />
-              <Route 
-                path="/dashboard/admin" 
-                element={
-                  <RoleGuard allowedRoles="admin">
-                    <AdminDashboard />
-                  </RoleGuard>
-                }
-              />
-              <Route 
-                path="/dashboard/manager" 
-                element={
-                  <RoleGuard allowedRoles="manager">
-                    <ManagerDashboard />
-                  </RoleGuard>
-                }
-              />
-              <Route 
-                path="/dashboard/student" 
-                element={
-                  <RoleGuard allowedRoles="student">
-                    <StudentDashboard />
-                  </RoleGuard>
-                }
-              />
-              
-              {/* Catch-all route - Must be last! */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </MainLayout>
+          <AppContent />
         </TooltipProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
 }
-
-// Simple test component for routing diagnosis
-const TestComponent = () => {
-  console.log('[DIAGNÓSTICO] App.tsx: TestComponent renderizando');
-  return <div className="p-8 text-center">Teste OK - Roteamento funcionando</div>;
-};
 
 export default App;
