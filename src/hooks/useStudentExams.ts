@@ -1,24 +1,43 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-
 import { StudentExam, ExamPosition, Exam, ExamInstitution } from '@/types/student';
 import { toast } from '@/components/ui/sonner';
 
 
-type StudentExamQueryResult = Omit<StudentExam, 'exam_position'> & {
-  exam_position: (Omit<ExamPosition, 'exam'> & {
-    exam: (Omit<Exam, 'exam_institution'> & {
-      exam_institution: ExamInstitution | null;
-    }) | null;
-  }) | null;
-};
+type SupabaseStudentExamQueryResult = {
+  id: any;
+  student_id: any;
+  exam_id: any;
+  exam_position_id: any;
+  access_type: any;
+  created_at: any;
 
+  exam_positions: {
+    id: any;
+    name: string;
+    vagas: number | null;
+    salario_inicial: number | null;
+    exam_id: any;
+    exam_level_of_education_id: any;
+    created_at: any;
+    exams: {
+      id: any;
+      status: string | null;
+      exam_institution_id: any;
+      exam_date_id: any;
+      created_at: any;
+      exam_institutions: {
+        id: any;
+        name: string;
+      } | null;
+    } | null;
+  } | null;
+};
 
 export const useStudentExams = (studentId: string | undefined) => {
   const [exams, setExams] = useState<StudentExam[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-
 
   const fetchExams = useCallback(async () => {
     console.log('[useStudentExams] Fetching exams for student:', studentId);
@@ -34,37 +53,36 @@ export const useStudentExams = (studentId: string | undefined) => {
     setError(null);
 
     try {
-      console.log('[useStudentExams] Executando query Supabase com JOINs CORRIGIDOS...');
-
+      console.log('[useStudentExams] Executando query Supabase com JOINs (sem aliases)...');
 
       const selectString = `
-    id,
-    student_id,
-    exam_id,
-    exam_position_id,
-    access_type,
-    created_at,
-    exam_position:exam_positions!inner (
-      id,
-      name,
-      vagas,
-      salario_inicial,
-      exam_id,
-      exam_level_of_education_id,
-      created_at
-    ),
-      exam:exams!inner (
         id,
-        status,
-        exam_institution_id,
-        exam_date_id,
-        created_at
-      ),
-        exam_institution:exam_institutions!inner (
+        student_id,
+        exam_id,
+        exam_position_id,
+        access_type,
+        created_at,
+        exam_positions!inner (
           id,
-          name
-      )
-  `;
+          name,
+          vagas,
+          salario_inicial,
+          exam_id,
+          exam_level_of_education_id,
+          created_at,
+          exams!inner (
+            id,
+            status,
+            exam_institution_id,
+            exam_date_id,
+            created_at,
+            exam_institutions!inner (
+              id,
+              name
+            )
+          )
+        )
+      `;
 
       const { data: queryData, error: queryError } = await supabase
         .from('student_exams')
@@ -79,16 +97,50 @@ export const useStudentExams = (studentId: string | undefined) => {
       }
 
       if (queryData) {
-         console.log('[useStudentExams] Formatando dados recebidos...');
+         console.log('[useStudentExams] Formatando dados recebidos para a estrutura da UI...');
 
-         const typedData = queryData as StudentExamQueryResult[];
+         const typedData = queryData as SupabaseStudentExamQueryResult[];
 
-         const formattedExams = typedData.map(item => {
+         const formattedExams: StudentExam[] = typedData.map(item => {
+           const positionData = item.exam_positions;
+           const examData = positionData?.exams;
+           const institutionData = examData?.exam_institutions;
 
-           return item as StudentExam;
+
+           return {
+             id: item.id,
+             student_id: item.student_id,
+             exam_id: item.exam_id,
+             exam_position_id: item.exam_position_id,
+             access_type: item.access_type,
+             created_at: item.created_at,
+
+             exam_position: positionData ? {
+                 id: positionData.id,
+                 name: positionData.name,
+                 vagas: positionData.vagas,
+                 salario_inicial: positionData.salario_inicial,
+                 exam_id: positionData.exam_id,
+                 exam_level_of_education_id: positionData.exam_level_of_education_id,
+                 created_at: positionData.created_at,
+                 exam: examData ? {
+                     id: examData.id,
+                     status: examData.status,
+                     exam_institution_id: examData.exam_institution_id,
+                     exam_date_id: examData.exam_date_id,
+                     created_at: examData.created_at,
+                     exam_institution: institutionData ? {
+                         id: institutionData.id,
+                         name: institutionData.name
+                     } : null
+                 } : null
+             } : null,
+
+
+           } as StudentExam;
          });
 
-         console.log('[useStudentExams] Formatação concluída. Exames:', formattedExams);
+         console.log('[useStudentExams] Mapeamento concluído. Exames formatados:', formattedExams);
          setExams(formattedExams);
       } else {
          console.log('[useStudentExams] Nenhum dado recebido da query.');
