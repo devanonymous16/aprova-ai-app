@@ -21,11 +21,15 @@ export default function ExamsSection({
   searchQuery,
   onSearchChange,
 }: ExamsSectionProps) {
+  // Filter subscribed exams - make sure to check for exam_position property
   const filteredSubscribedExams = subscribedExams.filter(exam => 
-    exam.exam_position.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    exam.exam_position.organization.toLowerCase().includes(searchQuery.toLowerCase())
+    exam.exam_position && (
+      exam.exam_position.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      exam.exam_position.organization.toLowerCase().includes(searchQuery.toLowerCase())
+    )
   );
   
+  // Filter suggested exams
   const filteredSuggestedExams = suggestedExams.filter(exam => 
     exam.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     exam.organization.toLowerCase().includes(searchQuery.toLowerCase())

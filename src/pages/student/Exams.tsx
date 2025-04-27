@@ -3,8 +3,9 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { fetchStudentExams, fetchSuggestedExams } from "@/services/mockStudentData";
-import { StudentExam, ExamPosition } from "@/types/student";
+import { fetchSuggestedExams } from "@/services/mockStudentData";
+import { useStudentExams } from "@/hooks/useStudentExams";
+import { ExamPosition } from "@/types/student";
 import ExamCard from "@/components/student/ExamCard";
 import SearchBar from "@/components/student/SearchBar";
 import { BookOpen, ArrowLeft } from "lucide-react";
@@ -12,7 +13,7 @@ import { BookOpen, ArrowLeft } from "lucide-react";
 export default function StudentExams() {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
-  const [subscribedExams, setSubscribedExams] = useState<StudentExam[]>([]);
+  const { exams: subscribedExams, loading: examsLoading } = useStudentExams(user?.id);
   const [suggestedExams, setSuggestedExams] = useState<ExamPosition[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -22,13 +23,8 @@ export default function StudentExams() {
     const loadData = async () => {
       setLoading(true);
       try {
-        if (user) {
-          const exams = await fetchStudentExams(user.id);
-          setSubscribedExams(exams);
-          
-          const suggested = await fetchSuggestedExams();
-          setSuggestedExams(suggested);
-        }
+        const suggested = await fetchSuggestedExams();
+        setSuggestedExams(suggested);
       } catch (error) {
         console.error("Error loading exam data:", error);
       } finally {
@@ -41,8 +37,10 @@ export default function StudentExams() {
   
   // Filter exams based on search query
   const filteredSubscribedExams = subscribedExams.filter(exam => 
-    exam.exam_position.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    exam.exam_position.organization.toLowerCase().includes(searchQuery.toLowerCase())
+    exam.exam_position && (
+      exam.exam_position.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      exam.exam_position.organization.toLowerCase().includes(searchQuery.toLowerCase())
+    )
   );
   
   const filteredSuggestedExams = suggestedExams.filter(exam => 
@@ -73,7 +71,7 @@ export default function StudentExams() {
       <div className="mb-10">
         <h2 className="text-xl font-bold mb-4">Meus Concursos</h2>
         
-        {loading ? (
+        {loading || examsLoading ? (
           <div className="flex justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
           </div>

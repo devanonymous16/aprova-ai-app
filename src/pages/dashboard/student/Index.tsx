@@ -3,11 +3,11 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { StudentExam, ExamPosition } from '@/types/student';
 import { 
-  fetchStudentExams, 
   fetchSuggestedExams, 
   fetchOverallProgress,
   fetchStudentMetrics 
 } from '@/services/mockStudentData';
+import { useStudentExams } from '@/hooks/useStudentExams';
 import DashboardHeader from '@/components/student/dashboard/DashboardHeader';
 import ProgressOverview from '@/components/student/dashboard/ProgressOverview';
 import ExamsSection from '@/components/student/dashboard/ExamsSection';
@@ -16,7 +16,7 @@ import TopicPerformanceChart from '@/components/student/TopicPerformanceChart';
 export default function StudentDashboard() {
   const { profile, user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
-  const [subscribedExams, setSubscribedExams] = useState<StudentExam[]>([]);
+  const { exams: subscribedExams, loading: examsLoading } = useStudentExams(user?.id);
   const [suggestedExams, setSuggestedExams] = useState<ExamPosition[]>([]);
   const [overallProgress, setOverallProgress] = useState(0);
   const [metrics, setMetrics] = useState({
@@ -35,14 +35,12 @@ export default function StudentDashboard() {
       setLoading(true);
       try {
         if (user) {
-          const [exams, suggested, progress, studentMetrics] = await Promise.all([
-            fetchStudentExams(user.id),
+          const [suggested, progress, studentMetrics] = await Promise.all([
             fetchSuggestedExams(),
             fetchOverallProgress(user.id),
             fetchStudentMetrics(user.id)
           ]);
           
-          setSubscribedExams(exams);
           setSuggestedExams(suggested);
           setOverallProgress(progress);
           setMetrics(studentMetrics);
@@ -67,7 +65,7 @@ export default function StudentDashboard() {
       />
       
       <ExamsSection
-        loading={loading}
+        loading={loading || examsLoading}
         subscribedExams={subscribedExams}
         suggestedExams={suggestedExams}
         searchQuery={searchQuery}
