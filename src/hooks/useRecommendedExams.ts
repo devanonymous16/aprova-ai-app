@@ -9,7 +9,11 @@ export function useRecommendedExams(searchQuery: string = '') {
     queryFn: async () => {
       const selectString = `
         *,
-        exam_institution:exam_institutions (*),
+        exam_institution:exam_institutions (
+          id,
+          name,
+          logo_institution
+        ),
         exam_date:exam_dates (*),
         exam_positions (
           *

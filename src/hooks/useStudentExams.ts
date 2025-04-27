@@ -30,7 +30,9 @@ export const useStudentExams = (studentId: string | undefined) => {
           exam:exams (
             *,
             exam_institution:exam_institutions (
-              *
+              id,
+              name,
+              logo_institution
             )
           )
         )

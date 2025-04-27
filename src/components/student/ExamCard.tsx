@@ -17,15 +17,15 @@ export default function ExamCard({ exam, type }: ExamCardProps) {
   
   const examPositionId = examData.id;
   const institutionName = examData.exam?.exam_institution?.name;
-  const logoBase64 = examData.exam?.base64Image;
+  const logoInstitution = examData.exam?.exam_institution?.logo_institution;
   
   return (
     <Card className="flex flex-col h-full transition-all hover:shadow-md">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          {logoBase64 ? (
+          {logoInstitution ? (
             <img 
-              src={`data:image/png;base64,${logoBase64}`}
+              src={`data:image/png;base64,${logoInstitution}`}
               alt={institutionName || 'Logo da instituição'}
               className="h-12 w-auto object-contain"
             />

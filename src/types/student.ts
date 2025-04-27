@@ -6,6 +6,7 @@ export type QuestionStatus = 'correct' | 'incorrect' | 'skipped';
 export interface ExamInstitution {
   id: string;
   name: string;
+  logo_institution: string | null;
 }
 
 export interface ExamDate {

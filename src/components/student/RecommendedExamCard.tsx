@@ -24,9 +24,9 @@ export default function RecommendedExamCard({ exam }: RecommendedExamCardProps) 
     <Card className="flex flex-col h-full hover:shadow-md transition-all">
       <CardHeader className="space-y-2">
         <div className="flex items-center justify-between">
-          {exam.base64Image ? (
+          {exam.exam_institution?.logo_institution ? (
             <img 
-              src={`data:image/png;base64,${exam.base64Image}`}
+              src={`data:image/png;base64,${exam.exam_institution.logo_institution}`}
               alt={exam.exam_institution?.name}
               className="h-12 w-auto object-contain"
             />
