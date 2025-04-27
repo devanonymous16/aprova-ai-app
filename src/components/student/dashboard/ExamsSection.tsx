@@ -1,15 +1,17 @@
-
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { BookOpen, ChevronRight } from 'lucide-react';
 import ExamCard from '@/components/student/ExamCard';
-import { StudentExam, ExamPosition } from '@/types/student';
+import RecommendedExamCard from '@/components/student/RecommendedExamCard';
+import { StudentExam, ExamPosition, Exam } from '@/types/student';
 import SearchBar from '@/components/student/SearchBar';
 
 interface ExamsSectionProps {
   loading: boolean;
   subscribedExams: StudentExam[];
   suggestedExams: ExamPosition[];
+  recommendedExams?: Exam[];
+  recommendedExamsLoading?: boolean;
   searchQuery: string;
   onSearchChange: (value: string) => void;
 }
@@ -18,6 +20,8 @@ export default function ExamsSection({
   loading,
   subscribedExams,
   suggestedExams,
+  recommendedExams = [],
+  recommendedExamsLoading = false,
   searchQuery,
   onSearchChange,
 }: ExamsSectionProps) {
@@ -76,6 +80,28 @@ export default function ExamsSection({
               Explorar concursos
             </Button>
           </div>
+        )}
+      </div>
+      
+      <div className="mb-10">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold">Concursos Recomendados</h2>
+        </div>
+        
+        {recommendedExamsLoading ? (
+          <div className="flex justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        ) : recommendedExams.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {recommendedExams.map(exam => (
+              <RecommendedExamCard key={exam.id} exam={exam} />
+            ))}
+          </div>
+        ) : (
+          <p className="text-center py-8 text-muted-foreground">
+            Nenhum concurso recomendado encontrado
+          </p>
         )}
       </div>
       

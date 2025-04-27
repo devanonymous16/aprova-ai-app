@@ -1,13 +1,8 @@
-
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { StudentExam, ExamPosition } from '@/types/student';
-import { 
-  fetchSuggestedExams, 
-  fetchOverallProgress,
-  fetchStudentMetrics 
-} from '@/services/mockStudentData';
+import { fetchSuggestedExams, fetchOverallProgress, fetchStudentMetrics } from '@/services/mockStudentData';
 import { useStudentExams } from '@/hooks/useStudentExams';
+import { useRecommendedExams } from '@/hooks/useRecommendedExams';
 import DashboardHeader from '@/components/student/dashboard/DashboardHeader';
 import ProgressOverview from '@/components/student/dashboard/ProgressOverview';
 import ExamsSection from '@/components/student/dashboard/ExamsSection';
@@ -17,6 +12,7 @@ export default function StudentDashboard() {
   const { profile, user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const { exams: subscribedExams, loading: examsLoading } = useStudentExams(user?.id);
+  const { data: recommendedExams, isLoading: recommendedExamsLoading } = useRecommendedExams();
   const [suggestedExams, setSuggestedExams] = useState<ExamPosition[]>([]);
   const [overallProgress, setOverallProgress] = useState(0);
   const [metrics, setMetrics] = useState({
@@ -68,6 +64,8 @@ export default function StudentDashboard() {
         loading={loading || examsLoading}
         subscribedExams={subscribedExams}
         suggestedExams={suggestedExams}
+        recommendedExams={recommendedExams}
+        recommendedExamsLoading={recommendedExamsLoading}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
       />

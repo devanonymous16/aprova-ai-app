@@ -8,13 +8,23 @@ export interface ExamInstitution {
   name: string;
 }
 
+export interface ExamDate {
+  id: string;
+  date: string;
+  registration_start: string;
+  registration_end: string;
+  created_at: string;
+}
+
 export interface Exam {
   id: string;
   status: 'open' | 'closed' | 'upcoming';
   exam_institution_id: string;
   exam_date_id: string;
   created_at: string;
-  exam_institution: ExamInstitution | null;
+  exam_institution: ExamInstitution;
+  exam_date: ExamDate;
+  exam_positions: ExamPosition[];
 }
 
 export interface ExamPosition {

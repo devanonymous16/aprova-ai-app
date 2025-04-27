@@ -1,10 +1,10 @@
-
 import { 
   ExamPosition, 
   StudentExam, 
   Subscription, 
   StudentProgress, 
-  Topic 
+  Topic,
+  Exam
 } from "@/types/student";
 
 // Mock exam positions
@@ -360,6 +360,56 @@ export const fetchStudentMetrics = (studentId: string): Promise<{
         ranking: { position: 15, total: 230 },
         practiceTime: { hours: 42, minutes: 15 }
       });
+    }, 500);
+  });
+};
+
+// Add recommended exams mock data
+export const fetchRecommendedExams = (): Promise<Exam[]> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const recommendedExams: Exam[] = [
+        {
+          id: "e-001",
+          status: "open",
+          exam_institution_id: "ei-001",
+          exam_date_id: "ed-001",
+          created_at: "2024-04-27",
+          exam_institution: {
+            id: "ei-001",
+            name: "Tribunal de Justiça de São Paulo"
+          },
+          exam_date: {
+            id: "ed-001",
+            date: "2024-07-15",
+            registration_start: "2024-05-01",
+            registration_end: "2024-06-01",
+            created_at: "2024-04-27"
+          },
+          exam_positions: mockExamPositions.filter(p => p.exam_id === "e-001")
+        },
+        {
+          id: "e-002",
+          status: "upcoming",
+          exam_institution_id: "ei-002",
+          exam_date_id: "ed-002",
+          created_at: "2024-04-27",
+          exam_institution: {
+            id: "ei-002",
+            name: "Tribunal Regional Federal"
+          },
+          exam_date: {
+            id: "ed-002",
+            date: "2024-08-20",
+            registration_start: "2024-06-01",
+            registration_end: "2024-07-01",
+            created_at: "2024-04-27"
+          },
+          exam_positions: mockExamPositions.filter(p => p.exam_id === "e-002")
+        }
+      ];
+      
+      resolve(recommendedExams);
     }, 500);
   });
 };
