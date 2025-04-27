@@ -25,35 +25,7 @@ export const useStudentExams = (studentId: string | undefined) => {
 
         const { data: rawData, error: queryError } = await supabase
           .from('student_exams')
-          .select(`
-    id,
-    student_id,
-    exam_id,
-    exam_position_id,
-    access_type,
-    created_at,
-    updated_at,
-    exam_position:exam_positions!inner (
-      id,
-      name,
-      vagas,
-      salario_inicial,
-      exam_id,
-      exam_level_of_education_id,
-      created_at
-    ),
-    exam:exams!inner (
-      id,
-      status,
-      exam_institution_id,
-      exam_date_id,
-      created_at
-    ),
-    exam_institution:exam_institutions!inner (
-      id,
-      name
-    )
-  `)
+          .select(`*`)
           .eq('student_id', studentId);
 
         console.log('[useStudentExams] Resultado BRUTO da query:', { rawData, queryError });
@@ -63,26 +35,12 @@ export const useStudentExams = (studentId: string | undefined) => {
           throw queryError;
         }
 
-        console.log('[useStudentExams] Iniciando mapeamento dos dados brutos...');
-
-        const formattedExams: StudentExam[] = rawData?.map((item: any, index: number) => {
-          if (index === 0) {
-            console.log('[useStudentExams] Estrutura do primeiro item bruto:', item);
-          }
-          
-          const examPosition = Array.isArray(item.exam_position) && item.exam_position.length > 0
-            ? item.exam_position[0]
-            : null;
-
-          return {
-            ...item,
-            exam_position: examPosition
-          };
-        }) || [];
-
-        console.log('[useStudentExams] Mapeamento concluído. Exames formatados:', formattedExams);
-
-        setExams(formattedExams);
+      if (rawData) {
+            console.log('[useStudentExams] Dados brutos recebidos (sem mapeamento):', rawData);
+            setExams(rawData as any);
+        } else {
+            setExams([]);
+        }
         setError(null);
 
       } catch (err) {
