@@ -20,14 +20,22 @@ export interface Exam {
 export interface ExamPosition {
   id: string;
   name: string;
+  title?: string;
+  organization?: string;
+  department?: string;
   vagas: number | null;
   salario_inicial: number | null;
+  vacancy_count?: number;
+  salary?: number;
   exam_id: string;
   exam_level_of_education_id: string;
   exam_date?: string;
+  registration_deadline?: string;
+  description?: string;
   created_at: string;
   exam: Exam | null;
   status?: 'open' | 'closed' | 'upcoming';
+  image_url?: string;
 }
 
 export interface StudentExam {
@@ -38,9 +46,9 @@ export interface StudentExam {
   access_type: string;
   created_at: string;
   exam_position: ExamPosition | null;
-  progress_percentage: number;
-  status: ExamPositionStatus;
-  updated_at: string;
+  progress_percentage?: number;
+  status?: ExamPositionStatus;
+  updated_at?: string;
 }
 
 export interface Topic {
@@ -148,4 +156,16 @@ export interface ExamLevelData {
     description?: string;
   };
   educationLevel: EducationLevel | null;
+}
+
+export interface Subscription {
+  id: string;
+  student_id: string;
+  plan_id: string;
+  exam_position_id: string;
+  status: SubscriptionStatus;
+  started_at: string;
+  expires_at: string;
+  created_at: string;
+  updated_at: string;
 }
