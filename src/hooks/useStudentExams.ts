@@ -10,8 +10,7 @@ export const useStudentExams = (studentId: string | undefined) => {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-        const fetchExams = async () => {
-      // Log inicial (já deve existir, confirme)
+    const fetchExams = async () => {
       console.log('[useStudentExams] Fetching exams for student:', studentId);
 
       if (!studentId) {
@@ -19,11 +18,9 @@ export const useStudentExams = (studentId: string | undefined) => {
         return;
       }
 
-      // Try/Catch/Finally (já deve existir)
       try {
-        setLoading(true); // Loading true no início do try
+        setLoading(true);
 
-        // Log ANTES da Query (Adicione esta linha)
         console.log('[useStudentExams] Executando query Supabase...');
 
         const { data: rawData, error: queryError } = await supabase
@@ -38,7 +35,7 @@ export const useStudentExams = (studentId: string | undefined) => {
             updated_at,
             exam_position:exam_positions(
               id,
-              title,
+              name,  // CORRECTED from 'title' to 'name'
               organization,
               department,
               vacancy_count,
@@ -53,26 +50,20 @@ export const useStudentExams = (studentId: string | undefined) => {
           `)
           .eq('student_id', studentId);
 
-        // Log do Resultado BRUTO (Adicione esta linha)
         console.log('[useStudentExams] Resultado BRUTO da query:', { rawData, queryError });
 
-        // Tratamento de erro da query (já deve existir, confirme)
         if (queryError) {
-          // Log no ERRO da Query (Adicione/Confirme esta linha dentro do if)
           console.error('[useStudentExams] Erro na query Supabase:', queryError);
-          throw queryError; // Re-lança o erro para ser pego pelo catch geral
+          throw queryError;
         }
 
-        // Log ANTES do Mapeamento (Adicione esta linha)
         console.log('[useStudentExams] Iniciando mapeamento dos dados brutos...');
 
-        // Mapeamento Manual (já deve existir, adicione o log interno)
-        const formattedExams: StudentExam[] = rawData?.map((item: any, index: number) => { // Adicione 'index'
-          // Log Dentro do Mapeamento (Primeiro Item) (Adicione este if)
+        const formattedExams: StudentExam[] = rawData?.map((item: any, index: number) => {
           if (index === 0) {
             console.log('[useStudentExams] Estrutura do primeiro item bruto:', item);
           }
-          // Lógica existente de mapeamento
+          
           const examPosition = Array.isArray(item.exam_position) && item.exam_position.length > 0
             ? item.exam_position[0]
             : null;
@@ -83,30 +74,24 @@ export const useStudentExams = (studentId: string | undefined) => {
           };
         }) || [];
 
-        // Log APÓS o Mapeamento (Adicione esta linha)
         console.log('[useStudentExams] Mapeamento concluído. Exames formatados:', formattedExams);
 
-        // Setar o estado (já deve existir)
         setExams(formattedExams);
-        setError(null); // Limpa erro anterior se sucesso
+        setError(null);
 
       } catch (err) {
-        // Log no CATCH geral (já deve existir, confirme)
         console.error('[useStudentExams] Erro CATCH no fetchExams:', err);
         setError(err instanceof Error ? err : new Error(String(err)));
-        setExams([]); // Limpa exames em caso de erro
-        toast.error('Failed to load your exams', { // Toast existente
+        setExams([]);
+        toast.error('Failed to load your exams', {
           description: 'Please try again later'
         });
       } finally {
-        // Log no FINALLY (Adicione/Confirme esta linha)
         console.log('[useStudentExams] fetchExams FINALLY - Setando isLoading=false');
-        // Setar loading para false (já deve existir)
         setLoading(false);
       }
     };
 
-    // Chamada fetchExams (já deve existir)
     fetchExams();
   }, [studentId]);
 
