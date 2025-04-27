@@ -1,10 +1,8 @@
-import { useEffect, useState, useCallback } from 'react'; // Adicionado useCallback
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { StudentExam, ExamPosition } from '@/types/student'; // Garanta que ExamPosition seja importado se não estiver global
+import { StudentExam, ExamPosition } from '@/types/student';
 import { toast } from '@/components/ui/sonner';
 
-// Definindo um tipo mais explícito para o retorno da query com joins
-// Adapte as propriedades internas se necessário conforme seus tipos reais
 type StudentExamQueryResult = {
   id: any;
   student_id: any;
@@ -13,56 +11,53 @@ type StudentExamQueryResult = {
   access_type: any;
   created_at: any;
   updated_at: any;
-  status: any;                   // Status de student_exams
-  progress_percentage: any;      // Progress de student_exams
-  exam_position: {              // Objeto único (devido ao !inner)
+  status: any;
+  progress_percentage: any;
+  exam_position: {
     id: any;
-    name: string;               // Nome do Cargo
-    vagas: number | null;       // Vagas
-    salario_inicial: number | null; // Salário
+    name: string;
+    vagas: number | null;
+    salario_inicial: number | null;
     exam_id: any;
     exam_level_of_education_id: any;
     created_at: any;
-    exam: {                     // Objeto único
+    exam: {
       id: any;
-      status: string | null;    // Status de exams
+      status: string | null;
       exam_institution_id: any;
       exam_date_id: any;
       created_at: any;
-      exam_institution: {       // Objeto único
+      exam_institution: {
         id: any;
-        name: string;           // Nome da Instituição
-      } | null; // exam_institution pode ser null
-    } | null; // exam pode ser null
-  } | null; // exam_position pode ser null
+        name: string;
+      } | null;
+    } | null;
+  } | null;
 };
 
 
 export const useStudentExams = (studentId: string | undefined) => {
-  // Use um tipo mais genérico ou StudentExam se ele já incluir os campos aninhados corretamente
+
   const [exams, setExams] = useState<StudentExam[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  // Usar useCallback para a função fetch, embora com dependência de studentId pode não ser estritamente necessário
   const fetchExams = useCallback(async () => {
     console.log('[useStudentExams] Fetching exams for student:', studentId);
 
     if (!studentId) {
       console.log('[useStudentExams] studentId NULO, definindo loading=false');
       setLoading(false);
-      setExams([]); // Garante que esteja vazio se não houver ID
+      setExams([]);
       return;
     }
 
-    // Garante que setLoading(true) só rode se for buscar dados
     setLoading(true);
-    setError(null); // Limpa erro anterior ao tentar buscar
+    setError(null);
 
     try {
       console.log('[useStudentExams] Executando query Supabase com JOINs...');
 
-      // String select CORRIGIDA E FINAL
       const selectString = `
         id,
         student_id,
@@ -97,31 +92,26 @@ export const useStudentExams = (studentId: string | undefined) => {
 
       const { data: queryData, error: queryError } = await supabase
         .from('student_exams')
-        .select(selectString) // USA A STRING CORRETA
+        .select(selectString)
         .eq('student_id', studentId);
 
       console.log('[useStudentExams] Resultado BRUTO da query:', { queryData, queryError });
 
       if (queryError) {
         console.error('[useStudentExams] Erro na query Supabase:', queryError);
-        throw queryError; // Deixa o catch geral tratar
+        throw queryError;
       }
 
-      // Verificação e Mapeamento (agora esperamos objetos aninhados)
       if (queryData) {
          console.log('[useStudentExams] Iniciando formatação dos dados recebidos...');
-         // Tipamos o retorno da query para melhor intellisense e segurança
+
          const typedData = queryData as StudentExamQueryResult[];
 
-         // O mapeamento pode não ser mais necessário se o tipo StudentExam já espera a estrutura aninhada
-         // Mas vamos manter uma verificação/formatação básica se necessário
          const formattedExams = typedData.map(item => {
-             // A query com !inner JÁ DEVE retornar exam_position como objeto, não array.
-             // O mesmo para os joins internos.
-             // Adicione validações se os tipos ainda não baterem 100% com StudentExam
+
              return {
                  ...item,
-                 // Garanta que as propriedades aninhadas existam se o tipo StudentExam as exigir
+
                  exam_position: item.exam_position ? {
                      ...item.exam_position,
                      exam: item.exam_position.exam ? {
@@ -129,7 +119,7 @@ export const useStudentExams = (studentId: string | undefined) => {
                          exam_institution: item.exam_position.exam.exam_institution ?? null
                      } : null
                  } : null
-             } as StudentExam; // Faz type assertion para o tipo final esperado pela UI
+             } as StudentExam;
          });
 
          console.log('[useStudentExams] Mapeamento/Formatação concluído. Exames:', formattedExams);
@@ -150,13 +140,12 @@ export const useStudentExams = (studentId: string | undefined) => {
       console.log('[useStudentExams] fetchExams FINALLY - Setando isLoading=false');
       setLoading(false);
     }
-  // A dependência de 'studentId' já está no useEffect externo
-  // O useCallback aqui é mais para garantir referência estável se fosse passado como prop
-  }, [studentId]); // Depende de studentId para refazer a busca se ele mudar
+
+  }, [studentId]);
 
   useEffect(() => {
     fetchExams();
-  }, [fetchExams]); // Executa fetchExams quando a função (ou studentId) muda
+  }, [fetchExams]);
 
   return { exams, loading, error };
 };
