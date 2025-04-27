@@ -377,7 +377,8 @@ export const fetchRecommendedExams = (): Promise<Exam[]> => {
           created_at: "2024-04-27",
           exam_institution: {
             id: "ei-001",
-            name: "Tribunal de Justiça de São Paulo"
+            name: "Tribunal de Justiça de São Paulo",
+            logo_institution: "base64_placeholder_tj_sp" // Added logo_institution
           },
           exam_date: {
             id: "ed-001",
@@ -396,7 +397,8 @@ export const fetchRecommendedExams = (): Promise<Exam[]> => {
           created_at: "2024-04-27",
           exam_institution: {
             id: "ei-002",
-            name: "Tribunal Regional Federal"
+            name: "Tribunal Regional Federal",
+            logo_institution: "base64_placeholder_trf" // Added logo_institution
           },
           exam_date: {
             id: "ed-002",
@@ -413,3 +415,15 @@ export const fetchRecommendedExams = (): Promise<Exam[]> => {
     }, 500);
   });
 };
+
+// Optionally, update mockExamPositions to include logo_institution in exam
+mockExamPositions.forEach(position => {
+  position.exam = {
+    ...position.exam,
+    exam_institution: {
+      id: `ei-${position.id}`,
+      name: position.organization || 'Unknown Institution',
+      logo_institution: `base64_placeholder_${position.id}`
+    }
+  } as Exam;
+});
