@@ -10,17 +10,23 @@ export const useStudentExams = (studentId: string | undefined) => {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    const fetchExams = async () => {
+        const fetchExams = async () => {
+      // Log inicial (já deve existir, confirme)
+      console.log('[useStudentExams] Fetching exams for student:', studentId);
+
       if (!studentId) {
         setLoading(false);
         return;
       }
 
+      // Try/Catch/Finally (já deve existir)
       try {
-        console.log('[useStudentExams] Fetching exams for student:', studentId);
-        setLoading(true);
-        
-        const { data, error } = await supabase
+        setLoading(true); // Loading true no início do try
+
+        // Log ANTES da Query (Adicione esta linha)
+        console.log('[useStudentExams] Executando query Supabase...');
+
+        const { data: rawData, error: queryError } = await supabase
           .from('student_exams')
           .select(`
             id,
@@ -47,36 +53,60 @@ export const useStudentExams = (studentId: string | undefined) => {
           `)
           .eq('student_id', studentId);
 
-        if (error) throw error;
+        // Log do Resultado BRUTO (Adicione esta linha)
+        console.log('[useStudentExams] Resultado BRUTO da query:', { rawData, queryError });
 
-        console.log('[useStudentExams] Fetched raw data:', data);
-        
-        // Transform the data to match our StudentExam type by handling the array
-        const formattedExams: StudentExam[] = data?.map((item: any) => {
-          // Extract the first exam_position from the array or set to null if empty
-          const examPosition = Array.isArray(item.exam_position) && item.exam_position.length > 0 
-            ? item.exam_position[0] 
+        // Tratamento de erro da query (já deve existir, confirme)
+        if (queryError) {
+          // Log no ERRO da Query (Adicione/Confirme esta linha dentro do if)
+          console.error('[useStudentExams] Erro na query Supabase:', queryError);
+          throw queryError; // Re-lança o erro para ser pego pelo catch geral
+        }
+
+        // Log ANTES do Mapeamento (Adicione esta linha)
+        console.log('[useStudentExams] Iniciando mapeamento dos dados brutos...');
+
+        // Mapeamento Manual (já deve existir, adicione o log interno)
+        const formattedExams: StudentExam[] = rawData?.map((item: any, index: number) => { // Adicione 'index'
+          // Log Dentro do Mapeamento (Primeiro Item) (Adicione este if)
+          if (index === 0) {
+            console.log('[useStudentExams] Estrutura do primeiro item bruto:', item);
+          }
+          // Lógica existente de mapeamento
+          const examPosition = Array.isArray(item.exam_position) && item.exam_position.length > 0
+            ? item.exam_position[0]
             : null;
-            
+
           return {
             ...item,
             exam_position: examPosition
           };
         }) || [];
-        
-        console.log('[useStudentExams] Formatted exams data:', formattedExams);
+
+        // Log APÓS o Mapeamento (Adicione esta linha)
+        console.log('[useStudentExams] Mapeamento concluído. Exames formatados:', formattedExams);
+
+        // Setar o estado (já deve existir)
         setExams(formattedExams);
+        setError(null); // Limpa erro anterior se sucesso
+
       } catch (err) {
-        console.error('[useStudentExams] Error fetching exams:', err);
+        // Log no CATCH geral (já deve existir, confirme)
+        console.error('[useStudentExams] Erro CATCH no fetchExams:', err);
         setError(err instanceof Error ? err : new Error(String(err)));
-        toast.error('Failed to load your exams', {
+        setExams([]); // Limpa exames em caso de erro
+        toast.error('Failed to load your exams', { // Toast existente
           description: 'Please try again later'
         });
       } finally {
+        // Log no FINALLY (Adicione/Confirme esta linha)
+        console.log('[useStudentExams] fetchExams FINALLY - Setando isLoading=false');
+        // Setar loading para false (já deve existir)
         setLoading(false);
       }
     };
 
+    // Chamada fetchExams (já deve existir)
     fetchExams();
   }, [studentId]);
 
