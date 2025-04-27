@@ -42,6 +42,7 @@ export const useStudentExams = (studentId: string | undefined) => {
         id,
         status,
         exam_institution_id,
+        exam_date_id,
         created_at,
         exam_institution:exam_institutions!inner (
           id,
