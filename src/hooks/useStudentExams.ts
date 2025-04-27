@@ -43,7 +43,7 @@ export const useStudentExams = (studentId: string | undefined) => {
     exam_id,
     exam_position_id,
     access_type,
-    created_at, // 'updated_at' removido daqui
+    created_at,
     status,
     progress_percentage,
     exam_position:exam_positions!inner (
