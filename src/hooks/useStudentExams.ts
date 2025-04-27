@@ -26,28 +26,24 @@ export const useStudentExams = (studentId: string | undefined) => {
         const { data: rawData, error: queryError } = await supabase
           .from('student_exams')
           .select(`
-            id,
-            student_id,
-            exam_position_id,
-            status,
-            progress_percentage,
-            created_at,
-            updated_at,
-            exam_position:exam_positions(
-              id,
-              name,  // CORRECTED from 'title' to 'name'
-              organization,
-              department,
-              vacancy_count,
-              salary,
-              registration_deadline,
-              exam_date,
-              description,
-              status,
-              image_url,
-              created_at
-            )
-          `)
+    id,
+    student_id,
+    exam_position_id,
+    status,
+    progress_percentage,
+    created_at,
+    updated_at,
+    exam_position:exam_positions (
+      id,
+      name,
+      vagas,
+      salario_inicial,
+      exam:exams (
+        status,
+        exam_institution:exam_institutions (name)
+      )
+    )
+  `)
           .eq('student_id', studentId);
 
         console.log('[useStudentExams] Resultado BRUTO da query:', { rawData, queryError });
