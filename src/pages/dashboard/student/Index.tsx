@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchOverallProgress, fetchStudentMetrics } from '@/services/mockStudentData';
