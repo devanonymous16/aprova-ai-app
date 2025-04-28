@@ -1,10 +1,13 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useEffect, useState } from "react";
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { getTopicPerformanceComparison } from "@/services/mockStudentData";
 
 interface TopicPerformanceData {
   topic: string;
+  topicId: string;
   performance: number;
   average: number;
   difference: number;
@@ -16,29 +19,43 @@ interface TopicPerformanceChartProps {
 }
 
 export default function TopicPerformanceChart({ studentId, examId }: TopicPerformanceChartProps) {
-  // Mock data for the chart
-  const performanceData = [
-    { topic: 'Direito Constitucional', performance: 85, average: 72, difference: 13 },
-    { topic: 'Língua Portuguesa', performance: 78, average: 68, difference: 10 },
-    { topic: 'Direito Administrativo', performance: 65, average: 70, difference: -5 },
-    { topic: 'Legislação de Trânsito', performance: 92, average: 75, difference: 17 },
-    { topic: 'Direitos Humanos', performance: 88, average: 82, difference: 6 },
-    { topic: 'Primeiros Socorros', performance: 95, average: 80, difference: 15 },
-    { topic: 'Direito Penal', performance: 72, average: 68, difference: 4 },
-    { topic: 'Legislação Municipal', performance: 83, average: 76, difference: 7 }
-  ];
+  const [performanceData, setPerformanceData] = useState<TopicPerformanceData[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await getTopicPerformanceComparison(studentId, examId);
+        setPerformanceData(data);
+      } catch (error) {
+        console.error("Error fetching performance data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, [studentId, examId]);
   
   // Get the best and worst performing topics
-  const bestPerforming = [...performanceData]
-    .sort((a, b) => b.difference - a.difference)
-    .slice(0, 5);
+  const bestPerforming = [...performanceData].sort((a, b) => b.difference - a.difference).slice(0, 5);
+  const worstPerforming = [...performanceData].sort((a, b) => a.difference - b.difference).slice(0, 5);
   
-  const worstPerforming = [...performanceData]
-    .sort((a, b) => a.difference - b.difference)
-    .slice(0, 5);
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Desempenho por Tópico</CardTitle>
+        </CardHeader>
+        <CardContent className="h-[400px] flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+        </CardContent>
+      </Card>
+    );
+  }
   
   return (
-    <Card className="mb-8">
+    <Card>
       <CardHeader>
         <CardTitle>Desempenho por Tópico</CardTitle>
       </CardHeader>
@@ -47,20 +64,9 @@ export default function TopicPerformanceChart({ studentId, examId }: TopicPerfor
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={performanceData.slice(0, 8)} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="topic" 
-                tick={{ fontSize: 12 }} 
-                height={60} 
-                interval={0} 
-                tickFormatter={(value) => 
-                  value.length > 15 ? `${value.substring(0, 15)}...` : value
-                }
-              />
+              <XAxis dataKey="topic" tick={{ fontSize: 12 }} height={60} interval={0} tickFormatter={(value) => value.length > 15 ? `${value.substring(0, 15)}...` : value} />
               <YAxis domain={[0, 100]} />
-              <Tooltip 
-                formatter={(value: number) => [`${value}%`]} 
-                labelStyle={{ color: '#111' }}
-              />
+              <Tooltip formatter={(value) => `${value}%`} />
               <Legend />
               <Bar dataKey="performance" name="Seu Desempenho" fill="#9b87f5" />
               <Bar dataKey="average" name="Média Geral" fill="#8E9196" />
@@ -82,7 +88,7 @@ export default function TopicPerformanceChart({ studentId, examId }: TopicPerfor
               </TableHeader>
               <TableBody>
                 {bestPerforming.map((topic) => (
-                  <TableRow key={topic.topic}>
+                  <TableRow key={topic.topicId}>
                     <TableCell className="font-medium">{topic.topic}</TableCell>
                     <TableCell className="text-right">{topic.performance}%</TableCell>
                     <TableCell className="text-right">{topic.average}%</TableCell>
@@ -105,7 +111,7 @@ export default function TopicPerformanceChart({ studentId, examId }: TopicPerfor
               </TableHeader>
               <TableBody>
                 {worstPerforming.map((topic) => (
-                  <TableRow key={topic.topic}>
+                  <TableRow key={topic.topicId}>
                     <TableCell className="font-medium">{topic.topic}</TableCell>
                     <TableCell className="text-right">{topic.performance}%</TableCell>
                     <TableCell className="text-right">{topic.average}%</TableCell>

@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchOverallProgress, fetchStudentMetrics } from '@/services/mockStudentData';
@@ -57,11 +58,6 @@ export default function StudentDashboard() {
         metrics={metrics}
       />
       
-      <TopicPerformanceChart 
-        studentId={user?.id || "current-user-id"} 
-        examId={subscribedExams[0]?.exam_position_id}
-      />
-      
       <ExamsSection
         loading={loading || examsLoading}
         subscribedExams={subscribedExams}
@@ -70,6 +66,13 @@ export default function StudentDashboard() {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
       />
+      
+      {subscribedExams.length > 0 && (
+        <TopicPerformanceChart 
+          studentId={user?.id || "current-user-id"} 
+          examId={subscribedExams[0].exam_position_id}
+        />
+      )}
     </div>
   );
 }
