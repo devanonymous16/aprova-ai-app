@@ -23,46 +23,48 @@ export const useStudentExams = (studentId: string | undefined) => {
     setError(null);
 
     try {
-      const selectString = `
-    id,
-    student_id,
-    exam_id,
-    exam_position_id,
-    access_type,
-    created_at,
-    exam_position:exam_positions!inner (
-      id,
-      name,
-      vagas,
-      salario_inicial,
-      exam_id,
-      exam_level_of_education_id,
-      created_at,
-      exam:exams!inner (
-        id,
-        status,
-        exam_institution_id,
-        created_at,
-        exam_institution:exam_institutions!inner (
-          id,
-          name,
-          logo_institution
-        )
-      )
-    )
-  `;
-
       const { data: queryData, error: queryError } = await supabase
         .from('student_exams')
-        .select(selectString)
+        .select(`
+          id,
+          student_id,
+          exam_id,
+          exam_position_id,
+          access_type,
+          created_at,
+          exam_position (
+            id,
+            name,
+            vagas,
+            salario_inicial,
+            exam_id,
+            exam_level_of_education_id,
+            created_at,
+            exam (
+              id,
+              status,
+              exam_institution_id,
+              created_at,
+              exam_institution (
+                id,
+                name,
+                logo_institution
+              )
+            )
+          )
+        `)
         .eq('student_id', studentId);
 
-      if (queryError) {
-        console.error('[useStudentExams] Erro na query Supabase:', queryError);
-        throw queryError;
-      }
+      if (queryError) throw queryError;
 
-      setExams(queryData as StudentExam[] || []);
+      const typedData = (queryData || []).map(item => ({
+        ...item,
+        exam_position: Array.isArray(item.exam_position) 
+          ? item.exam_position[0] 
+          : item.exam_position
+      })) as StudentExam[];
+
+      setExams(typedData);
 
     } catch (err) {
       console.error('[useStudentExams] Erro CATCH no fetchExams:', err);
