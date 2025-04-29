@@ -1,27 +1,42 @@
-
 import { useEffect } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/button'; // Mantido para placeholders
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/contexts/AuthContext';
-import { 
-  Users, 
-  BookOpen, 
+import { useAuth } from '@/contexts/AuthContext'; // Mantido
+import {
+  Users,
+  BookOpen,
   BarChart2,
-  Clipboard,
-  Calendar,
-  MessageSquare,
+  // Clipboard, // Removido - Tarefas
+  // Calendar, // Removido - Eventos
+  // MessageSquare, // Removido - Mensagens
   Award,
-  Settings
-} from 'lucide-react';
+  Settings,
+  Newspaper, // Ícone para Concursos em Andamento
+  SearchCheck // Ícone para Concursos Previstos
+} from 'lucide-react'; // Ícones ajustados
 
 export default function ManagerDashboard() {
-  const { user } = useAuth();
-  
+  // const { user } = useAuth(); // user não é usado diretamente aqui, comentado por enquanto
+  const { profile } = useAuth(); // profile usado no header
+
   useEffect(() => {
     document.title = 'Forefy | Painel de Gerente';
   }, []);
-  
+
+  // Dados mockados para os KPIs - MANTIDOS POR ENQUANTO
+  // TODO: Substituir por dados reais vindos de hooks específicos do Manager
+  const kpiData = {
+    totalStudents: 387,
+    newStudents: 24,
+    engagementRate: 74,
+    engagementChange: 3,
+    approvalRate: 68,
+    approvalScope: "Últimos 4 concursos",
+  };
+  // Nome da instituição (Poderia vir do profile do manager ou de um contexto de organização)
+  const institutionName = profile?.institution_name || 'Cursinho Preparatório XYZ'; // Exemplo
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div className="flex items-center justify-between mb-6">
@@ -31,247 +46,151 @@ export default function ManagerDashboard() {
             Gerencie seus alunos e monitore o desempenho da sua instituição
           </p>
         </div>
+        {/* Exibição da Instituição - Usando nome do profile ou mock */}
         <div className="hidden md:flex items-center gap-2 bg-secondary-50 p-2 rounded-lg border border-secondary-100">
           <div className="bg-white p-1 rounded border border-secondary-100">
             <Settings className="h-5 w-5 text-secondary-600" />
           </div>
           <div>
-            <p className="text-sm font-medium">Institução</p>
-            <p className="text-xs text-muted-foreground">Cursinho Preparatório XYZ</p>
+            <p className="text-sm font-medium">Instituição</p>
+            <p className="text-xs text-muted-foreground">{institutionName}</p>
           </div>
         </div>
       </div>
-      
+
+      {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {/* KPI Cards */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total de Alunos
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Total de Alunos</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">387</div>
+            <div className="text-2xl font-bold">{kpiData.totalStudents}</div>
             <p className="text-xs text-muted-foreground">
-              +24 novos alunos este mês
+              +{kpiData.newStudents} novos alunos este mês
             </p>
           </CardContent>
         </Card>
-        
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              Taxa de Engajamento
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Taxa de Engajamento</CardTitle>
             <BarChart2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">74%</div>
+            <div className="text-2xl font-bold">{kpiData.engagementRate}%</div>
             <p className="text-xs text-muted-foreground">
-              +3% em relação ao mês anterior
+              +{kpiData.engagementChange}% em relação ao mês anterior
             </p>
           </CardContent>
         </Card>
-        
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              Média de Aprovação
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Média de Aprovação</CardTitle>
             <Award className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">68%</div>
-            <p className="text-xs text-muted-foreground">
-              Últimos 4 concursos
-            </p>
+            <div className="text-2xl font-bold">{kpiData.approvalRate}%</div>
+            <p className="text-xs text-muted-foreground">{kpiData.approvalScope}</p>
           </CardContent>
         </Card>
       </div>
-      
+
+      {/* Abas Principais */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full md:w-auto md:inline-grid grid-cols-2 md:grid-cols-5">
+        {/* Lista de Abas */}
+        <TabsList className="grid w-full md:w-auto md:inline-grid grid-cols-2 md:grid-cols-5 mb-6">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="students">Alunos</TabsTrigger>
           <TabsTrigger value="analytics">Análises</TabsTrigger>
           <TabsTrigger value="content">Materiais</TabsTrigger>
           <TabsTrigger value="settings">Configurações</TabsTrigger>
         </TabsList>
-        
-        <TabsContent value="overview">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mt-6">
-            <div className="md:col-span-3">
+
+        {/* Conteúdo da Aba: Visão Geral */}
+        <TabsContent value="overview" className="mt-0"> {/* Removido mt-6 daqui */}
+          {/* Grid Principal da Visão Geral */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Coluna Esquerda (Maior) - Concursos em Andamento */}
+            <div className="lg:col-span-2">
               <Card className="h-full">
                 <CardHeader>
-                  <CardTitle>Desempenho por Disciplina</CardTitle>
+                  {/* Título da Nova Seção */}
+                  <CardTitle>Concursos em Andamento</CardTitle>
                 </CardHeader>
                 <CardContent className="px-4">
-                  <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-md">
-                    <p className="text-muted-foreground text-center">
-                      Gráfico de desempenho seria exibido aqui
+                   {/* Placeholder para os Cards de Concurso */}
+                   <div className="h-[350px] flex items-center justify-center bg-gray-50 rounded-md">
+                    <p className="text-muted-foreground text-center p-4">
+                      Placeholder: Cards de concursos abertos (com paginação e filtros) serão exibidos aqui.
                     </p>
                   </div>
                 </CardContent>
               </Card>
             </div>
-            
-            <div className="md:col-span-2">
+
+            {/* Coluna Direita (Menor) - Concursos Previstos */}
+            <div className="lg:col-span-1">
               <Card className="h-full">
                 <CardHeader>
-                  <CardTitle>Próximos Eventos</CardTitle>
+                   {/* Título da Nova Seção */}
+                  <CardTitle>Concursos Previstos</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {[1, 2, 3].map((i) => (
+                   {/* Placeholder - Layout similar ao de 'Próximos Eventos' */}
+                   <div className="space-y-4">
+                    {[1, 2, 3, 4].map((i) => ( // Adicionei mais um item para preencher
                       <div key={i} className="flex items-start gap-4 border-b pb-4 last:border-0">
-                        <div className="rounded-md bg-primary-50 border border-primary-100 p-2 text-primary-900 flex flex-col items-center justify-center min-w-[48px] h-12">
-                          <span className="text-xs">{["JUN", "JUL", "AGO"][i-1]}</span>
-                          <span className="font-bold">{[15, 22, 5][i-1]}</span>
+                        <div className="rounded-md bg-blue-50 border border-blue-100 p-2 text-blue-900 flex items-center justify-center min-w-[48px] h-12">
+                           {/* Ícone placeholder */}
+                           <SearchCheck className="h-5 w-5" />
                         </div>
                         <div>
                           <p className="font-medium text-sm">
-                            {i === 1 ? 
-                              'Simulado TJ-SP' : 
-                              i === 2 ? 
-                              'Revisão de Direito Constitucional' : 
-                              'Webinar: Técnicas de Estudo'
-                            }
+                            Concurso Previsto #{i} (Ex: INSS)
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {i === 1 ? 
-                              '9:00 - 13:00 • Online' : 
-                              i === 2 ? 
-                              '19:00 - 21:00 • Sala Virtual 3' : 
-                              '20:00 - 21:30 • Online'
-                            }
+                            Órgão Exemplo {i} - Previsão: Q{i} 2025
                           </p>
                         </div>
                       </div>
                     ))}
-                    
-                    <Button variant="ghost" className="w-full" size="sm">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Ver calendário completo
-                    </Button>
-                  </div>
+                     <Button variant="ghost" className="w-full" size="sm">
+                       {/* <Calendar className="h-4 w-4 mr-2" /> */}
+                       Ver todos previstos
+                     </Button>
+                   </div>
                 </CardContent>
               </Card>
             </div>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex justify-between">
-                  <span>Mensagens Recentes</span>
-                  <span className="text-xs bg-primary-100 text-primary-900 px-2 py-1 rounded-full">
-                    5 novas
-                  </span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="flex items-start gap-4 border-b pb-4 last:border-0">
-                      <div className="relative">
-                        <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-medium">
-                          {["JP", "MS", "AT"][i-1]}
-                        </div>
-                        {i === 1 && (
-                          <span className="absolute -top-1 -right-1 w-3 h-3 bg-primary-500 border-2 border-white rounded-full"></span>
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm">
-                          {["João Pedro", "Maria Silva", "André Torres"][i-1]}
-                        </p>
-                        <p className="text-xs text-muted-foreground line-clamp-2">
-                          {i === 1 ? 
-                            'Professor, tenho dúvidas sobre o último simulado. Você poderia revisar...' : 
-                            i === 2 ? 
-                            'Gostaria de saber quando será disponibilizado o material de Direito Adm...' : 
-                            'Confirmando a reunião de amanhã sobre o cronograma de estudos...'
-                          }
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  <Button variant="ghost" className="w-full" size="sm">
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    Ver todas as mensagens
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Tarefas</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="flex items-center gap-3">
-                      <input 
-                        type="checkbox" 
-                        className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500" 
-                        defaultChecked={i > 2}
-                      />
-                      <span className={`text-sm flex-1 ${i > 2 ? 'line-through text-gray-400' : ''}`}>
-                        {i === 1 ? 
-                          'Corrigir simulados da semana' : 
-                          i === 2 ? 
-                          'Agendar webinar de revisão' : 
-                          i === 3 ? 
-                          'Atualizar cronograma de estudos' : 
-                          'Revisar material de Português'
-                        }
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {i === 1 ? 
-                          'Hoje' : 
-                          i === 2 ? 
-                          'Amanhã' : 
-                          i === 3 ? 
-                          'Ontem' : 
-                          '3 dias atrás'
-                        }
-                      </span>
-                    </div>
-                  ))}
-                  
-                  <Button variant="ghost" className="w-full" size="sm">
-                    <Clipboard className="h-4 w-4 mr-2" />
-                    Gerenciar tarefas
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+
+           {/* Seções REMOVIDAS de Mensagens e Tarefas que estavam aqui */}
+
         </TabsContent>
-        
-        <TabsContent value="students">
+
+        {/* Conteúdo da Aba: Alunos */}
+        <TabsContent value="students" className="mt-0">
           <Card className="mt-6">
             <CardHeader>
               <CardTitle>Gerenciamento de Alunos</CardTitle>
             </CardHeader>
             <CardContent>
+               {/* Placeholder para Tabela Interativa de Alunos */}
               <div className="p-10 flex flex-col items-center justify-center bg-gray-50 rounded-md">
                 <Users className="h-16 w-16 text-secondary-500 mb-4" />
                 <h3 className="text-lg font-medium mb-2">Área de Gerenciamento de Alunos</h3>
                 <p className="text-muted-foreground text-center max-w-md mb-6">
-                  Aqui você pode visualizar, adicionar, editar e gerenciar todos os alunos 
-                  da sua instituição. Monitore o desempenho individual e crie grupos específicos.
+                  Placeholder: Tabela interativa, filtros, busca, modal de detalhes e gráficos serão implementados aqui.
                 </p>
-                <Button>Acessar Gerenciamento</Button>
+                <Button disabled>Acessar Gerenciamento (Em breve)</Button>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
-        
-        <TabsContent value="analytics">
+
+        {/* Conteúdo da Aba: Análises */}
+        <TabsContent value="analytics" className="mt-0">
           <Card className="mt-6">
             <CardHeader>
               <CardTitle>Análises e Relatórios</CardTitle>
@@ -281,16 +200,16 @@ export default function ManagerDashboard() {
                 <BarChart2 className="h-16 w-16 text-primary-900 mb-4" />
                 <h3 className="text-lg font-medium mb-2">Análises Avançadas</h3>
                 <p className="text-muted-foreground text-center max-w-md mb-6">
-                  Acesse relatórios detalhados sobre o desempenho dos alunos, 
-                  engajamento com o conteúdo e taxas de aprovação. Exporte dados para análise externa.
+                  Placeholder: Mapa de calor, análise de bancas, segmentação, ROI, etc., serão implementados aqui.
                 </p>
-                <Button>Ver Relatórios</Button>
+                <Button disabled>Ver Relatórios (Em breve)</Button>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
-        
-        <TabsContent value="content">
+
+         {/* Conteúdo da Aba: Materiais */}
+        <TabsContent value="content" className="mt-0">
           <Card className="mt-6">
             <CardHeader>
               <CardTitle>Materiais e Conteúdos</CardTitle>
@@ -300,16 +219,16 @@ export default function ManagerDashboard() {
                 <BookOpen className="h-16 w-16 text-success-500 mb-4" />
                 <h3 className="text-lg font-medium mb-2">Gerenciamento de Materiais</h3>
                 <p className="text-muted-foreground text-center max-w-md mb-6">
-                  Gerencie o conteúdo didático disponibilizado para seus alunos. 
-                  Crie planos de estudo, adicione materiais e customize a experiência.
+                  Placeholder: Funcionalidades para gerenciar conteúdo didático.
                 </p>
-                <Button>Gerenciar Conteúdo</Button>
+                <Button disabled>Gerenciar Conteúdo (Em breve)</Button>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
-        
-        <TabsContent value="settings">
+
+        {/* Conteúdo da Aba: Configurações */}
+        <TabsContent value="settings" className="mt-0">
           <Card className="mt-6">
             <CardHeader>
               <CardTitle>Configurações da Instituição</CardTitle>
@@ -319,10 +238,9 @@ export default function ManagerDashboard() {
                 <Settings className="h-16 w-16 text-gray-600 mb-4" />
                 <h3 className="text-lg font-medium mb-2">Configurações</h3>
                 <p className="text-muted-foreground text-center max-w-md mb-6">
-                  Personalize a instância do Forefy para sua instituição. Defina cores, 
-                  logo, configurações de acesso e outras opções.
+                 Placeholder: Opções para personalizar a plataforma.
                 </p>
-                <Button>Configurar</Button>
+                <Button disabled>Configurar (Em breve)</Button>
               </div>
             </CardContent>
           </Card>
