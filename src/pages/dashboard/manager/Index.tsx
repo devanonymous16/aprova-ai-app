@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/contexts/AuthContext';
+// import { useAuth } from '@/contexts/AuthContext'; // profile não é usado diretamente aqui de forma segura
 import {
   Users,
   BookOpen,
@@ -16,7 +16,7 @@ import {
 import StudentsTab from './tabs/StudentsTab'; // Ajuste o path se necessário
 
 export default function ManagerDashboard() {
-  const { profile } = useAuth();
+  // const { profile } = useAuth(); // Comentado pois profile.institution_name não existe no tipo
 
   useEffect(() => {
     document.title = 'Forefy | Painel de Gerente';
@@ -32,14 +32,10 @@ export default function ManagerDashboard() {
     approvalScope: "Últimos 4 concursos",
   };
 
-  // TODO: Idealmente, buscar o nome da organização associada ao manager.
-  // Esta busca pode ser feita no useAuth ou em um hook específico do manager.
-  const getInstitutionName = () => {
-    // Lógica futura: buscar em profile.organization_id -> organizations.name
-    // Por enquanto, usa um fallback ou um campo inexistente (como exemplo)
-    return profile?.institution_name || 'Cursinho Preparatório XYZ';
-  }
-  const institutionName = getInstitutionName();
+  // --- CORREÇÃO AQUI ---
+  // Remove a função getInstitutionName e a tentativa de usar profile.institution_name
+  // Define diretamente o placeholder
+  const institutionName = 'Cursinho Preparatório XYZ'; // TODO: Implementar busca real do nome da organização
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -51,12 +47,14 @@ export default function ManagerDashboard() {
             Gerencie seus alunos e monitore o desempenho da sua instituição
           </p>
         </div>
+        {/* Exibe o nome da instituição (placeholder) */}
         <div className="flex items-center gap-2 bg-secondary-50 p-2 rounded-lg border border-secondary-100 whitespace-nowrap shrink-0">
           <div className="bg-white p-1 rounded border border-secondary-100">
             <Settings className="h-5 w-5 text-secondary-600" />
           </div>
           <div>
             <p className="text-sm font-medium">Instituição</p>
+            {/* Usa a variável corrigida */}
             <p className="text-xs text-muted-foreground">{institutionName}</p>
           </div>
         </div>
@@ -64,6 +62,7 @@ export default function ManagerDashboard() {
 
       {/* KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {/* Card Total de Alunos */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total de Alunos</CardTitle>
@@ -76,6 +75,7 @@ export default function ManagerDashboard() {
             </p>
           </CardContent>
         </Card>
+        {/* Card Taxa de Engajamento */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Taxa de Engajamento</CardTitle>
@@ -88,6 +88,7 @@ export default function ManagerDashboard() {
             </p>
           </CardContent>
         </Card>
+        {/* Card Média de Aprovação */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Média de Aprovação</CardTitle>
@@ -101,9 +102,7 @@ export default function ManagerDashboard() {
       </div>
 
       {/* Abas Principais */}
-      {/* defaultValue="students" para facilitar teste inicial */}
       <Tabs defaultValue="students" className="w-full">
-        {/* Lista de Abas com ajuste para overflow em telas menores */}
         <div className="overflow-x-auto pb-1 mb-6">
           <TabsList className="inline-grid w-full grid-cols-5 sm:w-auto">
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
@@ -114,7 +113,7 @@ export default function ManagerDashboard() {
           </TabsList>
         </div>
 
-        {/* --- Conteúdo das Abas --- */}
+        {/* Conteúdo das Abas */}
 
         {/* Aba: Visão Geral */}
         <TabsContent value="overview" className="mt-0 space-y-6">
@@ -137,7 +136,6 @@ export default function ManagerDashboard() {
                 </CardContent>
               </Card>
             </div>
-
             {/* Coluna Direita: Concursos Previstos */}
             <div className="lg:col-span-1">
               <Card className="h-full">
@@ -176,7 +174,6 @@ export default function ManagerDashboard() {
 
         {/* Aba: Alunos */}
         <TabsContent value="students" className="mt-0">
-          {/* O conteúdo agora é renderizado pelo StudentsTab */}
           <StudentsTab />
         </TabsContent>
 
@@ -199,7 +196,7 @@ export default function ManagerDashboard() {
           </Card>
         </TabsContent>
 
-         {/* Aba: Materiais */}
+        {/* Aba: Materiais */}
         <TabsContent value="content" className="mt-0">
           <Card>
             <CardHeader>
