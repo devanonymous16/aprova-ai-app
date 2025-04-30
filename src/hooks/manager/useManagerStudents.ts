@@ -1,109 +1,79 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-// import { Profile } from '@/types/user'; // Linha removida ou comentada
+// A importação de 'Profile' FOI REMOVIDA pois não é usada diretamente aqui
 
-// Tipo para os dados do aluno que queremos na lista (mantido)
+// Tipo para os dados retornados pela FUNÇÃO RPC (deve bater com RETURNS TABLE da função SQL)
 export interface ManagerStudentListItem {
   id: string;
   name: string | null;
   email: string | null;
-  created_at: string;
+  created_at: string; // A função SQL retorna timestamptz, que o JS recebe como string ISO
 }
 
-// --- FUNÇÃO fetchManagerStudents (VERSÃO ANTERIOR, SEM RPC, MAS CORRIGIDA) ---
-// Mantendo esta versão por enquanto, pois a RPC pode ter outras questões.
-const fetchManagerStudents = async (managerUserId: string): Promise<ManagerStudentListItem[]> => {
+// --- Função que chama a RPC ---
+const fetchManagerStudentsViaRpc = async (managerUserId: string): Promise<ManagerStudentListItem[]> => {
   if (!managerUserId) {
     throw new Error('Manager user ID is required');
   }
 
-  console.log('[useManagerStudents CORRECTED] Fetching organization for manager:', managerUserId);
+  console.log('[useManagerStudents RPC] Calling get_students_for_manager for manager:', managerUserId);
 
-  // 1. Encontrar a organization_id do gerente
-  const { data: orgUserData, error: orgUserError } = await supabase
-    .from('organization_users')
-    .select('organization_id')
-    .eq('user_id', managerUserId)
-    .maybeSingle();
+  // Chama a função PostgreSQL 'get_students_for_manager'
+  const { data, error } = await supabase.rpc('get_students_for_manager', {
+    manager_id: managerUserId // Passa o argumento para a função SQL
+  });
 
-  if (orgUserError) {
-    console.error('[useManagerStudents CORRECTED] Error fetching organization user:', orgUserError);
-    throw new Error(`Failed to fetch manager organization: ${orgUserError.message}`);
+  // Tratamento de erro da chamada RPC
+  if (error) {
+    console.error('[useManagerStudents RPC] Error calling RPC function:', error);
+    const errorDetails = error.details ? ` (${error.details})` : '';
+    const hint = error.hint ? ` Hint: ${error.hint}.` : '';
+    // Joga um erro claro para o useQuery capturar
+    throw new Error(`Failed to fetch students via RPC: ${error.message}${hint}${errorDetails}`);
   }
 
-  if (!orgUserData?.organization_id) {
-    console.warn('[useManagerStudents CORRECTED] Manager not associated with any organization.');
-    return [];
-  }
+  console.log('[useManagerStudents RPC] Data received from RPC:', data);
 
-  const organizationId = orgUserData.organization_id;
-  console.log('[useManagerStudents CORRECTED] Manager belongs to organization:', organizationId);
-  console.log('[useManagerStudents CORRECTED] Fetching student profiles for organization:', organizationId);
+  // Processa os dados recebidos (garante que é um array e ajusta tipos se necessário)
+  const students = (data || []).map(student => ({
+      ...student,
+      // Garante que created_at seja uma string, mesmo que venha null do DB
+      // (embora a coluna no DB seja NOT NULL por padrão)
+      created_at: student.created_at ?? new Date().toISOString(),
+      // Garante que name e email sejam string ou null (para tipagem)
+      name: student.name ?? null,
+      email: student.email ?? null,
+  }));
 
-  // 2. Buscar diretamente da tabela 'profiles', filtrando e juntando organization_users
-  const { data: studentsData, error: studentsError } = await supabase
-    .from('profiles')
-    .select(`
-      id,
-      name,
-      email,
-      role,
-      created_at,
-      organization_users!inner ( organization_id ) 
-    `)
-    .eq('role', 'student')
-    .eq('organization_users.organization_id', organizationId);
 
-  if (studentsError) {
-    console.error('[useManagerStudents CORRECTED] Error fetching students:', studentsError);
-    const errorDetails = studentsError.details ? ` (${studentsError.details})` : '';
-    if (studentsError.code === 'PGRST200') {
-         throw new Error(`Failed to fetch students. PostgREST error: ${studentsError.message}. Verifique as relações e permissões (RLS) entre 'profiles' e 'organization_users'.${errorDetails}`);
-    }
-    throw new Error(`Failed to fetch students for organization: ${studentsError.message}${errorDetails}`);
-  }
-
-  console.log('[useManagerStudents CORRECTED] Raw students data fetched:', studentsData);
-
-  // 3. Mapear os dados - CORREÇÃO NO TYPE GUARD ABAIXO
-  const students = studentsData
-     // Checa se 'profile' é um objeto válido com as propriedades esperadas, SEM USAR o nome 'Profile'
-    ?.filter((profile): profile is { id: string; name: string | null; email: string | null; role: string | null; created_at: string | null; organization_users: any } =>
-        profile !== null &&
-        typeof profile === 'object' &&
-        'id' in profile && typeof profile.id === 'string' && // Verifica 'id'
-        'role' in profile // Verifica se 'role' existe (já filtramos por 'student', mas bom ter)
-        // Não precisamos checar 'name', 'email', 'created_at' aqui pois eles podem ser null
-    )
-    .map(profile => ({
-      id: profile.id,
-      name: profile.name ?? 'Nome não informado',
-      email: profile.email ?? 'Email não informado',
-      created_at: profile.created_at ?? new Date().toISOString(),
-    })) ?? [];
-
-  console.log('[useManagerStudents CORRECTED] Processed students list:', students);
-  return students;
+  console.log('[useManagerStudents RPC] Processed students list:', students);
+  return students; // Retorna a lista processada
 };
-// --- FIM DA FUNÇÃO MODIFICADA ---
+// --- FIM DA FUNÇÃO RPC ---
 
 
-// Hook customizado (sem alterações aqui)
+// Hook React Query que usa a função RPC
 export const useManagerStudents = () => {
-  const { user } = useAuth();
+  const { user } = useAuth(); // Pega o usuário logado
 
+  // Usa o hook useQuery para buscar os dados
   return useQuery<ManagerStudentListItem[], Error>({
+    // Chave única para o cache, incluindo o ID do usuário
     queryKey: ['managerStudents', user?.id],
+    // Função que será executada para buscar os dados
     queryFn: () => {
       if (!user?.id) {
+         // Se não houver usuário, retorna uma promessa rejeitada
          return Promise.reject(new Error('User not authenticated'));
       }
-      // Chama a função fetchManagerStudents CORRIGIDA (sem RPC por enquanto)
-      return fetchManagerStudents(user.id);
+      // Chama a função que faz a chamada RPC
+      return fetchManagerStudentsViaRpc(user.id);
     },
+    // A query só é habilitada (executada) se houver um ID de usuário
     enabled: !!user?.id,
-    staleTime: 5 * 60 * 1000,
-    cacheTime: 10 * 60 * 1000,
+    // Configurações de cache (opcional)
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    cacheTime: 10 * 60 * 1000, // 10 minutos
   });
 };
