@@ -1,25 +1,26 @@
-import React from 'react';
+import React, { useEffect } from 'react'; // Adicionado useEffect
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
-  // DialogClose, // Podemos usar o 'x' padrão ou um botão customizado
+  // DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { User, Mail, CalendarDays, BarChartHorizontal, Users, Target, AlertTriangle } from 'lucide-react'; // Ícones
-import { ManagerStudentListItem } from '@/hooks/manager/useManagerStudents'; // Importa o tipo base
-import { Badge } from '@/components/ui/badge'; // Para status ou tags futuras
+// import { Button } from "@/components/ui/button"; // Button não é usado aqui por enquanto
+import { User, Mail, CalendarDays, BarChartHorizontal, Users, Target, AlertTriangle, Loader2, ServerCrash } from 'lucide-react'; // Adicionados ícones de loading/erro
+import { ManagerStudentListItem } from '@/hooks/manager/useManagerStudents';
+import { Badge } from '@/components/ui/badge';
+// --- Imports para Desempenho ---
+import { useStudentPerformanceData, prefetchStudentPerformance } from '@/hooks/student/useStudentPerformanceData'; // Importa o novo hook
+import { PerformanceTopicTable } from '@/components/student/PerformanceTopicTable'; // Importa a nova tabela
 
 interface StudentDetailModalProps {
-  student: ManagerStudentListItem | null; // Aluno selecionado ou null
+  student: ManagerStudentListItem | null;
   isOpen: boolean;
-  onOpenChange: (isOpen: boolean) => void; // Função para fechar/controlar estado
+  onOpenChange: (isOpen: boolean) => void;
 }
 
-// Helper para formatar data (pode mover para utils se usar em mais lugares)
 const formatDate = (dateString: string | null | undefined): string => {
     if (!dateString) return 'Data indisponível';
     try {
@@ -31,18 +32,36 @@ const formatDate = (dateString: string | null | undefined): string => {
 };
 
 export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({ student, isOpen, onOpenChange }) => {
+  // --- Busca de Dados de Desempenho ---
+  // TODO: Precisamos de uma forma real de obter o examPositionId alvo do aluno
+  const mockExamPositionId = 'pos-123-abc'; // <<< Placeholder para o ID do cargo
+  const {
+      data: performanceData,
+      isLoading: isLoadingPerformance,
+      error: errorPerformance,
+      // refetch: refetchPerformance, // Podemos usar para um botão de refresh de desempenho
+  } = useStudentPerformanceData(student?.id ?? null, mockExamPositionId); // Passa o ID do aluno e o ID mock do cargo
+
+   // Pré-busca os dados quando o modal está prestes a abrir (se student mudar)
+   useEffect(() => {
+     if (student?.id && mockExamPositionId) {
+       console.log(`[Modal] Prefetching performance for student ${student.id}`);
+       prefetchStudentPerformance(student.id, mockExamPositionId);
+     }
+   }, [student?.id]); // Dependência apenas no ID do aluno
+
+
   if (!student) {
-    return null; // Não renderiza nada se não houver aluno selecionado
+    return null;
   }
 
-  // TODO - Fase Futura:
-  // const { data: performanceData, isLoading: isLoadingPerformance, error: errorPerformance } = useStudentPerformance(student.id, isOpen);
+  // TODO - Fase Futura: Comparativo com a Média
   // const { data: comparisonData, isLoading: isLoadingComparison, error: errorComparison } = useStudentComparison(student.id, isOpen);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto"> {/* Largura e Altura Máxima */}
-        <DialogHeader className="mb-4">
+      <DialogContent className="sm:max-w-[800px] md:max-w-[900px] lg:max-w-[1000px] max-h-[90vh] flex flex-col"> {/* Aumenta a largura e define flex col */}
+        <DialogHeader className="mb-4 shrink-0"> {/* Header não cresce */}
           <DialogTitle className="text-2xl flex items-center gap-2">
              <User className="h-6 w-6" /> Perfil do Aluno
           </DialogTitle>
@@ -51,63 +70,76 @@ export const StudentDetailModal: React.FC<StudentDetailModalProps> = ({ student,
           </DialogDescription>
         </DialogHeader>
 
-        {/* Informações Básicas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mb-6 border-b pb-6">
-            <div className="flex items-center gap-2">
-                <User className="h-4 w-4 text-muted-foreground"/>
-                <span className="text-sm font-medium text-muted-foreground">Nome:</span>
-                <span className="text-sm">{student.name}</span>
-            </div>
-            <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-muted-foreground"/>
-                <span className="text-sm font-medium text-muted-foreground">Email:</span>
-                <span className="text-sm">{student.email}</span>
-            </div>
-            <div className="flex items-center gap-2">
-                <CalendarDays className="h-4 w-4 text-muted-foreground"/>
-                <span className="text-sm font-medium text-muted-foreground">Membro desde:</span>
-                <span className="text-sm">{formatDate(student.created_at)}</span>
-            </div>
-             {/* Placeholder para Status ou Nível */}
-             <div className="flex items-center gap-2">
-                 <Target className="h-4 w-4 text-muted-foreground"/>
-                 <span className="text-sm font-medium text-muted-foreground">Nível/Cargo Alvo:</span>
-                 <Badge variant="secondary">A definir</Badge>
-             </div>
-        </div>
-
-        {/* Placeholders para Seções Futuras */}
-        <div className="space-y-6">
-            {/* Placeholder Desempenho Geral */}
-            <div className="p-4 border rounded-lg bg-gray-50">
-                <h3 className="text-lg font-semibold mb-2 flex items-center gap-2"><BarChartHorizontal className="h-5 w-5 text-blue-600"/> Desempenho Geral</h3>
-                 <p className="text-sm text-muted-foreground">Placeholder: Gráficos de progresso, pontuação média, tempo de estudo, etc.</p>
-                 {/* Exemplo de como seria com loading/error */}
-                 {/* {isLoadingPerformance && <p>Carregando desempenho...</p>} */}
-                 {/* {errorPerformance && <p className="text-red-600">Erro ao carregar desempenho.</p>} */}
-                 {/* {performanceData && <PerformanceCharts data={performanceData} />} */}
-                 <div className="h-24 flex items-center justify-center text-gray-400 italic">Gráficos aqui...</div>
+        {/* Wrapper para conteúdo com scroll */}
+        <div className="flex-grow overflow-y-auto pr-2"> {/* Conteúdo pode crescer e ter scroll */}
+            {/* Informações Básicas (sem alterações) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mb-6 border-b pb-6">
+                {/* ... Nome, Email, Membro Desde ... */}
+                <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-muted-foreground"/>
+                    <span className="text-sm font-medium text-muted-foreground">Nome:</span>
+                    <span className="text-sm">{student.name}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-muted-foreground"/>
+                    <span className="text-sm font-medium text-muted-foreground">Email:</span>
+                    <span className="text-sm">{student.email}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <CalendarDays className="h-4 w-4 text-muted-foreground"/>
+                    <span className="text-sm font-medium text-muted-foreground">Membro desde:</span>
+                    <span className="text-sm">{formatDate(student.created_at)}</span>
+                </div>
+                 <div className="flex items-center gap-2">
+                     <Target className="h-4 w-4 text-muted-foreground"/>
+                     <span className="text-sm font-medium text-muted-foreground">Cargo Alvo (Ex):</span>
+                     {/* TODO: Exibir nome real do cargo */}
+                     <Badge variant="outline">Cargo {mockExamPositionId.substring(0, 5)}...</Badge>
+                 </div>
             </div>
 
-             {/* Placeholder Comparativo com a Média */}
-             <div className="p-4 border rounded-lg bg-gray-50">
-                 <h3 className="text-lg font-semibold mb-2 flex items-center gap-2"><Users className="h-5 w-5 text-green-600"/> Comparativo com a Média</h3>
-                 <p className="text-sm text-muted-foreground">Placeholder: Comparação com média da turma, perfil ideal, pontos fortes/fracos relativos.</p>
-                  <div className="h-24 flex items-center justify-center text-gray-400 italic">Visualizações comparativas aqui...</div>
-             </div>
+            {/* Seções Detalhadas */}
+            <div className="space-y-6">
+                {/* --- Desempenho por Tópico --- */}
+                <div className="p-4 border rounded-lg">
+                    <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                        <BarChartHorizontal className="h-5 w-5 text-blue-600"/> Desempenho por Tópico (Cargo: {mockExamPositionId.substring(0,5)}...)
+                        {/* TODO: Adicionar seletor de cargo se houver mais de um */}
+                    </h3>
+                     {isLoadingPerformance && (
+                       <div className="flex items-center justify-center py-10 text-muted-foreground">
+                         <Loader2 className="h-6 w-6 animate-spin mr-2" /> Carregando desempenho...
+                       </div>
+                     )}
+                     {errorPerformance && (
+                         <div className="flex flex-col items-center justify-center py-10 text-red-600 bg-red-50 border border-red-200 rounded-md p-4">
+                             <ServerCrash className="h-8 w-8 mb-2"/>
+                             <p className="font-medium">Erro ao carregar desempenho:</p>
+                             <p className="text-sm text-center">{errorPerformance.message}</p>
+                         </div>
+                     )}
+                     {/* Renderiza a tabela apenas se não estiver carregando e não houver erro */}
+                     {!isLoadingPerformance && !errorPerformance && (
+                       <PerformanceTopicTable data={performanceData ?? []} />
+                     )}
+                </div>
 
-              {/* Placeholder Alertas e Riscos */}
-              <div className="p-4 border rounded-lg bg-yellow-50 border-yellow-200">
-                  <h3 className="text-lg font-semibold mb-2 flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-yellow-600"/> Alertas e Pontos de Atenção</h3>
-                  <p className="text-sm text-muted-foreground">Placeholder: Identificação de dificuldades persistentes, baixo engajamento, etc.</p>
-                   <div className="h-16 flex items-center justify-center text-gray-400 italic">Alertas e ações rápidas aqui...</div>
-              </div>
-        </div>
+                 {/* Placeholder Comparativo com a Média */}
+                 <div className="p-4 border rounded-lg bg-gray-50">
+                     <h3 className="text-lg font-semibold mb-2 flex items-center gap-2"><Users className="h-5 w-5 text-green-600"/> Comparativo com a Média</h3>
+                     <p className="text-sm text-muted-foreground">Placeholder: Comparação com média da turma, perfil ideal, pontos fortes/fracos relativos.</p>
+                      <div className="h-24 flex items-center justify-center text-gray-400 italic">Visualizações comparativas aqui...</div>
+                 </div>
 
-        {/* <DialogFooter className="mt-6">
-           {/* Poderia ter botões de Ação aqui (Editar, Enviar Mensagem, etc.) */}
-          {/* <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>Fechar</Button> */}
-        {/* </DialogFooter> */}
+                  {/* Placeholder Alertas e Riscos */}
+                  <div className="p-4 border rounded-lg bg-yellow-50 border-yellow-200">
+                      <h3 className="text-lg font-semibold mb-2 flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-yellow-600"/> Alertas e Pontos de Atenção</h3>
+                      <p className="text-sm text-muted-foreground">Placeholder: Identificação de dificuldades persistentes, baixo engajamento, etc.</p>
+                       <div className="h-16 flex items-center justify-center text-gray-400 italic">Alertas e ações rápidas aqui...</div>
+                  </div>
+            </div>
+        </div> {/* Fim do wrapper de scroll */}
+
       </DialogContent>
     </Dialog>
   );
