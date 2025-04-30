@@ -8,41 +8,44 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ManagerStudentListItem } from '@/hooks/manager/useManagerStudents'; // Importa o tipo
-import { Skeleton } from '@/components/ui/skeleton'; // Para o estado de loading
-import { AlertCircle, Info } from 'lucide-react'; // Ícones para estados
+import { ManagerStudentListItem } from '@/hooks/manager/useManagerStudents';
+import { Skeleton } from '@/components/ui/skeleton';
+import { AlertCircle, Info, Eye } from 'lucide-react'; // Adicionado Eye para ícone
+import { Button } from '@/components/ui/button'; // Importado Button
 
 interface StudentsTableProps {
   students: ManagerStudentListItem[];
   isLoading: boolean;
   error: Error | null;
+  onViewDetails: (student: ManagerStudentListItem) => void; // <<-- NOVA PROP: Função para chamar ao clicar em detalhes
 }
 
-// Componente para exibir estados de erro ou vazio de forma mais visual
+// Componente TableStatusDisplay (sem alterações)
 const TableStatusDisplay: React.FC<{ icon: React.ElementType; message: string; type: 'error' | 'info' }> = ({ icon: Icon, message, type }) => (
-  <div className={`flex flex-col items-center justify-center p-10 text-center border rounded-md ${type === 'error' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-gray-50 border-gray-200 text-muted-foreground'}`}>
-    <Icon className={`h-12 w-12 mb-4 ${type === 'error' ? 'text-red-500' : 'text-gray-400'}`} />
-    <p>{message}</p>
-  </div>
-);
+    <div className={`flex flex-col items-center justify-center p-10 text-center border rounded-md ${type === 'error' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-gray-50 border-gray-200 text-muted-foreground'}`}>
+      <Icon className={`h-12 w-12 mb-4 ${type === 'error' ? 'text-red-500' : 'text-gray-400'}`} />
+      <p>{message}</p>
+    </div>
+  );
 
-export const StudentsTable: React.FC<StudentsTableProps> = ({ students, isLoading, error }) => {
+export const StudentsTable: React.FC<StudentsTableProps> = ({ students, isLoading, error, onViewDetails }) => { // <<-- Adicionada prop onViewDetails
 
-  // Estado de Carregamento com Skeletons
+  // Estado de Carregamento (sem alterações)
   if (isLoading) {
     return (
       <div className="border rounded-md">
+         {/* ... Skeletons ... */}
          <Table>
            <TableHeader>
              <TableRow>
-               <TableHead className="w-[250px]">Nome</TableHead>
+               <TableHead className="w-[35%]">Nome</TableHead>
                <TableHead>Email</TableHead>
                <TableHead className="w-[150px]">Data de Cadastro</TableHead>
                <TableHead className="text-right w-[100px]">Ações</TableHead>
              </TableRow>
            </TableHeader>
            <TableBody>
-             {[...Array(5)].map((_, index) => ( // Exibe 5 linhas de skeleton
+             {[...Array(5)].map((_, index) => (
                <TableRow key={index}>
                  <TableCell><Skeleton className="h-5 w-48" /></TableCell>
                  <TableCell><Skeleton className="h-5 w-64" /></TableCell>
@@ -56,36 +59,22 @@ export const StudentsTable: React.FC<StudentsTableProps> = ({ students, isLoadin
     );
   }
 
-  // Estado de Erro
+  // Estado de Erro (sem alterações)
   if (error) {
-    return (
-      <TableStatusDisplay
-        icon={AlertCircle}
-        message={`Erro ao carregar alunos: ${error.message}`}
-        type="error"
-      />
-    );
+    return <TableStatusDisplay icon={AlertCircle} message={`Erro ao carregar alunos: ${error.message}`} type="error"/>;
   }
 
-  // Estado Vazio (Nenhum aluno encontrado)
+  // Estado Vazio (sem alterações)
   if (!students || students.length === 0) {
-    return (
-       <TableStatusDisplay
-         icon={Info}
-         message="Nenhum aluno encontrado para esta instituição."
-         type="info"
-       />
-    );
+    return <TableStatusDisplay icon={Info} message="Nenhum aluno encontrado para esta instituição." type="info"/>;
   }
 
-  // Formata a data para exibição
+  // Formata a data (sem alterações)
   const formatDate = (dateString: string | null | undefined): string => {
     if (!dateString) return 'Data indisponível';
     try {
-      // Tenta criar a data e formatar
       return new Intl.DateTimeFormat('pt-BR').format(new Date(dateString));
     } catch (e) {
-      // Se a string não for um formato de data válido
       console.warn(`Invalid date string received: ${dateString}`);
       return 'Data inválida';
     }
@@ -101,7 +90,6 @@ export const StudentsTable: React.FC<StudentsTableProps> = ({ students, isLoadin
             <TableHead className="w-[35%]">Nome</TableHead>
             <TableHead>Email</TableHead>
             <TableHead className="w-[150px]">Data de Cadastro</TableHead>
-            {/* Placeholder para futuras ações */}
             <TableHead className="text-right w-[100px]">Ações</TableHead>
           </TableRow>
         </TableHeader>
@@ -111,15 +99,17 @@ export const StudentsTable: React.FC<StudentsTableProps> = ({ students, isLoadin
               <TableCell className="font-medium">{student.name}</TableCell>
               <TableCell>{student.email}</TableCell>
               <TableCell>{formatDate(student.created_at)}</TableCell>
-              {/* Placeholder para botão de detalhes/edição */}
               <TableCell className="text-right">
-                 {/* Usar Button de shadcn/ui para consistência */}
-                <button
-                  onClick={() => console.log(`Abrir detalhes para aluno ID: ${student.id}`)} // Ação placeholder no console
-                  className="text-sm font-medium text-primary-600 hover:text-primary-800" // Estilo inline simples
+                {/* --- BOTÃO MODIFICADO --- */}
+                <Button
+                  variant="ghost" // Aparência mais sutil
+                  size="sm"       // Tamanho pequeno
+                  onClick={() => onViewDetails(student)} // <<-- CHAMA A FUNÇÃO PASSADA COM O OBJETO student
+                  className="text-primary-600 hover:text-primary-800 px-2" // Ajuste de espaçamento
                 >
+                  <Eye className="h-4 w-4 mr-1" /> {/* Ícone */}
                   Detalhes
-                </button>
+                </Button>
               </TableCell>
             </TableRow>
           ))}
