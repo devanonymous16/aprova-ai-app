@@ -1,111 +1,106 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-// Tentativa de importar Profile de uma localização comum. Ajuste se necessário.
-import { Profile } from '@/types/user'; // Se o tipo Profile não estiver em @/types/user, ajuste o path
+// Certifique-se que este path está correto para o seu tipo Profile
+import { Profile } from '@/types/user';
 
-// Tipo para os dados do aluno que queremos na tabela (pode expandir depois)
+// Tipo para os dados do aluno (mantido)
 export interface ManagerStudentListItem {
   id: string;
   name: string | null;
   email: string | null;
   created_at: string;
-  // Adicionar status ou outras colunas básicas conforme necessário
 }
 
-// Função para buscar os alunos
+// --- FUNÇÃO MODIFICADA ---
 const fetchManagerStudents = async (managerUserId: string): Promise<ManagerStudentListItem[]> => {
   if (!managerUserId) {
     throw new Error('Manager user ID is required');
   }
 
-  console.log('[useManagerStudents] Fetching organization for manager:', managerUserId);
+  console.log('[useManagerStudents MODIFIED] Fetching organization for manager:', managerUserId);
 
-  // 1. Encontrar a organization_id do gerente
+  // 1. Encontrar a organization_id do gerente (sem alterações aqui)
   const { data: orgUserData, error: orgUserError } = await supabase
     .from('organization_users')
     .select('organization_id')
     .eq('user_id', managerUserId)
-    // .eq('role', 'manager') // Assumindo que o role 'manager' pode estar aqui ou no profile principal
-    .maybeSingle(); // Usar maybeSingle se um manager só pertence a uma org
+    .maybeSingle();
 
   if (orgUserError) {
-    console.error('[useManagerStudents] Error fetching organization user:', orgUserError);
+    console.error('[useManagerStudents MODIFIED] Error fetching organization user:', orgUserError);
     throw new Error(`Failed to fetch manager organization: ${orgUserError.message}`);
   }
 
   if (!orgUserData?.organization_id) {
-    console.warn('[useManagerStudents] Manager not associated with any organization.');
-    return []; // Retorna vazio se o manager não pertence a nenhuma organização
+    console.warn('[useManagerStudents MODIFIED] Manager not associated with any organization.');
+    return [];
   }
 
   const organizationId = orgUserData.organization_id;
-  console.log('[useManagerStudents] Manager belongs to organization:', organizationId);
-  console.log('[useManagerStudents] Fetching students for organization:', organizationId);
+  console.log('[useManagerStudents MODIFIED] Manager belongs to organization:', organizationId);
+  console.log('[useManagerStudents MODIFIED] Fetching student profiles for organization:', organizationId);
 
-  // 2. Buscar perfis de estudantes associados a essa organization_id
-  // Selecionamos dados do perfil ANINHADO usando a relação via organization_users
+  // 2. Buscar diretamente da tabela 'profiles', filtrando por 'role' e pela associação à organização
   const { data: studentsData, error: studentsError } = await supabase
-    .from('organization_users')
+    .from('profiles') // <<-- COMEÇAMOS AQUI AGORA
     .select(`
-      user_id,
-      profiles!inner (
-        id,
-        name,
-        email,
-        role,
-        created_at
-      )
-    `)
-    .eq('organization_id', organizationId)
-    .eq('profiles.role', 'student'); // Filtra para pegar apenas perfis de estudantes
+      id,
+      name,
+      email,
+      role,
+      created_at,
+      organization_users!inner ( organization_id ) 
+    `) // <<-- Selecionamos dados do perfil E forçamos o JOIN com organization_users
+    .eq('role', 'student') // <<-- Filtramos perfis de estudantes
+    .eq('organization_users.organization_id', organizationId); // <<-- Filtramos pela ORG_ID através da tabela juntada
 
   if (studentsError) {
-    console.error('[useManagerStudents] Error fetching students:', studentsError);
-    // Adiciona mais detalhes ao erro se possível
+    console.error('[useManagerStudents MODIFIED] Error fetching students:', studentsError);
     const errorDetails = studentsError.details ? ` (${studentsError.details})` : '';
+    // Tenta dar uma dica mais específica se for erro de relação
+    if (studentsError.code === 'PGRST200') {
+         throw new Error(`Failed to fetch students. PostgREST error: ${studentsError.message}. Verifique as relações e permissões (RLS) entre 'profiles' e 'organization_users'.${errorDetails}`);
+    }
     throw new Error(`Failed to fetch students for organization: ${studentsError.message}${errorDetails}`);
   }
 
-  console.log('[useManagerStudents] Raw students data fetched:', studentsData);
+  console.log('[useManagerStudents MODIFIED] Raw students data fetched:', studentsData);
 
-  // Mapear os dados para o formato esperado, extraindo o perfil aninhado
+  // 3. Mapear os dados (A estrutura de 'studentsData' agora é diretamente a lista de perfis)
+  // Não precisamos mais extrair de um objeto aninhado
   const students = studentsData
-    ?.map(item => item.profiles) // Extrai o objeto 'profiles'
-    // Type guard mais robusto para garantir que é um Profile válido
-    .filter((profile): profile is { id: string; name: string | null; email: string | null; created_at: string | null; role: string | null; } =>
-      profile !== null && typeof profile === 'object' && 'id' in profile && 'role' in profile
+    ?.filter((profile): profile is Profile & { organization_users: any } => // Type guard
+        profile !== null && typeof profile === 'object' && 'id' in profile && 'role' in profile
     )
     .map(profile => ({
       id: profile.id,
       name: profile.name ?? 'Nome não informado',
       email: profile.email ?? 'Email não informado',
-      // Garante que created_at seja uma string válida ou use um fallback
       created_at: profile.created_at ?? new Date().toISOString(),
     })) ?? [];
 
-  console.log('[useManagerStudents] Processed students list:', students);
+  console.log('[useManagerStudents MODIFIED] Processed students list:', students);
   return students;
 };
+// --- FIM DA FUNÇÃO MODIFICADA ---
 
-// Hook customizado
+
+// Hook customizado (sem alterações aqui)
 export const useManagerStudents = () => {
-  const { user } = useAuth(); // Pegamos o user autenticado
+  const { user } = useAuth();
 
   return useQuery<ManagerStudentListItem[], Error>({
-    // Chave da query inclui o ID do manager para invalidar corretamente se o manager mudar
     queryKey: ['managerStudents', user?.id],
     queryFn: () => {
       if (!user?.id) {
-         // Retorna uma Promise rejeitada se não houver ID para TanStack Query tratar como erro
          return Promise.reject(new Error('User not authenticated'));
       }
+      // Chama a função fetchManagerStudents MODIFICADA
       return fetchManagerStudents(user.id);
     },
-    // A query só será habilitada (executada) se o user.id existir
     enabled: !!user?.id,
-    // Configurações de cache (opcional, mas bom para performance)
-    staleTime: 5 * 60 * 1000, // 5 minutos antes de considerar os dados "stale"
-    cacheTime: 10 * 60 * 1000, // 10 minutos para manter os dados em cache inativo
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000,
   });
 };
