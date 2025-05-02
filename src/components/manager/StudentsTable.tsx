@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom'; // <<-- IMPORTAR useNavigate
 import {
   Table,
   TableBody,
@@ -10,14 +11,15 @@ import {
 } from "@/components/ui/table";
 import { ManagerStudentListItem } from '@/hooks/manager/useManagerStudents';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertCircle, Info, Eye } from 'lucide-react'; // Adicionado Eye para ícone
-import { Button } from '@/components/ui/button'; // Importado Button
+// --- Ícones Atualizados ---
+import { AlertCircle, Info, Settings2 } from 'lucide-react'; // Trocar Eye por Settings2 (ou outro de sua preferência)
+import { Button } from '@/components/ui/button';
 
 interface StudentsTableProps {
   students: ManagerStudentListItem[];
   isLoading: boolean;
   error: Error | null;
-  onViewDetails: (student: ManagerStudentListItem) => void; // <<-- NOVA PROP: Função para chamar ao clicar em detalhes
+  // onViewDetails: (student: ManagerStudentListItem) => void; // REMOVIDO - Não vamos mais abrir modal daqui
 }
 
 // Componente TableStatusDisplay (sem alterações)
@@ -28,13 +30,22 @@ const TableStatusDisplay: React.FC<{ icon: React.ElementType; message: string; t
     </div>
   );
 
-export const StudentsTable: React.FC<StudentsTableProps> = ({ students, isLoading, error, onViewDetails }) => { // <<-- Adicionada prop onViewDetails
+// --- Componente da Tabela MODIFICADO ---
+export const StudentsTable: React.FC<StudentsTableProps> = ({ students, isLoading, error }) => { // <<-- Removida prop onViewDetails
+
+  // Hook para navegação
+  const navigate = useNavigate(); // <<-- INICIALIZAR useNavigate
+
+  // Função para navegar para a página de gerenciamento
+  const handleManageStudent = (studentId: string) => {
+    console.log('Navigating to manage student:', studentId);
+    navigate(`/dashboard/manager/students/${studentId}/manage`); // <<-- Navega para a nova rota
+  };
 
   // Estado de Carregamento (sem alterações)
   if (isLoading) {
     return (
       <div className="border rounded-md">
-         {/* ... Skeletons ... */}
          <Table>
            <TableHeader>
              <TableRow>
@@ -100,15 +111,15 @@ export const StudentsTable: React.FC<StudentsTableProps> = ({ students, isLoadin
               <TableCell>{student.email}</TableCell>
               <TableCell>{formatDate(student.created_at)}</TableCell>
               <TableCell className="text-right">
-                {/* --- BOTÃO MODIFICADO --- */}
+                {/* --- BOTÃO MODIFICADO para NAVEGAÇÃO --- */}
                 <Button
-                  variant="ghost" // Aparência mais sutil
-                  size="sm"       // Tamanho pequeno
-                  onClick={() => onViewDetails(student)} // <<-- CHAMA A FUNÇÃO PASSADA COM O OBJETO student
-                  className="text-primary-600 hover:text-primary-800 px-2" // Ajuste de espaçamento
+                  variant="outline" // Pode ser 'outline' ou 'ghost'
+                  size="sm"
+                  onClick={() => handleManageStudent(student.id)} // <<-- Chama handleManageStudent com o ID
+                  className="px-2" // Ajuste de padding se necessário
                 >
-                  <Eye className="h-4 w-4 mr-1" /> {/* Ícone */}
-                  Detalhes
+                  <Settings2 className="h-4 w-4 mr-1" /> {/* Ícone de engrenagem/ajustes */}
+                  Gerenciar {/* Texto do Botão */}
                 </Button>
               </TableCell>
             </TableRow>
