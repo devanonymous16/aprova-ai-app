@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; //
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Para estruturar
 import { useStudentDetails } from '@/hooks/manager/useStudentDetails'; // <<-- IMPORTA O NOVO HOOK
+import EditStudentForm from '@/components/manager/EditStudentForm'; // <<-- IMPORTAR FORMULÁRIO
 
 // Helper para iniciais (pode ir para utils)
 const getInitials = (name: string | null | undefined): string => {
@@ -77,87 +78,57 @@ export default function StudentManagePage() {
        );
     }
 
-    // Se chegou aqui, temos os dados!
+      // Se chegou aqui, temos os dados!
+      return (
+        <div className="space-y-6"> {/* Adiciona espaço entre cards */}
+          {/* Card de Informações (Display) */}
+          <Card>
+            <CardHeader className="flex flex-row items-start gap-4 space-y-0">
+              {/* ... Avatar, Nome, Email, Badge ... */}
+               <Avatar className="h-16 w-16 border"> {/* ... */} </Avatar>
+               <div className="flex-grow"> {/* ... */} </div>
+               {/* Removido o botão Editar daqui, ficará no form */}
+            </CardHeader>
+            <CardContent className="mt-4">
+               <h3 className="text-lg font-semibold mb-4 border-b pb-2">Informações Cadastrais</h3>
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
+                 {/* Exibe os dados não editáveis ou como referência */}
+                 <div><span className="font-medium text-gray-500 block mb-1">Data Nasc (Exibição):</span> <span>{formatDate(studentDetails.student_date_of_birth)}</span></div>
+                 <div><span className="font-medium text-gray-500 block mb-1">Telefone (Exibição):</span> <span>{studentDetails.student_phone_number || 'Não informado'}</span></div>
+                 <div><span className="font-medium text-gray-500 block mb-1">CPF:</span> <span>{studentDetails.profile_cpf || 'Não informado'}</span></div>
+                 <div><span className="font-medium text-gray-500 block mb-1">Responsável:</span> <span>{studentDetails.student_guardian_name || 'N/A'}</span></div>
+                 <div><span className="font-medium text-gray-500 block mb-1">Função:</span> <span className="capitalize">{studentDetails.profile_role ?? 'N/A'}</span></div>
+                 <div><span className="font-medium text-gray-500 block mb-1">Membro Desde:</span> <span>{formatDate(studentDetails.profile_created_at, {dateStyle: 'medium', timeStyle: 'short'})}</span></div>
+               </div>
+            </CardContent>
+          </Card>
+  
+          {/* --- Card de Edição --- */}
+          <Card>
+             <CardHeader>
+                <CardTitle>Editar Informações</CardTitle>
+                {/* <CardDescription>Ajuste os dados cadastrais do aluno.</CardDescription> */}
+             </CardHeader>
+             <CardContent>
+                {/* Renderiza o formulário passando os detalhes */}
+                <EditStudentForm studentDetails={studentDetails} />
+             </CardContent>
+          </Card>
+        </div>
+      );
+    };
+  
     return (
-      <Card>
-        <CardHeader className="flex flex-row items-start gap-4 space-y-0">
-           <Avatar className="h-16 w-16 border">
-             <AvatarImage src={studentDetails.profile_avatar_url ?? undefined} alt={studentDetails.profile_name ?? 'Avatar'} />
-             <AvatarFallback className="text-xl font-semibold">
-               {getInitials(studentDetails.profile_name)}
-             </AvatarFallback>
-           </Avatar>
-           <div className="flex-grow">
-              <CardTitle className="text-2xl mb-1">{studentDetails.profile_name ?? 'Nome não disponível'}</CardTitle>
-              <p className="text-sm text-muted-foreground">{studentDetails.profile_email ?? 'Email não disponível'}</p>
-              {/* --- BADGE CORRIGIDO (Opção 1) --- */}
-              <Badge
-                variant={studentDetails.student_confirmed ? "outline" : "secondary"} // Usa variantes existentes
-                className={`mt-2 ${
-                  studentDetails.student_confirmed
-                    ? 'border-green-500 text-green-700 dark:border-green-700 dark:text-green-400' // Estilo sucesso
-                    : 'border-yellow-500 text-yellow-700 dark:border-yellow-600 dark:text-yellow-400' // Estilo aviso
-                }`}
-               >
-                 {studentDetails.student_confirmed ? 'Confirmado' : 'Não Confirmado'}
-               </Badge>
-               {/* TODO: Adicionar link para Unidade (se unit_id existir) */}
-           </div>
-           <Button variant="secondary" disabled>Editar Perfil</Button>
-        </CardHeader>
-        <CardContent className="mt-4">
-           <h3 className="text-lg font-semibold mb-4 border-b pb-2">Informações Cadastrais</h3>
-           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm">
-             <div>
-               <span className="font-medium text-gray-500 block mb-1">Data de Nascimento (Students):</span>
-               <span>{formatDate(studentDetails.student_date_of_birth)}</span>
-             </div>
-             <div>
-               <span className="font-medium text-gray-500 block mb-1">Data de Nascimento (Profiles):</span>
-               <span>{studentDetails.profile_birth_date || 'Não informado'}</span>
-               {/* TODO: Usar apenas um campo de data e garantir tipo DATE */}
-             </div>
-             <div>
-               <span className="font-medium text-gray-500 block mb-1">CPF:</span>
-               <span>{studentDetails.profile_cpf || 'Não informado'}</span>
-             </div>
-             <div>
-               <span className="font-medium text-gray-500 block mb-1">Telefone:</span>
-               <span>{studentDetails.student_phone_number || 'Não informado'}</span>
-             </div>
-              <div>
-                <span className="font-medium text-gray-500 block mb-1">Nome do Responsável:</span>
-                <span>{studentDetails.student_guardian_name || 'Não aplicável/informado'}</span>
-              </div>
-             <div>
-               <span className="font-medium text-gray-500 block mb-1">Função (Role):</span>
-               <span className="capitalize">{studentDetails.profile_role ?? 'Não informada'}</span>
-             </div>
-             <div>
-               <span className="font-medium text-gray-500 block mb-1">Membro Desde (Perfil):</span>
-               <span>{formatDate(studentDetails.profile_created_at, {dateStyle: 'medium', timeStyle: 'short'})}</span>
-             </div>
-              <div>
-                <span className="font-medium text-gray-500 block mb-1">Registro Estudante Criado em:</span>
-                <span>{formatDate(studentDetails.student_created_at, {dateStyle: 'medium', timeStyle: 'short'})}</span>
-              </div>
-           </div>
-           {/* TODO: Adicionar formulário de edição aqui */}
-        </CardContent>
-      </Card>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        {/* ... Botão Voltar ... */}
+         <div className="mb-6">
+            <Link to="/dashboard/manager" className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900">
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Voltar para Alunos
+            </Link>
+         </div>
+        {/* Renderiza o conteúdo */}
+        {renderContent()}
+      </div>
     );
-  };
-
-  return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <div className="mb-6">
-         <Link to="/dashboard/manager" className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900">
-           <ArrowLeft className="h-4 w-4 mr-1" />
-           Voltar para Alunos
-         </Link>
-       </div>
-        {/* Renderiza o conteúdo baseado no estado da query */}
-       {renderContent()}
-    </div>
-  );
-}
+  }
