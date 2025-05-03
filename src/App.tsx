@@ -1,3 +1,4 @@
+// src/App.tsx
 import { Routes, Route } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
@@ -21,17 +22,15 @@ import ForgotPasswordPage from './pages/auth/ForgotPassword';
 import ResetPasswordPage from './pages/auth/ResetPassword';
 import StudentDashboard from './pages/dashboard/student/Index';
 import ManagerDashboard from './pages/dashboard/manager/Index';
+import StudentManagePage from './pages/dashboard/manager/StudentManagePage'; // <<-- IMPORTAR NOVA PÁGINA
 // import AdminDashboard from './pages/dashboard/admin/Index';
 import ExamDetailPage from './pages/student/ExamDetail';
 import NotFoundPage from './pages/NotFound';
 import UnauthorizedPage from './pages/Unauthorized';
 
-// --- NOVO COMPONENTE INTERNO ---
-// Este componente é renderizado DENTRO do AuthProvider e chama o hook de navegação
 function AppContent() {
-  useAuthNavigation(); // <<-- Hook chamado AQUI, dentro do AuthProvider
+  useAuthNavigation();
 
-  // Retorna a estrutura de rotas
   return (
     <>
       <Routes>
@@ -46,11 +45,23 @@ function AppContent() {
            <Route path="/reset-password" element={<ResetPasswordPage />} />
          </Route>
 
-         {/* Rotas Protegidas */}
+         {/* Rotas Protegidas (Dentro do MainLayout) */}
          <Route element={<MainLayout />}>
+            {/* Rotas do Estudante */}
            <Route path="/dashboard/student/*" element={ <RoleGuard allowedRoles={['student']}><StudentDashboard /></RoleGuard> } />
            <Route path="/student/exams/:examId" element={ <RoleGuard allowedRoles={['student']}><ExamDetailPage /></RoleGuard> } />
+
+            {/* Rotas do Gerente */}
            <Route path="/dashboard/manager/*" element={ <RoleGuard allowedRoles={['manager']}><ManagerDashboard /></RoleGuard> } />
+           {/* --- NOVA ROTA PARA GERENCIAR ALUNO --- */}
+           <Route
+              path="/dashboard/manager/students/:studentId/manage" // <<-- Path dinâmico
+              element={
+                <RoleGuard allowedRoles={['manager']}> {/* Protegida pelo RoleGuard */}
+                  <StudentManagePage />                 {/* Renderiza o novo componente */}
+                </RoleGuard>
+              }
+            />
            {/* <Route path="/dashboard/admin/*" element={ <RoleGuard allowedRoles={['admin']}><AdminDashboard /></RoleGuard> } /> */}
          </Route>
 
@@ -63,14 +74,10 @@ function AppContent() {
   );
 }
 
-// --- Componente App Principal ---
 function App() {
-  // --- REMOVER a chamada useAuthNavigation() daqui ---
-
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        {/* Renderiza o AppContent, que está dentro do AuthProvider */}
         <AppContent />
       </AuthProvider>
       <ReactQueryDevtools initialIsOpen={false} />
