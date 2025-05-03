@@ -1,79 +1,86 @@
 // src/components/manager/EditStudentForm.tsx
-"use client"; // Necessário para react-hook-form
+"use client";
 
 import React from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 import { Button } from "@/components/ui/button";
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+  Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch"; // Para o campo 'confirmed'
-import { DatePicker } from "@/components/ui/date-picker"; // Nosso componente DatePicker
-import { toast } from "sonner"; // Para feedback
+import { Switch } from "@/components/ui/switch";
+import { DatePicker } from "@/components/ui/date-picker";
+import { toast } from "sonner";
 import { Loader2 } from 'lucide-react';
 
-// Importa o schema e o tipo dos detalhes do aluno
-import { editStudentSchema, EditStudentFormValues } from "@/lib/validators/student"; // Ajuste o path se necessário
-import { StudentDetailsData } from '@/hooks/manager/useStudentDetails'; // Ajuste o path se necessário
+import { editStudentSchema, EditStudentFormValues } from "@/lib/validators/student";
+import { StudentDetailsData } from '@/hooks/manager/useStudentDetails';
 
 interface EditStudentFormProps {
-  studentDetails: StudentDetailsData; // Recebe os dados atuais
-  // onSubmitSuccess?: () => void; // Callback opcional para quando salvar com sucesso
+  studentDetails: StudentDetailsData;
+  studentId: string;
 }
 
-export default function EditStudentForm({ studentDetails }: EditStudentFormProps) {
-  // Estado para controlar o loading do submit
+export default function EditStudentForm({ studentDetails, studentId }: EditStudentFormProps) {
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  // 1. Define o formulário.
   const form = useForm<EditStudentFormValues>({
     resolver: zodResolver(editStudentSchema),
     defaultValues: {
       profile_name: studentDetails.profile_name ?? "",
-      // Converte a string de data do DB para um objeto Date, ou undefined se inválida/nula
       student_date_of_birth: studentDetails.student_date_of_birth
-         ? new Date(studentDetails.student_date_of_birth + 'T00:00:00Z') // Adiciona T00:00:00Z para tratar como UTC
-         : undefined, // Use undefined se não houver data inicial
+         ? new Date(studentDetails.student_date_of_birth + 'Z')
+         : undefined,
       student_phone_number: studentDetails.student_phone_number ?? "",
       student_confirmed: studentDetails.student_confirmed ?? false,
     },
   });
 
-  // 2. Define o handler de submissão.
   async function onSubmit(values: EditStudentFormValues) {
     setIsSubmitting(true);
     console.log("Dados do formulário para salvar:", values);
+    const formattedDob = values.student_date_of_birth
+       ? values.student_date_of_birth.toISOString().split('T')[0]
+       : null;
 
-    // --- TODO: Implementar Lógica de Atualização no Supabase ---
-    // 1. Chamar uma função (ex: Supabase Edge Function ou RPC) que:
-    //    - Recebe studentId e os 'values'.
-    //    - Atualiza a tabela 'profiles' com profile_name.
-    //    - Atualiza a tabela 'students' com date_of_birth, phone_number, confirmed.
-    //    - Garante que o manager tem permissão (verificação na função ou RLS de update).
-    // 2. Tratar sucesso e erro.
+    try {
+        console.log("Chamando RPC update_student_details_by_manager...");
+        const { error: rpcError } = await supabase.rpc('update_student_details_by_manager', {
+            p_student_id: studentId,
+            p_profile_name: values.profile_name,
+            p_student_date_of_birth: formattedDob,
+            p_student_phone_number: values.student_phone_number || null,
+            p_student_confirmed: values.student_confirmed
+        });
 
-    // Exemplo de simulação
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    console.log("Simulação de salvamento concluída.");
-    toast.success("Dados do aluno atualizados com sucesso! (Simulação)");
-    // onSubmitSuccess?.(); // Chama callback se houver
+        if (rpcError) throw rpcError;
 
-    setIsSubmitting(false);
+        console.log("RPC executada com sucesso.");
+        toast.success("Dados do aluno atualizados com sucesso!");
+        await queryClient.invalidateQueries({ queryKey: ['studentDetails', studentId] });
+        console.log("Query 'studentDetails' invalidada.");
+
+    } catch (error: any) {
+        console.error("Erro ao salvar dados do aluno:", error);
+        toast.error("Falha ao atualizar dados.", {
+            description: error.message || 'Ocorreu um erro inesperado.',
+        });
+    } finally {
+        setIsSubmitting(false);
+    }
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* --- ESTRUTURA CORRIGIDA --- */}
+
         {/* Campo Nome */}
         <FormField
           control={form.control}
@@ -87,7 +94,7 @@ export default function EditStudentForm({ studentDetails }: EditStudentFormProps
               <FormMessage />
             </FormItem>
           )}
-        />
+        /> {/* <<-- Fechamento correto */}
 
         {/* Campo Data de Nascimento */}
         <FormField
@@ -97,15 +104,15 @@ export default function EditStudentForm({ studentDetails }: EditStudentFormProps
             <FormItem className="flex flex-col">
               <FormLabel>Data de Nascimento</FormLabel>
               <DatePicker
-                value={field.value ?? null} // Passa Date ou null
-                onChange={(date) => field.onChange(date)} // Recebe Date ou undefined
+                value={field.value ?? null}
+                onChange={(date) => field.onChange(date)}
                 placeholder="Selecione a data de nascimento"
                 disabled={isSubmitting}
               />
               <FormMessage className="mt-1"/>
             </FormItem>
           )}
-        />
+        /> {/* <<-- Fechamento correto */}
 
         {/* Campo Telefone */}
         <FormField
@@ -123,7 +130,7 @@ export default function EditStudentForm({ studentDetails }: EditStudentFormProps
               <FormMessage />
             </FormItem>
           )}
-        />
+        /> {/* <<-- Fechamento correto */}
 
         {/* Campo Confirmado */}
         <FormField
@@ -144,9 +151,10 @@ export default function EditStudentForm({ studentDetails }: EditStudentFormProps
                    disabled={isSubmitting}
                  />
                </FormControl>
+               {/* FormMessage geralmente não é necessário para Switch, mas pode adicionar se quiser */}
              </FormItem>
            )}
-         />
+         /> {/* <<-- Fechamento correto */}
 
         {/* Botão Salvar */}
         <div className="flex justify-end">

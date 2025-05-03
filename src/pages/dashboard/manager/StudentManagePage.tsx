@@ -121,17 +121,20 @@ export default function StudentManagePage() {
             </div>
           </CardContent>
         </Card>
-
-        {/* --- Card Inferior: Formulário de Edição --- */}
-        <Card>
-           <CardHeader>
-              <CardTitle>Editar Informações</CardTitle>
-              <CardDescription>Ajuste os dados cadastrais editáveis do aluno.</CardDescription>
-           </CardHeader>
-           <CardContent>
-              <EditStudentForm studentDetails={studentDetails} />
-           </CardContent>
-        </Card>
+           {/* --- Card Inferior: Formulário de Edição --- */}
+           <Card>
+              <CardHeader>
+                 <CardTitle>Editar Informações</CardTitle>
+                 <CardDescription>Ajuste os dados cadastrais editáveis do aluno.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                 {/* Renderiza o formulário passando os detalhes E O ID */}
+                 <EditStudentForm
+                     studentDetails={studentDetails}
+                     studentId={studentId!} // <<-- Passa o ID (usamos ! pois já verificamos que studentDetails existe)
+                 />
+              </CardContent>
+           </Card>
       </div>
     );
   }; // Fim da função renderContent
