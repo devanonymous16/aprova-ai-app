@@ -1,45 +1,67 @@
-
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext'; // Ajuste o path se necessário
 
 export const useAuthNavigation = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, loading, profile, user } = useAuth();
+  const location = useLocation();
+  const { isAuthenticated, profile, loading } = useAuth();
 
   useEffect(() => {
-    console.log('[NAV EFFECT] Verificando estado:', { 
-      isAuthenticated, 
-      loading, 
-      profileExists: !!profile, 
-      userId: user?.id 
+    const currentPath = location.pathname; // Pega o caminho atual
+
+    console.log('[AuthNav Effect] Verificando estado:', {
+      pathname: currentPath,
+      isAuthenticated,
+      loading,
+      hasProfile: !!profile,
+      role: profile?.role,
     });
 
-    if (!loading && isAuthenticated) {
-      if (profile) {
-        console.log('[NAV EFFECT] Autenticado, loading=false, perfil carregado. Verificando role:', profile.role);
-        
-        switch (profile.role) {
-          case 'student':
-            console.log('[NAV EFFECT] Redirecionando para /dashboard/student...');
-            navigate('/dashboard/student', { replace: true });
-            break;
-          case 'manager':
-            console.log('[NAV EFFECT] Redirecionando para /dashboard/manager...');
-            navigate('/dashboard/manager', { replace: true });
-            break;
-          case 'admin':
-            console.log('[NAV EFFECT] Redirecionando para /dashboard/admin...');
-            navigate('/dashboard/admin', { replace: true });
-            break;
-          default:
-            console.warn('[NAV EFFECT] Role de perfil desconhecido:', profile.role);
-            navigate('/unauthorized', { replace: true });
+    // Só executa se o carregamento terminou
+    if (!loading) {
+      const isAuthPage = ['/login', '/signup', '/forgot-password', '/reset-password'].includes(currentPath);
+      const baseDashboardPath = profile ? `/dashboard/${profile.role}` : null; // Ex: /dashboard/manager
+
+      if (isAuthenticated && profile && baseDashboardPath) {
+        // --- LÓGICA AJUSTADA ---
+        // Se está logado, com perfil, E está numa página de autenticação, OU na raiz '/' (opcional)
+        if (isAuthPage || currentPath === '/') {
+            console.log(`[AuthNav Effect] Logado (${profile.role}) em pág auth/raiz. Redirecionando para ${baseDashboardPath}...`);
+            navigate(baseDashboardPath, { replace: true });
+        }
+        // --- NÃO FAZ NADA SE JÁ ESTIVER EM OUTRA PÁGINA LOGADO ---
+        // Antes, ele redirecionava sempre que detectava usuário logado.
+        // Agora, só redireciona se estiver especificamente nas páginas de auth/raiz.
+        // Isso permite navegar para sub-páginas como /dashboard/manager/students/.../manage
+        // --- FIM DA LÓGICA AJUSTADA ---
+
+      } else if (isAuthenticated && !profile) {
+        // Logado mas sem perfil
+        console.warn('[AuthNav Effect] Usuário autenticado mas sem perfil carregado.');
+        if (!isAuthPage && currentPath !== '/unauthorized') { // Evita loop se já estiver no erro
+            // Talvez redirecionar para uma página de criação de perfil? Ou logout?
+             // navigate('/create-profile', { replace: true }); // Exemplo
+             // Por enquanto, vamos para unauthorized para indicar o problema
+             console.log('[AuthNav Effect] Redirecionando para /unauthorized (logado sem perfil)');
+             navigate('/unauthorized', { replace: true });
         }
       } else {
-        console.warn('[NAV EFFECT] Autenticado, loading=false, mas SEM perfil');
-        navigate('/unauthorized', { replace: true });
+        // Não autenticado
+        // Verifica se a rota atual é protegida (requer login)
+        const isProtectedRoute = currentPath.startsWith('/dashboard') || currentPath.startsWith('/student/'); // Adicione outros prefixos protegidos se necessário
+
+        if (isProtectedRoute) {
+          console.log('[AuthNav Effect] Não logado tentando acessar rota protegida. Redirecionando para /login...');
+          navigate('/login', { replace: true, state: { from: location } });
+        } else {
+           console.log('[AuthNav Effect] Não logado em página pública ou de auth.');
+        }
       }
+    } else {
+       console.log('[AuthNav Effect] Ainda carregando autenticação...');
     }
-  }, [isAuthenticated, loading, profile, navigate, user]);
+  }, [isAuthenticated, profile, loading, navigate, location]); // location como dependência
+
+  return null;
 };
