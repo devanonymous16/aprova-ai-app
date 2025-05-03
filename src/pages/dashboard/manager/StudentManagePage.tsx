@@ -1,37 +1,47 @@
 // src/pages/dashboard/manager/StudentManagePage.tsx
 import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, UserCircle, Loader2, AlertTriangle } from 'lucide-react'; // Adicionamos UserCircle aqui também
+import { ArrowLeft, UserCircle, Loader2, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"; // Adicionado CardDescription
 import { useStudentDetails } from '@/hooks/manager/useStudentDetails';
-import EditStudentForm from '@/components/manager/EditStudentForm'; // Importa o formulário
+import EditStudentForm from '@/components/manager/EditStudentForm';
 
-// Helpers (getInitials, formatDate)
+// Helper para iniciais (Garantindo retorno em todos os casos)
 const getInitials = (name: string | null | undefined): string => {
   if (!name) return '??';
-  return name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase();
+  const initials = name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase();
+  return initials || '??'; // Retorna '??' se o nome for só espaços, por exemplo
 };
+
+// Helper para formatar data (Garantindo retorno e tipo)
 const formatDate = (dateString: string | null | undefined, options?: Intl.DateTimeFormatOptions): string => {
-  if (!dateString) return 'Não informado';
+  if (!dateString) {
+    return 'Não informado'; // Garante retorno se a string for null/undefined
+  }
   try {
+    // Tenta criar a data. Adiciona 'Z' para tratar como UTC se for apenas YYYY-MM-DD
+    const date = new Date(dateString.includes('T') ? dateString : dateString + 'Z');
+    // Verifica se a data criada é válida
+    if (isNaN(date.getTime())) {
+        console.warn(`Invalid date string passed to formatDate: ${dateString}`);
+        return 'Data inválida'; // Retorna se a data for inválida
+    }
+
     const defaultOptions: Intl.DateTimeFormatOptions = { dateStyle: 'long', timeZone: 'UTC' };
-    // Se precisar de hora, ajuste as opções ou remova timeZone
+    // Ajusta timeZone se a hora for solicitada
     if (options?.timeStyle) {
-       defaultOptions.timeZone = undefined; // Deixa o navegador/sistema decidir o fuso horário local para hora
+       defaultOptions.timeZone = undefined; // Usa fuso horário local para hora
     }
-    return new Intl.DateTimeFormat('pt-BR', { ...defaultOptions, ...options }).format(new Date(dateString));
+    return new Intl.DateTimeFormat('pt-BR', { ...defaultOptions, ...options }).format(date);
   } catch (e) {
-    // Verifica se é uma data válida antes de logar
-    if(dateString && new Date(dateString).toString() === "Invalid Date") {
-        console.warn(`Invalid date string received: ${dateString}`);
-        return 'Data inválida';
-    }
-    return 'Não informado'; // Retorna se for null/undefined ou falhar silenciosamente
+    console.error(`Error formatting date string: ${dateString}`, e);
+    return 'Erro ao formatar'; // Retorno em caso de exceção inesperada
   }
 };
+
 
 export default function StudentManagePage() {
   const { studentId } = useParams<{ studentId: string }>();
@@ -51,93 +61,97 @@ export default function StudentManagePage() {
 
   const renderContent = () => {
     if (isLoading) {
-      return ( /* ... loading UI ... */
+      return (
         <div className="flex justify-center items-center py-20">
           <Loader2 className="h-8 w-8 animate-spin text-primary-900" />
           <span className="ml-3 text-muted-foreground">Carregando dados do aluno...</span>
         </div>
       );
-    }
+    } // <<-- Fechamento implícito do if
+
     if (error) {
-      return ( /* ... error UI ... */
+      return (
         <div className="flex flex-col items-center justify-center py-20 text-red-600 bg-red-50 border border-red-200 rounded-md p-6">
           <AlertTriangle className="h-10 w-10 mb-3 text-red-500" />
           <p className="font-semibold text-lg mb-1">Erro ao buscar dados</p>
           <p className="text-sm text-center">{error.message}</p>
         </div>
       );
-    }
+    } // <<-- Fechamento implícito do if
+
     if (!studentDetails) {
-       return ( /* ... not found UI ... */
+       return (
          <div className="flex flex-col items-center justify-center py-20 text-muted-foreground bg-gray-50 border rounded-md p-6">
             <UserCircle className="h-10 w-10 mb-3 text-gray-400"/>
             <p className="font-semibold text-lg">Aluno não encontrado</p>
             <p className="text-sm text-center">O aluno com este ID não foi encontrado ou você não tem permissão para visualizá-lo.</p>
          </div>
        );
-    }
+    } // <<-- Fechamento implícito do if
 
-    // --- Se temos dados, renderiza os Cards ---
+    // Se temos dados...
     return (
-      <div className="space-y-6"> {/* Envolve os dois cards */}
-        {/* --- Card Superior: Informações de Exibição --- */}
+      <div className="space-y-6">
+        {/* Card Superior: Identificação */}
         <Card>
           <CardHeader className="flex flex-row items-start gap-4 space-y-0">
-            {/* Avatar */}
             <Avatar className="h-16 w-16 border">
               <AvatarImage src={studentDetails.profile_avatar_url ?? undefined} alt={studentDetails.profile_name ?? 'Avatar'} />
               <AvatarFallback className="text-xl font-semibold">
                 {getInitials(studentDetails.profile_name)}
               </AvatarFallback>
             </Avatar>
-            {/* Nome, Email, Status */}
             <div className="flex-grow">
               <CardTitle className="text-2xl mb-1">{studentDetails.profile_name ?? 'Nome não disponível'}</CardTitle>
               <p className="text-sm text-muted-foreground">{studentDetails.profile_email ?? 'Email não disponível'}</p>
-              <Badge
-                variant={studentDetails.student_confirmed ? "outline" : "secondary"}
-                className={`mt-2 ${
-                  studentDetails.student_confirmed
-                    ? 'border-green-500 text-green-700 dark:border-green-700 dark:text-green-400'
-                    : 'border-yellow-500 text-yellow-700 dark:border-yellow-600 dark:text-yellow-400'
-                }`}
-              >
-                {studentDetails.student_confirmed ? 'Confirmado' : 'Não Confirmado'}
-              </Badge>
             </div>
-            {/* Botão de ação (pode ser movido para o form) */}
-            {/* <Button variant="secondary" disabled>Ações...</Button> */}
+            {/* Botão de ação pode vir aqui depois */}
           </CardHeader>
-          {/* Conteúdo do Card Superior: Dados Não Editáveis */}
-          <CardContent className="mt-4">
+          <CardContent className="mt-1">
             <h3 className="text-base font-semibold mb-3 border-b pb-1 text-muted-foreground">Informações Gerais</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
-              {/* Campos que NÃO estão no formulário de edição */}
-              <div><span className="font-medium text-gray-500 block">CPF:</span> <span>{studentDetails.profile_cpf || 'Não informado'}</span></div>
-              <div><span className="font-medium text-gray-500 block">Responsável:</span> <span>{studentDetails.student_guardian_name || 'N/A'}</span></div>
-              <div><span className="font-medium text-gray-500 block">Função:</span> <span className="capitalize">{studentDetails.profile_role ?? 'N/A'}</span></div>
-              <div><span className="font-medium text-gray-500 block">Membro Desde:</span> <span>{formatDate(studentDetails.profile_created_at, {dateStyle: 'medium', timeStyle: 'short'})}</span></div>
-              {/* Adicionar mais campos de exibição aqui se necessário */}
+               {/* Status Confirmado */}
+               <div>
+                   <span className="font-medium text-gray-500 block mb-1">Status Cadastro:</span>
+                   <Badge
+                     variant={"outline"}
+                     className={`border-2 ${
+                       studentDetails.student_confirmed
+                         ? 'border-green-500 bg-green-50 text-green-800'
+                         : 'border-red-500 bg-red-50 text-red-800 font-medium'
+                     }`}
+                   >
+                      {studentDetails.student_confirmed
+                         ? <><CheckCircle2 className="h-3.5 w-3.5 mr-1"/>Confirmado</>
+                         : <><XCircle className="h-3.5 w-3.5 mr-1"/>Não Confirmado</>
+                      }
+                   </Badge>
+               </div>
+               {/* Outros campos */}
+               <div><span className="font-medium text-gray-500 block">CPF:</span> <span>{studentDetails.profile_cpf || 'Não informado'}</span></div>
+               <div><span className="font-medium text-gray-500 block">Responsável:</span> <span>{studentDetails.student_guardian_name || 'N/A'}</span></div>
+               <div><span className="font-medium text-gray-500 block">Função:</span> <span className="capitalize">{studentDetails.profile_role ?? 'N/A'}</span></div>
+               <div><span className="font-medium text-gray-500 block">Membro Desde:</span> <span>{formatDate(studentDetails.profile_created_at, {dateStyle: 'medium', timeStyle: 'short'})}</span></div>
             </div>
           </CardContent>
         </Card>
-           {/* --- Card Inferior: Formulário de Edição --- */}
-           <Card>
-              <CardHeader>
-                 <CardTitle>Editar Informações</CardTitle>
-                 <CardDescription>Ajuste os dados cadastrais editáveis do aluno.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                 {/* Renderiza o formulário passando os detalhes E O ID */}
-                 <EditStudentForm
-                     studentDetails={studentDetails}
-                     studentId={studentId!} // <<-- Passa o ID (usamos ! pois já verificamos que studentDetails existe)
-                 />
-              </CardContent>
-           </Card>
+
+        {/* Card Inferior: Formulário de Edição */}
+        <Card>
+           <CardHeader>
+              <CardTitle>Editar Informações</CardTitle>
+              <CardDescription>Ajuste os dados cadastrais editáveis do aluno.</CardDescription>
+           </CardHeader>
+           <CardContent>
+              <EditStudentForm
+                  studentDetails={studentDetails}
+                  studentId={studentId!} // Passa o ID
+              />
+           </CardContent>
+        </Card>
       </div>
-    );
-  }; // Fim da função renderContent
+    ); // <<-- Fechamento do return principal da função renderContent
+  }; // <<-- Fechamento da definição da função renderContent
 
   // Renderização principal da página
   return (
@@ -149,8 +163,8 @@ export default function StudentManagePage() {
            Voltar para Alunos
          </Link>
        </div>
-       {/* Renderiza loading, erro, not found ou os cards */}
-       {renderContent()}
+       {/* Renderiza o conteúdo */}
+       {renderContent()} {/* <<-- Chama a função renderContent aqui */}
     </div>
-  );
-}
+  ); // <<-- Fechamento do return do componente StudentManagePage
+} // <<-- Fechamento do componente StudentManagePage
