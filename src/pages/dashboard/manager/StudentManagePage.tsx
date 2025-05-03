@@ -87,7 +87,6 @@ export default function StudentManagePage() {
                {getInitials(studentDetails.profile_name)}
              </AvatarFallback>
            </Avatar>
-           // Dentro do CardHeader, onde o Badge é renderizado:
            <div className="flex-grow">
               <CardTitle className="text-2xl mb-1">{studentDetails.profile_name ?? 'Nome não disponível'}</CardTitle>
               <p className="text-sm text-muted-foreground">{studentDetails.profile_email ?? 'Email não disponível'}</p>
