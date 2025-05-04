@@ -1,52 +1,64 @@
 import React, { useState, useMemo } from 'react';
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useManagerStudents, ManagerStudentListItem } from '@/hooks/manager/useManagerStudents';
+import { useManagerStudents, ManagerStudentListItem } from '@/hooks/manager/useManagerStudents'; // Importa o tipo
 import { StudentsTable } from '@/components/manager/StudentsTable';
-import { Users, RefreshCw, User, Mail, CalendarDays, Target } from 'lucide-react';
+import { Users, RefreshCw, UserPlus } from 'lucide-react'; // Ajustado Icon Imports
 import { Button } from '@/components/ui/button';
 import { Input } from "@/components/ui/input";
-import { Badge } from '@/components/ui/badge';
-// REMOVIDO: import { StudentDetailModal } from '@/components/manager/StudentDetailModal';
+// import { Badge } from '@/components/ui/badge'; // Badge não é mais usada aqui diretamente
+import AddStudentDialog from '@/components/manager/AddStudentDialog'; // Importa o novo dialog
 
+// Função formatDate (CORRIGIDA PARA GARANTIR RETORNO)
 const formatDate = (dateString: string | null | undefined): string => {
-    if (!dateString) return 'Data indisponível';
+    if (!dateString) return 'Data indisponível'; // Retorno para null/undefined
     try {
-      return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long' }).format(new Date(dateString));
+      // Tenta criar e validar a data
+      const date = new Date(dateString.includes('T') ? dateString : dateString + 'Z');
+      if (isNaN(date.getTime())) {
+         console.warn(`Invalid date string passed to formatDate: ${dateString}`);
+         return 'Data inválida'; // Retorno para data inválida
+      }
+      return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long', timeZone: 'UTC' }).format(date);
     } catch (e) {
-      console.warn(`Invalid date string received: ${dateString}`);
-      return 'Data inválida';
+      console.error(`Error formatting date string: ${dateString}`, e);
+      return 'Erro ao formatar'; // Retorno para exceção
     }
 };
+
 
 const StudentsTab: React.FC = () => {
   const { data: students, isLoading, error, refetch, isFetching } = useManagerStudents();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStudent, setSelectedStudent] = useState<ManagerStudentListItem | null>(null);
+  // REMOVIDO o estado selectedStudent e handlers relacionados ao teste direto
+  // const [selectedStudent, setSelectedStudent] = useState<ManagerStudentListItem | null>(null);
+  const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
 
-  // Filtro
-  const filteredStudents = useMemo(() => {
-    if (!students || !searchTerm) return students ?? [];
-    const lowerCaseSearchTerm = searchTerm.toLowerCase();
-    return students.filter(student =>
-      student.name?.toLowerCase().includes(lowerCaseSearchTerm) ||
-      student.email?.toLowerCase().includes(lowerCaseSearchTerm)
-    );
-   }, [students, searchTerm]);
+    // Filtro (Refinado para garantir tipo Array)
+    const filteredStudents = useMemo(() => {
+      // 1. Garante que 'students' seja tratado como um array ou array vazio.
+      const studentList: ManagerStudentListItem[] = Array.isArray(students) ? students : [];
+  
+      // 2. Se não houver termo de busca, retorna a lista (agora garantidamente um array)
+      if (!searchTerm) {
+        return studentList;
+      }
+  
+      // 3. Converte termo de busca
+      const lowerCaseSearchTerm = searchTerm.toLowerCase();
+  
+      // 4. Filtra o array garantido
+      return studentList.filter(student =>
+        (student.name?.toLowerCase().includes(lowerCaseSearchTerm)) ||
+        (student.email?.toLowerCase().includes(lowerCaseSearchTerm))
+      );
+     }, [students, searchTerm]); // Dependências corretas
 
-  // Handlers
-  const handleViewDetails = (student: ManagerStudentListItem) => {
-     console.log("Opening details DIRECT RENDER TEST for:", student);
-     setSelectedStudent(student);
-   };
-   const handleCloseDetailsTest = () => {
-     console.log("Closing details DIRECT RENDER TEST.");
-     setSelectedStudent(null);
-   };
+  // REMOVIDOS os handlers handleViewDetails e handleCloseDetailsTest
 
   return (
     <>
-      {/* Cabeçalho, Busca, Tabela (sem alterações) */}
-       <CardHeader className="px-0 pt-0 pb-4 mb-4 border-b flex flex-row items-center justify-between">
+      {/* Cabeçalho */}
+      <CardHeader className="px-0 pt-0 pb-4 mb-4 border-b flex flex-row items-center justify-between">
         <div className="flex items-center gap-3">
             <Users className="h-6 w-6 text-primary-800" />
             <CardTitle className="text-xl">Gerenciamento de Alunos</CardTitle>
@@ -56,9 +68,15 @@ const StudentsTab: React.FC = () => {
                 <RefreshCw className={`h-4 w-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
                 {isFetching ? 'Atualizando...' : 'Atualizar Lista'}
             </Button>
-            <Button size="sm" disabled>Adicionar Aluno</Button>
+            {/* Botão Adicionar Aluno */}
+            <Button size="sm" onClick={() => setIsAddStudentModalOpen(true)}>
+                <UserPlus className="mr-2 h-4 w-4" />
+                Adicionar Aluno
+            </Button>
         </div>
-       </CardHeader>
+       </CardHeader> {/* <<-- Fechamento correto do CardHeader */}
+
+       {/* Busca */}
        <div className="mb-4">
          <Input
              type="text"
@@ -67,34 +85,28 @@ const StudentsTab: React.FC = () => {
              onChange={(e) => setSearchTerm(e.target.value)}
              className="max-w-sm"
          />
-       </div>
+       </div> {/* <<-- Fechamento correto do div */}
+
+       {/* Tabela */}
        <CardContent className="px-0 pb-0">
          <StudentsTable
-             students={filteredStudents}
+             students={filteredStudents} // Passa a lista filtrada (sempre um array)
              isLoading={isLoading}
              error={error}
-             onViewDetails={handleViewDetails}
+             // Não passa mais onViewDetails
          />
-       </CardContent>
+       </CardContent> {/* <<-- Fechamento correto do CardContent */}
 
-      {/* --- TESTE DE RENDERIZAÇÃO DIRETA --- */}
-      {/* Mostra este bloco DIRETAMENTE AQUI se um aluno estiver selecionado */}
-      {selectedStudent && (
-        <div className="mt-6 p-6 border-4 border-dashed border-green-500 bg-green-50">
-            <h2 className="text-2xl font-bold text-green-800 mb-4">Bloco de Teste Direto (Renderizado em StudentsTab)</h2>
-            {/* Informações Básicas */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mb-6 border-b pb-6 border-green-200">
-                <div className="flex items-center gap-2"> <User className="h-4 w-4"/> Nome: <span className="font-semibold">{selectedStudent.name}</span></div>
-                <div className="flex items-center gap-2"> <Mail className="h-4 w-4"/> Email: <span className="font-semibold">{selectedStudent.email}</span></div>
-                <div className="flex items-center gap-2"> <CalendarDays className="h-4 w-4"/> Membro desde: <span className="font-semibold">{formatDate(selectedStudent.created_at)}</span></div>
-                <div className="flex items-center gap-2"> <Target className="h-4 w-4"/> Cargo Alvo (Ex): <Badge variant="secondary">A definir</Badge></div>
-            </div>
-            <p className="text-lg text-green-700">Se este bloco verde aparecer, a lógica de estado e renderização condicional em StudentsTab está OK.</p>
-            <Button onClick={handleCloseDetailsTest} variant="default" className="mt-4 bg-green-600 hover:bg-green-700">Fechar Teste</Button>
-        </div>
-      )}
-    </>
-  );
-};
+      {/* REMOVIDO o bloco de teste direto que estava aqui */}
+
+      {/* Renderiza o Modal de Adição */}
+      <AddStudentDialog
+          isOpen={isAddStudentModalOpen}
+          onOpenChange={setIsAddStudentModalOpen}
+          // onStudentAdded={() => refetch()} // Descomentar no futuro para refresh automático
+      />
+    </> // <<-- Fechamento correto do Fragment
+  ); // <<-- Fechamento correto do return
+}; // <<-- Fechamento correto do componente
 
 export default StudentsTab;
