@@ -1,47 +1,41 @@
 // src/pages/dashboard/manager/StudentManagePage.tsx
-import React, { useEffect, useState } from 'react'; // Adicionado useState
-import { useParams, Link, useNavigate } from 'react-router-dom'; // Adicionado useNavigate
-import { ArrowLeft, UserCircle, Loader2, AlertTriangle, CheckCircle2, XCircle, Trash2 } from 'lucide-react'; // Adicionado Trash2
-import { useQueryClient, useMutation } from '@tanstack/react-query'; // Adicionado imports
-import { supabase } from '@/integrations/supabase/client'; // Importa supabase client
+import React, { useEffect } from 'react'; // Removido useState não usado
+import { useParams, Link, useNavigate } from 'react-router-dom';
+// --- Ícones Corrigidos/Garantidos ---
+import { ArrowLeft, UserCircle, Loader2, AlertTriangle, Trash2, User, Mail, CalendarDays, Target } from 'lucide-react';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"; // Adicionado CardDescription
+// import { Badge } from "@/components/ui/badge"; // Removido
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"; // Imports do Alert Dialog
-import { toast } from "sonner"; // Para feedback
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 import { useStudentDetails } from '@/hooks/manager/useStudentDetails';
 import EditStudentForm from '@/components/manager/EditStudentForm';
 
-// Helper para iniciais (Garantindo retorno)
+// Helper para iniciais (GARANTIDO RETORNO)
 const getInitials = (name: string | null | undefined): string => {
   if (!name) return '??';
   const initials = name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase();
-  return initials || '??'; // <<-- GARANTE RETORNO
+  // Garante retorno mesmo se o nome for só espaços ou vazio após split/map
+  return initials || '??';
 };
 
-// Helper para formatar data (Garantindo retorno)
+// Helper para formatar data (GARANTIDO RETORNO)
 const formatDate = (dateString: string | null | undefined, options?: Intl.DateTimeFormatOptions): string => {
   if (!dateString) {
-      return 'Não informado'; // <<-- GARANTE RETORNO
+    return 'Não informado';
   }
   try {
     const date = new Date(dateString.includes('T') ? dateString : dateString + 'Z');
     if (isNaN(date.getTime())) {
         console.warn(`Invalid date string passed to formatDate: ${dateString}`);
-        return 'Data inválida'; // <<-- GARANTE RETORNO
+        return 'Data inválida';
     }
     const defaultOptions: Intl.DateTimeFormatOptions = { dateStyle: 'long', timeZone: 'UTC' };
     if (options?.timeStyle) {
@@ -50,11 +44,11 @@ const formatDate = (dateString: string | null | undefined, options?: Intl.DateTi
     return new Intl.DateTimeFormat('pt-BR', { ...defaultOptions, ...options }).format(date);
   } catch (e) {
     console.error(`Error formatting date string: ${dateString}`, e);
-    return 'Erro ao formatar'; // <<-- GARANTE RETORNO
+    return 'Erro ao formatar';
   }
 };
 
-
+// --- Componente Principal ---
 export default function StudentManagePage() {
   const { studentId } = useParams<{ studentId: string }>();
   const navigate = useNavigate();
@@ -73,33 +67,26 @@ export default function StudentManagePage() {
 
   console.log('Renderizando StudentManagePage para ID:', studentId, 'Status da Query:', status);
 
-  // Lógica de Exclusão (sem alterações)
+  // Lógica de Exclusão
   const { mutate: deleteStudent, isPending: isDeleting } = useMutation({
-    mutationFn: async () => { /* ... (código da mutationFn igual) ... */
+    mutationFn: async () => {
         if (!studentId) throw new Error("ID do aluno inválido.");
-        console.log(`[Delete Mutation] Chamando RPC para excluir aluno ${studentId}`);
-        const { data, error: rpcError } = await supabase.rpc('delete_student_from_org_by_manager', {
-            p_student_id: studentId
-        });
+        const { data, error: rpcError } = await supabase.rpc('delete_student_from_org_by_manager', { p_student_id: studentId });
         if (rpcError) throw rpcError;
-        console.log("[Delete Mutation] RPC Sucesso:", data);
         return data;
     },
-    onSuccess: (data) => { /* ... (código onSuccess igual) ... */
+    onSuccess: (data) => {
         toast.success("Aluno removido da organização com sucesso!", { description: data as string | undefined });
         queryClient.invalidateQueries({ queryKey: ['managerStudents'] });
         queryClient.removeQueries({ queryKey: ['studentDetails', studentId] });
         navigate('/dashboard/manager');
     },
-    onError: (error: any) => { /* ... (código onError igual) ... */
-         toast.error("Falha ao remover aluno.", {
-            description: error.message || 'Ocorreu um erro inesperado.',
-        });
+    onError: (error: any) => {
+         toast.error("Falha ao remover aluno.", { description: error.message || 'Ocorreu um erro inesperado.' });
     },
   });
 
-
-  // --- Renderização Condicional CORRIGIDA ---
+  // Função de Renderização Principal (CORRIGIDA)
   const renderContent = () => {
     if (isLoading) {
       return (
@@ -107,7 +94,7 @@ export default function StudentManagePage() {
           <Loader2 className="h-8 w-8 animate-spin text-primary-900" />
           <span className="ml-3 text-muted-foreground">Carregando dados do aluno...</span>
         </div>
-      ); // <<-- Fechamento correto do bloco JSX
+      ); // Fechamento
     }
 
     if (error) {
@@ -117,7 +104,7 @@ export default function StudentManagePage() {
           <p className="font-semibold text-lg mb-1">Erro ao buscar dados</p>
           <p className="text-sm text-center">{error.message}</p>
         </div>
-      ); // <<-- Fechamento correto do bloco JSX
+      ); // Fechamento
     }
 
     if (!studentDetails) {
@@ -127,7 +114,7 @@ export default function StudentManagePage() {
             <p className="font-semibold text-lg">Aluno não encontrado</p>
             <p className="text-sm text-center">O aluno com este ID não foi encontrado ou você não tem permissão para visualizá-lo.</p>
          </div>
-       ); // <<-- Fechamento correto do bloco JSX
+       ); // Fechamento
     }
 
     // Se temos dados...
@@ -146,59 +133,42 @@ export default function StudentManagePage() {
               <CardTitle className="text-2xl mb-1">{studentDetails.profile_name ?? 'Nome não disponível'}</CardTitle>
               <p className="text-sm text-muted-foreground">{studentDetails.profile_email ?? 'Email não disponível'}</p>
             </div>
-            {/* Botão Excluir com AlertDialog */}
-            <AlertDialog>
-               <AlertDialogTrigger asChild>
-                   <Button variant="destructive" size="sm" disabled={isDeleting}>
-                       <Trash2 className="h-4 w-4 mr-1" />
-                       Excluir Aluno
-                   </Button>
-               </AlertDialogTrigger>
-               <AlertDialogContent>
-                   <AlertDialogHeader>
-                   <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
-                   <AlertDialogDescription>
-                       Tem certeza que deseja remover o aluno <span className='font-medium'>{studentDetails.profile_name ?? 'este aluno'}</span> da organização? Esta ação não pode ser desfeita facilmente.
-                   </AlertDialogDescription>
-                   </AlertDialogHeader>
-                   <AlertDialogFooter>
-                   <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
-                   <AlertDialogAction onClick={() => deleteStudent()} disabled={isDeleting}>
-                        {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                       {isDeleting ? 'Excluindo...' : 'Confirmar Exclusão'}
-                   </AlertDialogAction>
-                   </AlertDialogFooter>
-               </AlertDialogContent>
-            </AlertDialog>
-          </CardHeader> {/* <<-- Fechamento correto do CardHeader */}
+             {/* Botão Excluir */}
+             <AlertDialog>
+                <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm" disabled={isDeleting}>
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Excluir Aluno
+                    </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                       <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+                       <AlertDialogDescription>
+                           Tem certeza que deseja remover o aluno <span className='font-medium'>{studentDetails.profile_name ?? 'este aluno'}</span> da organização?
+                       </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                       <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+                       <AlertDialogAction onClick={() => deleteStudent()} disabled={isDeleting}>
+                            {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                           {isDeleting ? 'Excluindo...' : 'Confirmar Exclusão'}
+                       </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+             </AlertDialog> {/* <<-- Fechamento AlertDialog */}
+          </CardHeader> {/* <<-- Fechamento CardHeader */}
           <CardContent className="mt-1">
             <h3 className="text-base font-semibold mb-3 border-b pb-1 text-muted-foreground">Informações Gerais</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
-              {/* Status Confirmado */}
-              <div>
-                  <span className="font-medium text-gray-500 block mb-1">Status Cadastro:</span>
-                  <Badge
-                    variant={"outline"}
-                    className={`border-2 ${
-                      studentDetails.student_confirmed
-                        ? 'border-green-500 bg-green-50 text-green-800'
-                        : 'border-red-500 bg-red-50 text-red-800 font-medium'
-                    }`}
-                  >
-                     {studentDetails.student_confirmed
-                        ? <><CheckCircle2 className="h-3.5 w-3.5 mr-1"/>Confirmado</>
-                        : <><XCircle className="h-3.5 w-3.5 mr-1"/>Não Confirmado</>
-                     }
-                  </Badge>
-              </div>
-              {/* Outros campos */}
-              <div><span className="font-medium text-gray-500 block">CPF:</span> <span>{studentDetails.profile_cpf || 'Não informado'}</span></div>
-              <div><span className="font-medium text-gray-500 block">Responsável:</span> <span>{studentDetails.student_guardian_name || 'N/A'}</span></div>
-              <div><span className="font-medium text-gray-500 block">Função:</span> <span className="capitalize">{studentDetails.profile_role ?? 'N/A'}</span></div>
-              <div><span className="font-medium text-gray-500 block">Membro Desde:</span> <span>{formatDate(studentDetails.profile_created_at, {dateStyle: 'medium', timeStyle: 'short'})}</span></div>
-            </div>
-          </CardContent>
-        </Card> {/* <<-- Fechamento correto do primeiro Card */}
+               {/* Status Removido */}
+               <div><span className="font-medium text-gray-500 block">CPF:</span> <span>{studentDetails.profile_cpf || 'Não informado'}</span></div>
+               <div><span className="font-medium text-gray-500 block">Responsável:</span> <span>{studentDetails.student_guardian_name || 'N/A'}</span></div>
+               <div><span className="font-medium text-gray-500 block">Função:</span> <span className="capitalize">{studentDetails.profile_role ?? 'N/A'}</span></div>
+               <div><span className="font-medium text-gray-500 block">Membro Desde:</span> <span>{formatDate(studentDetails.profile_created_at, {dateStyle: 'medium', timeStyle: 'short'})}</span></div>
+            </div> {/* <<-- Fechamento div grid */}
+          </CardContent> {/* <<-- Fechamento CardContent */}
+        </Card> {/* <<-- Fechamento Card Superior */}
 
         {/* Card Inferior: Formulário de Edição */}
         <Card>
@@ -212,10 +182,10 @@ export default function StudentManagePage() {
                   studentId={studentId!}
               />
            </CardContent>
-        </Card> {/* <<-- Fechamento correto do segundo Card */}
-      </div> // <<-- Fechamento correto do div space-y-6
-    ); // <<-- Fechamento correto do return principal
-  }; // <<-- Fechamento correto da função renderContent
+        </Card> {/* <<-- Fechamento Card Inferior */}
+      </div> // <<-- Fechamento div space-y-6
+    ); // <<-- Fechamento return principal de renderContent
+  }; // <<-- Fechamento função renderContent
 
   // Renderização principal da página
   return (
@@ -228,6 +198,6 @@ export default function StudentManagePage() {
          </Link>
        </div>
        {renderContent()}
-    </div>
-  ); // <<-- Fechamento correto do return principal
-} // <<-- Fechamento correto do componente
+    </div> // <<-- Fechamento div principal
+  ); // <<-- Fechamento return do componente
+} // <<-- Fechamento componente

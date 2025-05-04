@@ -13,7 +13,7 @@ import {
   Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
+// import { Switch } from "@/components/ui/switch"; // Removido
 import { DatePicker } from "@/components/ui/date-picker";
 import { toast } from "sonner";
 import { Loader2 } from 'lucide-react';
@@ -38,25 +38,23 @@ export default function EditStudentForm({ studentDetails, studentId }: EditStude
          ? new Date(studentDetails.student_date_of_birth + 'Z')
          : undefined,
       student_phone_number: studentDetails.student_phone_number ?? "",
-      student_confirmed: studentDetails.student_confirmed ?? false,
     },
   });
 
   async function onSubmit(values: EditStudentFormValues) {
     setIsSubmitting(true);
-    console.log("Dados do formulário para salvar:", values);
+    console.log("Dados do formulário para salvar (sem confirmed):", values);
     const formattedDob = values.student_date_of_birth
        ? values.student_date_of_birth.toISOString().split('T')[0]
        : null;
 
     try {
-        console.log("Chamando RPC update_student_details_by_manager...");
+        console.log("Chamando RPC update_student_details_by_manager (sem confirmed)...");
         const { error: rpcError } = await supabase.rpc('update_student_details_by_manager', {
             p_student_id: studentId,
             p_profile_name: values.profile_name,
             p_student_date_of_birth: formattedDob,
             p_student_phone_number: values.student_phone_number || null,
-            p_student_confirmed: values.student_confirmed
         });
 
         if (rpcError) throw rpcError;
@@ -79,8 +77,6 @@ export default function EditStudentForm({ studentDetails, studentId }: EditStude
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* --- ESTRUTURA CORRIGIDA --- */}
-
         {/* Campo Nome */}
         <FormField
           control={form.control}
@@ -94,7 +90,7 @@ export default function EditStudentForm({ studentDetails, studentId }: EditStude
               <FormMessage />
             </FormItem>
           )}
-        /> {/* <<-- Fechamento correto */}
+        /> {/* FECHADO */}
 
         {/* Campo Data de Nascimento */}
         <FormField
@@ -112,7 +108,7 @@ export default function EditStudentForm({ studentDetails, studentId }: EditStude
               <FormMessage className="mt-1"/>
             </FormItem>
           )}
-        /> {/* <<-- Fechamento correto */}
+        /> {/* FECHADO */}
 
         {/* Campo Telefone */}
         <FormField
@@ -130,31 +126,7 @@ export default function EditStudentForm({ studentDetails, studentId }: EditStude
               <FormMessage />
             </FormItem>
           )}
-        /> {/* <<-- Fechamento correto */}
-
-        {/* Campo Confirmado */}
-        <FormField
-           control={form.control}
-           name="student_confirmed"
-           render={({ field }) => (
-             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-               <div className="space-y-0.5">
-                 <FormLabel>Aluno Confirmado?</FormLabel>
-                 <FormDescription>
-                   Indica se o cadastro do aluno foi verificado/confirmado.
-                 </FormDescription>
-               </div>
-               <FormControl>
-                 <Switch
-                   checked={field.value}
-                   onCheckedChange={field.onChange}
-                   disabled={isSubmitting}
-                 />
-               </FormControl>
-               {/* FormMessage geralmente não é necessário para Switch, mas pode adicionar se quiser */}
-             </FormItem>
-           )}
-         /> {/* <<-- Fechamento correto */}
+        /> {/* FECHADO */}
 
         {/* Botão Salvar */}
         <div className="flex justify-end">
