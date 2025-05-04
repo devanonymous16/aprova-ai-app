@@ -2,57 +2,63 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Skeleton } from '@/components/ui/skeleton';
-import { AlertTriangle, BarChart3, TrendingUp, Users, ListX, Award } from 'lucide-react';
-import { useOrganizationMetrics } from '@/hooks/manager/useOrganizationMetrics';
+import { BarChart3 } from 'lucide-react'; // Ícone exemplo
+
+// Remover import e uso de useOrganizationMetrics daqui, pois KPIs estão no Index
 
 const AnalyticsTab: React.FC = () => {
-  const { data: metrics, isLoading, error } = useOrganizationMetrics();
-
-  // --- Helper renderKPICard CORRIGIDO com 'return' ---
-  const renderKPICard = (title: string, value: number | string | null, icon: React.ElementType, unit: string = "", description?: string, valueColor?: string) => {
-      const Icon = icon;
-      const displayValue = value !== null && value !== undefined ? `${value}${unit}` : '-';
-      const colorClass = valueColor || 'text-gray-900 dark:text-gray-100';
-
-      // --- ADICIONADO 'return' AQUI ---
-      return (
-          <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{title}</CardTitle>
-                  <Icon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                  {isLoading ? (
-                      <Skeleton className="h-8 w-24 mt-1" />
-                  ) : error ? (
-                       <span className='text-xs text-red-500'>Erro</span>
-                  ): (
-                      <div className={`text-2xl font-bold ${colorClass}`}>{displayValue}</div>
-                  )}
-                   {description && !isLoading && !error && (
-                       <p className="text-xs text-muted-foreground pt-1">{description}</p>
-                   )}
-              </CardContent>
-          </Card>
-      ); // <<-- Fechamento do return
-  } // <<-- Fechamento da função
+  // Remover chamada de hook useOrganizationMetrics
+  // const { data: metrics, isLoading, error } = useOrganizationMetrics();
 
   return (
-    <div className="space-y-6 mt-6">
-      {/* Linha de KPIs Rápidos */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {/* Chamadas ao helper (sem alterações aqui) */}
-          {renderKPICard("Acerto Médio Geral", metrics?.averageAccuracy, BarChart3, "%", "Média de acertos em todas as questões", "text-blue-600")}
-          {renderKPICard("Taxa de Aprovação", metrics?.approvalRate, Award, "%", "Baseado nos últimos concursos informados", "text-green-600")}
-          {renderKPICard("Engajamento Semanal", metrics?.engagementRate, TrendingUp, "%", "Alunos ativos nos últimos 7 dias")}
-          {renderKPICard("Tópicos Críticos", metrics?.criticalTopicsCount, ListX, "", "Tópicos com menor desempenho médio", "text-red-600")}
-      </div>
+    // Mantém um div wrapper se necessário, ou começa direto com Tabs
+    <div className="space-y-6">
+        {/* KPIs gerais foram movidos para ManagerDashboard/Index.tsx */}
 
-      {/* Abas para Análises Detalhadas (sem alterações) */}
-      <Tabs defaultValue="performanceByPosition" className="w-full">
-         {/* ... */}
-      </Tabs>
+        {/* Abas para Análises Detalhadas */}
+        <Tabs defaultValue="performanceByPosition" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-4">
+                <TabsTrigger value="performanceByPosition">Desempenho por Cargo</TabsTrigger>
+                <TabsTrigger value="recommendations">Recomendações</TabsTrigger> {/* Habilitar quando implementar */}
+                <TabsTrigger value="engagement">Engajamento</TabsTrigger> {/* Habilitar quando implementar */}
+            </TabsList>
+
+            {/* Conteúdo da Aba: Desempenho por Cargo */}
+            <TabsContent value="performanceByPosition">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Análise de Desempenho por Cargo/Concurso</CardTitle>
+                    <p className="text-sm text-muted-foreground pt-1">
+                        Visualize o desempenho agregado dos alunos agrupados pelo cargo que estão se preparando.
+                    </p>
+                </CardHeader>
+                <CardContent>
+                    {/* TODO: Implementar Fase 2 (Accordion com cargos e tabela de tópicos) aqui */}
+                    <div className="p-10 flex flex-col items-center justify-center bg-gray-50 rounded-md border min-h-[300px]">
+                        <BarChart3 className="h-16 w-16 text-primary-900 mb-4" />
+                        <h3 className="text-lg font-medium mb-2">Em Breve</h3>
+                        <p className="text-muted-foreground text-center max-w-md">
+                            Lista de cargos/concursos com desempenho detalhado por tópico será exibida aqui.
+                        </p>
+                    </div>
+                </CardContent>
+            </Card>
+            </TabsContent>
+
+            {/* Conteúdo das outras abas */}
+            <TabsContent value="recommendations">
+                 <Card>
+                    <CardHeader><CardTitle>Recomendações e Intervenções</CardTitle></CardHeader>
+                    <CardContent><p className='text-center p-8 text-muted-foreground'>Placeholder para Tópicos Críticos e Grupos de Risco.</p></CardContent>
+                 </Card>
+            </TabsContent>
+            <TabsContent value="engagement">
+                 <Card>
+                    <CardHeader><CardTitle>Engajamento e Risco de Evasão</CardTitle></CardHeader>
+                    <CardContent><p className='text-center p-8 text-muted-foreground'>Placeholder para KPIs de engajamento e lista de alunos relapsos.</p></CardContent>
+                 </Card>
+            </TabsContent>
+        </Tabs>
     </div>
   );
 };
