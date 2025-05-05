@@ -1,38 +1,55 @@
 // src/pages/dashboard/manager/tabs/AnalyticsTab.tsx
-import React from 'react';
+import React from 'react'; // Import React
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertTriangle, BarChart3, Users, ListX, ChevronDown, Users2, FlaskConical, UserMinus } from 'lucide-react'; // Ícones
+import { AlertTriangle, BarChart3, Users, ListX, Users2, FlaskConical, UserMinus, Clock, Activity, Eye } from 'lucide-react'; // Ícones Necessários
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress'; // Re-adicionado se usar
+// import { Progress } from '@/components/ui/progress'; // Não usado nesta versão
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"; // Importa Tabela
+import { Badge } from "@/components/ui/badge"; // Importa Badge
 
 import { usePerformanceByPosition } from '@/hooks/manager/usePerformanceByPosition';
 import { PerformanceTopicTable } from '@/components/student/PerformanceTopicTable';
 import { TopicPerformanceData } from '@/hooks/student/useStudentPerformanceData';
 import { useInterventionRecommendations } from '@/hooks/manager/useInterventionRecommendations';
+import { useEngagementRiskData, EngagementRiskData } from '@/hooks/manager/useEngagementRiskData'; // Importa tipo
+
+// Helper Pluralize (CORRIGIDO)
+const pluralize = (count: number | null | undefined, singular: string, plural: string): string => {
+    if (count === null || count === undefined) {
+       return `- ${plural}`;
+    }
+    if (count === 1) {
+        return `${count} ${singular}`;
+    }
+    return `${count} ${plural}`;
+}; // <<-- Fechamento com PONTO E VÍRGULA
+
+// Adapter (CORRIGIDO)
+const adaptDataForTable = (topics: any[] | undefined | null): TopicPerformanceData[] => {
+    if (!Array.isArray(topics)) {
+        return [];
+    }
+    return topics.map(topic => ({
+        topicId: String(topic.topicId ?? `unknown-${Math.random()}`),
+        topicName: String(topic.topicName ?? 'Tópico Desconhecido'),
+        subjectId: String(topic.subjectId ?? topic.subjectName ?? 'unknown'),
+        subjectName: String(topic.subjectName ?? 'Disciplina Desconhecida'),
+        accuracyPercentage: topic.groupAccuracyPercentage ?? null,
+        questionsAnswered: topic.questionsAnswered ?? 0,
+        totalStudyTimeMinutes: topic.totalStudyTimeMinutes ?? 0,
+    }));
+}; // <<-- Fechamento com PONTO E VÍRGULA
+
 
 const AnalyticsTab: React.FC = () => {
+  // Hooks
   const { data: performanceByPosition, isLoading: isLoadingPerf, error: errorPerf } = usePerformanceByPosition();
   const { data: recommendations, isLoading: isLoadingRecs, error: errorRecs } = useInterventionRecommendations();
-
-  // Adapter (Garantindo retorno de array e tipo correto)
-  const adaptDataForTable = (topics: any[] | undefined | null): TopicPerformanceData[] => {
-      if (!Array.isArray(topics)) {
-          return [];
-      }
-      return topics.map(topic => ({
-          topicId: topic.topicId ?? `unknown-${Math.random()}`,
-          topicName: topic.topicName ?? 'Tópico Desconhecido',
-          subjectId: topic.subjectId ?? topic.subjectName ?? 'unknown',
-          subjectName: topic.subjectName ?? 'Disciplina Desconhecida',
-          accuracyPercentage: topic.groupAccuracyPercentage ?? null,
-          questionsAnswered: topic.questionsAnsweredCount ?? 0,
-          totalStudyTimeMinutes: topic.totalStudyTimeMinutes ?? 0,
-      }));
-  }; // Fim da função adaptDataForTable
+  const { data: engagementData, isLoading: isLoadingEng, error: errorEng } = useEngagementRiskData(); // <<< Chamada correta
 
   return (
     <div className="space-y-6">
@@ -40,7 +57,7 @@ const AnalyticsTab: React.FC = () => {
         <TabsList className="grid w-full grid-cols-3 mb-4">
           <TabsTrigger value="performanceByPosition">Desempenho por Cargo</TabsTrigger>
           <TabsTrigger value="recommendations">Recomendações</TabsTrigger>
-          <TabsTrigger value="engagement" disabled>Engajamento</TabsTrigger>
+          <TabsTrigger value="engagement">Engajamento</TabsTrigger>
         </TabsList>
 
         {/* Aba Desempenho por Cargo */}
@@ -74,10 +91,10 @@ const AnalyticsTab: React.FC = () => {
                             <AccordionContent className="p-0">
                                 <PerformanceTopicTable data={adaptDataForTable(positionData.topics)} />
                             </AccordionContent>
-                            </AccordionItem> // Fechamento AccordionItem
+                            </AccordionItem>
                         ))}
-                    </Accordion> // Fechamento Accordion
-                )} {/* Fechamento Condicional */}
+                    </Accordion>
+                )}
                 {!isLoadingPerf && !errorPerf && (!performanceByPosition || performanceByPosition.length === 0) && (
                     <p className="text-muted-foreground text-center py-8">Nenhum dado de desempenho por cargo encontrado.</p>
                 )}
@@ -106,28 +123,22 @@ const AnalyticsTab: React.FC = () => {
                           <TooltipProvider delayDuration={100}>
                             <Tooltip>
                                <TooltipTrigger asChild>
-                                  <span className={`font-semibold ${topic.averageAccuracy && topic.averageAccuracy < 60 ? 'text-red-600' : 'text-orange-600'}`}>
-                                     {topic.averageAccuracy !== null ? `${topic.averageAccuracy}%` : '-'}
-                                  </span>
+                                  <span className={`font-semibold ${topic.averageAccuracy && topic.averageAccuracy < 60 ? 'text-red-600' : 'text-orange-600'}`}> {topic.averageAccuracy !== null ? `${topic.averageAccuracy}%` : '-'} </span>
                                 </TooltipTrigger>
                                 <TooltipContent> <p>Acerto Médio</p> </TooltipContent>
                              </Tooltip>
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                   <span className="ml-2 text-xs text-muted-foreground inline-flex items-center gap-1">
-                                       <Users className="h-3 w-3"/> {topic.strugglingStudentCount}
-                                   </span>
+                                   <span className="ml-2 text-xs text-muted-foreground inline-flex items-center gap-1"> <Users className="h-3 w-3"/> {topic.strugglingStudentCount} </span>
                                 </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>Alunos com dificuldade (-70%)</p>
-                                </TooltipContent>
+                                <TooltipContent> <p>Alunos com dificuldade (-70%)</p> </TooltipContent>
                              </Tooltip>
                           </TooltipProvider>
                          </div>
-                      </li> // Fechamento li
+                      </li>
                     ))}
-                  </ul> // Fechamento ul
-                )} {/* Fechamento Condicional */}
+                  </ul>
+                )}
                  {!isLoadingRecs && !errorRecs && (!recommendations?.criticalTopics || recommendations.criticalTopics.length === 0) && ( <p className="text-muted-foreground text-center py-4">Nenhum tópico crítico identificado.</p> )}
               </CardContent>
             </Card>
@@ -143,21 +154,20 @@ const AnalyticsTab: React.FC = () => {
                 {errorRecs && <p className="text-sm text-red-500 text-center">Erro ao carregar grupos.</p>}
                  {!isLoadingRecs && !errorRecs && recommendations?.studentGroupsByDifficulty && recommendations.studentGroupsByDifficulty.length > 0 && (
                    <div className="space-y-3">
-                     {recommendations.studentGroupsByDifficulty.map((group) => { // <<-- Adicionado Chave aqui
-                       // Lógica da Amostra Separada
+                     {recommendations.studentGroupsByDifficulty.map((group) => {
                        const sampleNames = group.studentSample.map(s => s.name || 'Aluno Anônimo').slice(0, 3);
                        const sampleString = sampleNames.join(', ');
                        const ellipsis = group.studentSample.length > 3 ? '...' : '';
                        const fullSampleText = `Amostra: ${sampleString}${ellipsis}`;
 
-                       return ( // <<-- Adicionado Return aqui
+                       return (
                          <div key={group.id} className="border rounded-md p-3 text-sm">
                            <div className="flex justify-between items-center mb-1"> <span className="font-semibold">{group.difficultyArea}</span> <span className="text-xs text-muted-foreground flex items-center gap-1"><Users2 className="h-3 w-3"/> {group.studentCount} Alunos</span> </div>
                            <p className='text-xs text-muted-foreground mb-2'>{fullSampleText}</p>
                            <Button size="sm" variant="outline" disabled>Ver Alunos</Button>
                          </div>
-                       ); // <<-- Fechamento Return
-                     })} {/* <<-- Fechamento Map */}
+                       ); // Fechamento Return
+                     })} {/* Fechamento Map */}
                    </div> // Fechamento div space-y-3
                  )} {/* Fechamento Condicional */}
                   {!isLoadingRecs && !errorRecs && (!recommendations?.studentGroupsByDifficulty || recommendations.studentGroupsByDifficulty.length === 0) && ( <p className="text-muted-foreground text-center py-4">Nenhum grupo de dificuldade identificado.</p> )}
@@ -168,15 +178,72 @@ const AnalyticsTab: React.FC = () => {
 
         {/* Aba Engajamento */}
         <TabsContent value="engagement">
-             <Card>
-                <CardHeader><CardTitle>Engajamento e Risco de Evasão</CardTitle></CardHeader>
-                <CardContent><p className='text-center p-8 text-muted-foreground'>Placeholder para KPIs de engajamento e lista de alunos relapsos.</p></CardContent>
-             </Card>
-        </TabsContent>
+             <div className="space-y-6">
+                {/* KPIs de Engajamento */}
+                 <div className="grid gap-4 md:grid-cols-2">
+                     <Card>
+                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"> <CardTitle className="text-sm font-medium">Atividade Semanal</CardTitle> <Activity className="h-4 w-4 text-muted-foreground" /> </CardHeader>
+                         <CardContent>
+                             {isLoadingEng ? <Skeleton className="h-8 w-20 mt-1"/> : errorEng ? <span className='text-xs text-red-500'>Erro</span> : <div className="text-2xl font-bold text-green-600">{engagementData?.engagementKPIs?.weeklyActivePercent ?? '-'}%</div>}
+                             {!isLoadingEng && !errorEng && <p className="text-xs text-muted-foreground pt-1">% de alunos que acessaram nos últimos 7 dias.</p>}
+                         </CardContent>
+                     </Card>
+                      <Card>
+                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"> <CardTitle className="text-sm font-medium">Tempo Médio/Sessão</CardTitle> <Clock className="h-4 w-4 text-muted-foreground" /> </CardHeader>
+                         <CardContent>
+                              {isLoadingEng ? <Skeleton className="h-8 w-20 mt-1"/> : errorEng ? <span className='text-xs text-red-500'>Erro</span> : <div className="text-2xl font-bold">{engagementData?.engagementKPIs?.averageSessionMinutes ?? '-'} min</div>}
+                             {!isLoadingEng && !errorEng && <p className="text-xs text-muted-foreground pt-1">Duração média das sessões de estudo.</p>}
+                         </CardContent>
+                     </Card>
+                 </div>
 
-      </Tabs> {/* Fechamento Tabs principal */}
-    </div> // Fechamento div space-y-6
-  ); // Fechamento return do componente
-}; // Fechamento componente
+                 {/* Tabela de Alunos em Risco */}
+                 <Card>
+                     <CardHeader>
+                         <CardTitle className="flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-orange-500"/> Alunos com Baixo Engajamento/Risco</CardTitle>
+                         <CardDescription>Alunos que podem precisar de atenção devido à baixa atividade recente.</CardDescription>
+                     </CardHeader>
+                     <CardContent>
+                         {isLoadingEng && <div className="space-y-2"><Skeleton className="h-10 w-full"/><Skeleton className="h-10 w-full"/><Skeleton className="h-10 w-4/5"/></div>}
+                         {errorEng && <p className="text-sm text-red-500 text-center py-4">Erro ao carregar lista de alunos.</p>}
+                         {!isLoadingEng && !errorEng && engagementData?.riskyStudents && engagementData.riskyStudents.length > 0 && (
+                             <Table>
+                                 <TableHeader> <TableRow> <TableHead>Aluno</TableHead> <TableHead className='text-center'>Último Acesso</TableHead> <TableHead className='text-center'>Tempo (Últ. 7d)</TableHead> <TableHead>Motivo do Alerta</TableHead> <TableHead className="text-right">Ações</TableHead> </TableRow> </TableHeader>
+                                 <TableBody>
+                                     {engagementData.riskyStudents.map((student) => (
+                                         <TableRow key={student.studentId}>
+                                             <TableCell className="font-medium">{student.studentName ?? 'Aluno Anônimo'}</TableCell>
+                                             <TableCell className='text-center text-muted-foreground text-sm'>{pluralize(student.lastLoginDaysAgo, 'dia', 'dias')} atrás</TableCell>
+                                             <TableCell className='text-center text-muted-foreground text-sm'>{student.timeSpentLastWeek !== null ? `${student.timeSpentLastWeek} min` : '-'}</TableCell>
+                                             <TableCell>
+                                                 <Badge
+                                                    variant={student.warningReason === 'Inativo' ? 'destructive' : 'outline'}
+                                                    className={`text-xs ${
+                                                        student.warningReason === 'Baixo Uso' ? 'text-orange-700 border-orange-400 bg-orange-50' :
+                                                        student.warningReason === 'Desempenho em Queda' ? 'text-yellow-700 border-yellow-400 bg-yellow-50' : ''
+                                                        // Adiciona um fallback ou deixa sem cor extra se for 'Outro'
+                                                    }`}
+                                                  >
+                                                     {student.warningReason}
+                                                 </Badge>
+                                             </TableCell>
+                                             <TableCell className="text-right"> <Button variant="ghost" size="sm" className="text-xs" disabled> <Eye className="h-3.5 w-3.5 mr-1"/> Ver Perfil </Button> </TableCell>
+                                         </TableRow>
+                                     ))}
+                                 </TableBody>
+                             </Table>
+                         )}
+                          {!isLoadingEng && !errorEng && (!engagementData?.riskyStudents || engagementData.riskyStudents.length === 0) && (
+                             <p className="text-muted-foreground text-center py-8">Nenhum aluno em risco identificado.</p>
+                          )}
+                     </CardContent>
+                 </Card>
+             </div>
+           </TabsContent> {/* Fim TabsContent Engajamento */}
+
+      </Tabs> {/* Fim Tabs Principal */}
+    </div> // Fim Div Principal
+  ); // Fim Return
+}; // Fim Componente
 
 export default AnalyticsTab;
