@@ -1,21 +1,28 @@
+// src/hooks/useAuthActions.ts
+
 import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
-import { toast } from '@/components/ui/sonner';
-import { AuthUser } from '@supabase/supabase-js'; // Importar se for tipar o retorno
+import { toast } from '@/components/ui/sonner'; // Usando sonner para toasts
+// import { AuthUser, AuthError, UserResponse, SessionResponse } from '@supabase/supabase-js'; // Tipos mais específicos se necessário
 
-// Interface para as opções que o supabase.auth.signUp espera, incluindo 'data' para metadados
 interface SignUpOptions {
   data?: Record<string, any>;
   emailRedirectTo?: string;
-  // outras opções do Supabase Auth podem ser adicionadas aqui se necessário
 }
+
+// Para tipar o retorno de signUp se você retornar data
+// interface SignUpData {
+//   user: AuthUser | null;
+//   session: Session | null;
+// }
 
 export const useAuthActions = () => {
   const navigate = useNavigate();
 
-  const login = useCallback(async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string) /*: Promise<AuthUser | undefined>*/ => {
     console.log('[login] Iniciando login com email:', email);
+    const toastId = 'login-toast'; // Para gerenciar o toast
     try {
       if (!email || !password) {
         throw new Error('Email e senha são obrigatórios');
@@ -28,221 +35,220 @@ export const useAuthActions = () => {
       });
       
       if (error) {
-        console.error('[login] Erro retornado pelo Supabase:', error);
+        console.error('[login] Erro retornado pelo Supabase:', error.message, error);
         if (error.message.includes('Invalid login credentials')) {
-          // Modificado para usar toast.error diretamente
-          toast.error('Email ou senha inválidos');
+          toast.error('Email ou senha inválidos', { id: toastId });
         } else {
-          toast.error('Erro no login', { description: error.message });
+          toast.error('Erro no login', { id: toastId, description: error.message });
         }
-        throw error; // Re-lança para que o chamador saiba
+        throw error; 
       }
       
       if (!data.user) {
-        console.error('[login] Login sem erro, mas sem usuário retornado');
-        const err = new Error('Erro ao processar login: usuário não encontrado');
-        toast.error('Erro no login', { description: err.message });
+        console.error('[login] Login sem erro, mas sem usuário retornado do Supabase.');
+        const err = new Error('Erro ao processar login: resposta inesperada do servidor.');
+        toast.error('Erro no login', { id: toastId, description: err.message });
         throw err;
       }
       
       console.log('[login] Login bem-sucedido para:', data.user.email);
-      toast.success('Login realizado com sucesso');
-      // O redirecionamento é tratado pelo useAuthNavigation no App.tsx
+      toast.success('Login realizado com sucesso!', { id: toastId });
+      // return data.user; // Descomente se o chamador precisar do objeto user
       
-      // Se você quiser retornar o usuário:
-      // return data.user;
-      
-    } catch (error: any) {
-      console.error('[login] Erro capturado:', error.message);
-      // Se o toast não foi mostrado acima, adicione um genérico
-      if (!error.message.includes('Email ou senha inválidos') && !error.message.includes('Erro ao processar login')) {
-          toast.error('Erro no login', { description: 'Ocorreu um problema ao tentar fazer login.' });
+    } catch (err: any) { // Alterado para 'err' para evitar conflito de nome se error já foi declarado
+      console.error('[login] Erro capturado na função login:', err.message);
+      // Verifica se um toast com o mesmo ID já não foi mostrado (para evitar duplicação)
+      // A biblioteca sonner pode já lidar com isso, mas esta é uma checagem extra.
+      // Se a sua versão do sonner não tem 'isActive', remova este if.
+      // if (!toast.isActive || (toast.isActive && !toast.isActive(toastId))) {
+      // Uma forma mais simples é apenas mostrar o toast se ele não for um dos já tratados
+      if (err.message && !err.message.includes('Email e senha são obrigatórios') && !err.message.includes('Invalid login credentials') && !err.message.includes('Erro ao processar login')) {
+          toast.error('Erro no login', { id: toastId, description: err.message || 'Ocorreu um problema inesperado.' });
+      } else if (!err.message) {
+          toast.error('Erro no login', { id: toastId, description: 'Ocorreu um problema inesperado.' });
       }
-      throw error; // Garante que o chamador saiba do erro
+      // }
+      throw err; 
     }
-  }, []);
+  }, []); // Removido navigate, pois não é usado diretamente aqui
 
   const loginWithGoogle = useCallback(async () => {
+    const toastId = 'google-login-toast';
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          // O redirectTo do OAuth é para onde o Supabase redireciona APÓS o Google autenticar.
-          // O Supabase então processa a sessão e o onAuthStateChange cuida do resto.
-          redirectTo: `${window.location.origin}/` // Redireciona para a raiz, o useAuthNavigation decide o dashboard
+          redirectTo: `${window.location.origin}/` 
         }
       });
       
-      if (error) throw error;
-      // Não há toast de sucesso aqui, pois o fluxo é um redirecionamento.
-      // O sucesso é implícito se não houver erro e o usuário for redirecionado.
+      if (error) {
+        console.error('Google login error from Supabase:', error.message, error);
+        toast.error('Erro no login com Google', { id: toastId, description: error.message });
+        throw error;
+      }
+      // O supabase-js lida com o redirecionamento. Não há toast de sucesso aqui.
+      if (data.url) {
+        // Se precisar de redirecionamento manual (geralmente não é o caso com o listener do Supabase)
+        // window.location.href = data.url;
+      }
       
-    } catch (error: any) {
-      console.error('Google login error:', error);
+    } catch (err: any) {
+      console.error('Google login error capturado:', err.message);
+      // if (!toast.isActive || (toast.isActive && !toast.isActive(toastId))) {
       toast.error('Erro no login com Google', {
-        description: error.message || 'Tente novamente mais tarde'
+        id: toastId,
+        description: err.message || 'Não foi possível iniciar o login com Google.'
       });
-      throw error;
+      // }
+      throw err;
     }
   }, []);
 
   const logout = useCallback(async () => {
+    const toastId = 'logout-toast';
     try {
       const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      if (error) {
+        console.error('Logout error from Supabase:', error.message, error);
+        toast.error('Erro ao fazer logout', { id: toastId, description: error.message });
+        throw error;
+      }
       
-      // Limpeza de localStorage não é mais estritamente necessária com os listeners do Supabase,
-      // mas pode ser mantida se houve problemas passados.
-      // const supabaseKeys = Object.keys(localStorage).filter(key => 
-      //   key.includes('supabase') || key.includes('sb-') || key.includes('auth')
-      // );
-      // supabaseKeys.forEach(key => localStorage.removeItem(key));
+      toast.success('Logout realizado com sucesso!', { id: toastId });
+      // navigate('/login'); // O onAuthStateChange e useAuthNavigation devem cuidar disso.
       
-      toast.success('Logout realizado com sucesso');
-      // O onAuthStateChange (evento SIGNED_OUT) deve limpar o estado.
-      // O useAuthNavigation deve redirecionar para /login.
-      // O window.location.href é um fallback mais agressivo.
-      // Se o useAuthNavigation estiver funcionando bem, este timeout pode não ser necessário.
-      // setTimeout(() => {
-      //   if (window.location.pathname !== '/login') { // Evita recarregar se já estiver no login
-      //      window.location.href = '/login';
-      //   }
-      // }, 300);
-    } catch (error: any) {
-      console.error('Logout error:', error);
+    } catch (err: any) {
+      console.error('Logout error capturado:', err.message);
+      // if (!toast.isActive || (toast.isActive && !toast.isActive(toastId))) {
       toast.error('Erro ao fazer logout', {
-        description: error.message || 'Tente novamente'
+        id: toastId,
+        description: err.message || 'Ocorreu um problema ao tentar sair.'
       });
-      // if (window.location.pathname !== '/login') {
-      //    window.location.href = '/login';
       // }
-      throw error; // Permite que o chamador trate, se necessário
+      throw err; 
     }
-  }, []);
+  }, [navigate]); // Adicionado navigate de volta se você o usa no logout
 
-  // ========= INÍCIO DA MODIFICAÇÃO EM signUp =========
   const signUp = useCallback(async (
     email: string, 
     password: string, 
-    options?: SignUpOptions // Modificado para aceitar o objeto options completo
-  ) => {
+    options?: SignUpOptions
+  ) /*: Promise<SignUpData | undefined>*/ => {
+    console.log('[signUp] Iniciando cadastro para:', email, 'com opções:', options);
+    const toastId = 'signup-toast';
     try {
       if (!email || !password) {
-        throw new Error('Email e senha são obrigatórios');
+        throw new Error('Email e senha são obrigatórios para o cadastro.');
       }
       
-      // A variável 'options' já contém 'data' com os metadados corretos
-      // e pode conter 'emailRedirectTo' se precisarmos.
-      // Por agora, vamos manter o emailRedirectTo padrão do Supabase Auth
-      // ou o que for definido globalmente.
-      // Se você quiser forçar um emailRedirectTo específico para signup:
-      // const signUpOptions = {
-      //   ...options,
-      //   emailRedirectTo: options?.emailRedirectTo || `${window.location.origin}/login`
-      // };
-
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options // Passa o objeto options diretamente
+        options 
       });
       
       if (error) {
-        toast.error('Erro no cadastro', { description: error.message });
+        console.error('[signUp] Erro retornado pelo Supabase:', error.message, error);
+        toast.error('Erro no cadastro', { id: toastId, description: error.message });
         throw error;
       }
 
-      // Com ENABLE_EMAIL_AUTOCONFIRM=true, data.user não será nulo se não houver erro,
-      // e o email já estará confirmado.
-      if (!data.user && !data.session) { // data.user pode ser null se a confirmação for necessária, mas com auto-confirm deve haver session.
-        const err = new Error('Erro ao processar cadastro: dados de usuário ou sessão não retornados.');
-        toast.error('Erro no cadastro', { description: err.message });
-        throw err;
+      if (!data.user && !data.session) {
+        console.error('[signUp] Cadastro sem erro, mas sem usuário ou sessão retornados.');
+        const err = new Error('Erro ao processar cadastro: resposta inesperada do servidor.');
+        toast.error('Erro no cadastro', { id: toastId, description: err.message });
+        throw err; // Corrigido aqui para lançar 'err'
       }
       
-      // A mensagem de "Verifique seu email" não é mais precisa com auto-confirmação.
+      console.log('[signUp] Usuário criado/convidado com sucesso:', data.user?.email, data.session ? "com sessão" : "sem sessão");
       toast.success('Conta criada com sucesso!', {
+        id: toastId,
         description: 'Você já pode fazer o login.'
       });
       
-      // Opcional: retornar data para o chamador se precisar do user/session
-      // return { data, error: null }; 
-      // Se não retornar, o chamador (SignupPage) não deve tentar desestruturar.
-      // Por consistência com o erro original (Property 'data' does not exist on type 'void'),
-      // vamos assumir que não há retorno aqui.
-      
-      // Redirecionar para login após um breve delay para o toast ser visível
-      // setTimeout(() => {
-      //   navigate('/login');
-      // }, 1500); 
-      // O navigate('/login') já está no SignupPage.tsx, podemos remover daqui para evitar duplicação.
+      return data; // Retornando data
 
-    } catch (error: any) {
-      console.error('Signup error (useAuthActions):', error.message);
-      // O toast de erro já deve ter sido mostrado no bloco if (error) acima.
-      // Se não, e for um erro inesperado:
-      if (!error.message.includes('Erro no cadastro')) {
-          toast.error('Erro no cadastro', { description: error.message || 'Não foi possível criar a conta' });
+    } catch (err: any) { // Alterado para 'err'
+      console.error('[signUp] Erro capturado na função signUp:', err.message);
+      // if (!toast.isActive || (toast.isActive && !toast.isActive(toastId))) {
+      if (err.message && !err.message.includes('Email e senha são obrigatórios')) { // Verifica se não é o erro já tratado
+          toast.error('Erro no cadastro', { id: toastId, description: err.message });
+      } else if (!err.message) {
+          toast.error('Erro no cadastro', { id: toastId, description: 'Não foi possível criar a conta.' });
       }
-      throw error; // Re-lança para o componente poder tratar se quiser (ex: parar isSubmitting)
+      // }
+      throw err; // Corrigido aqui para lançar 'err'
     }
-  }, [navigate]); // Removido navigate daqui se ele não for mais usado diretamente nesta função
-  // ========= FIM DA MODIFICAÇÃO EM signUp =========
+  }, []); // Removido navigate
 
   const forgotPassword = useCallback(async (email: string) => {
+    console.log('[forgotPassword] Iniciando para email:', email);
+    const toastId = 'forgot-password-toast';
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`, // Onde o usuário define a nova senha
+        redirectTo: `${window.location.origin}/reset-password`, 
       });
       
       if (error) {
-        toast.error('Erro ao enviar email de recuperação', { description: error.message });
+        console.error('[forgotPassword] Erro retornado pelo Supabase:', error.message, error);
+        toast.error('Erro ao enviar email de recuperação', { id: toastId, description: error.message });
         throw error;
       }
       
+      console.log('[forgotPassword] Email de recuperação enviado para:', email);
       toast.success('Email de recuperação enviado', {
-        description: 'Verifique sua caixa de entrada'
+        id: toastId,
+        description: 'Verifique sua caixa de entrada.'
       });
-    } catch (error: any) {
-      console.error('Password reset error:', error);
-      if (!error.message.includes('Erro ao enviar email de recuperação')) {
-         toast.error('Erro ao enviar email de recuperação', { description: error.message || 'Verifique se o email está correto' });
-      }
-      throw error;
+    } catch (err: any) { // Alterado para 'err'
+      console.error('[forgotPassword] Erro capturado:', err.message);
+      // if (!toast.isActive || (toast.isActive && !toast.isActive(toastId))) {
+      toast.error('Erro ao enviar email de recuperação', { 
+          id: toastId, 
+          description: err.message || 'Verifique se o email está correto e tente novamente.' 
+      });
+      // }
+      throw err; // Corrigido aqui para lançar 'err'
     }
   }, []);
 
   const resetPassword = useCallback(async (newPassword: string) => {
+    console.log('[resetPassword] Iniciando alteração de senha.');
+    const toastId = 'reset-password-toast';
     try {
-      // Para resetar a senha, o usuário já deve estar em um fluxo onde o Supabase Auth
-      // tem o token de recuperação (geralmente da URL após clicar no link do email).
-      // O supabase-js lida com isso automaticamente se o usuário estiver na página correta.
       const { data, error } = await supabase.auth.updateUser({
         password: newPassword
       });
       
       if (error) {
-        toast.error('Erro ao alterar senha', { description: error.message });
+        console.error('[resetPassword] Erro retornado pelo Supabase:', error.message, error);
+        toast.error('Erro ao alterar senha', { id: toastId, description: error.message });
         throw error;
       }
       
-      toast.success('Senha alterada com sucesso');
-      navigate('/login'); // Redireciona para o login após sucesso
-    } catch (error: any) {
-      console.error('Password update error:', error);
-       if (!error.message.includes('Erro ao alterar senha')) {
-          toast.error('Erro ao alterar senha', { description: error.message || 'Por favor, tente novamente ou solicite um novo link' });
-      }
-      throw error;
+      console.log('[resetPassword] Senha alterada com sucesso para usuário:', data.user?.email);
+      toast.success('Senha alterada com sucesso!', { id: toastId });
+      navigate('/login'); 
+    } catch (err: any) { // Alterado para 'err'
+      console.error('[resetPassword] Erro capturado:', err.message); // Corrigido aqui
+      // if (!toast.isActive || (toast.isActive && !toast.isActive(toastId))) {
+      toast.error('Erro ao alterar senha', { 
+          id: toastId,
+          description: err.message || 'Não foi possível alterar a senha. Tente novamente ou solicite um novo link.' 
+      });
+      // }
+      throw err; // Corrigido aqui para lançar 'err'
     }
-  }, [navigate]);
+  }, [navigate]); // navigate é usado aqui
 
+  // Certifique-se de que o objeto retornado está correto
   return {
     login,
     loginWithGoogle,
     logout,
     signUp,
     forgotPassword,
-    resetPassword
-  };
-};
+    resetPassword, // Faltava uma vírgula aqui antes
+  }; // Adicionado o ponto e vírgula final do hook
+}; // Adicionado o ponto e vírgula final da exportação
