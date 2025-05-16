@@ -1,124 +1,116 @@
+// src/components/student/TopicPerformanceChart.tsx
+import React, { useEffect, useState } from 'react'; // Adicionado useEffect e useState
+// import { supabase } from '@/integrations/supabase/client'; // Descomente se for buscar dados reais
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { getTopicPerformanceComparison } from '@/services/mockStudentData'; // Usando mock por enquanto
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useEffect, useState } from "react";
-import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { getTopicPerformanceComparison } from "@/services/mockStudentData";
-
+// Defina a interface para os dados do gráfico
 interface TopicPerformanceData {
   topic: string;
   topicId: string;
-  performance: number;
-  average: number;
-  difference: number;
+  performance: number; // Seu desempenho (0-100)
+  average: number;     // Média geral (0-100)
+  difference?: number; // Opcional
 }
 
-interface TopicPerformanceChartProps {
-  studentId: string;
-  examId: string;
+export interface TopicPerformanceChartProps {
+  studentId: string | undefined; // Pode ser undefined se o usuário não estiver logado
+  examPositionId: string | null; // Pode ser null se nenhum cargo estiver em foco
 }
 
-export default function TopicPerformanceChart({ studentId, examId }: TopicPerformanceChartProps) {
-  const [performanceData, setPerformanceData] = useState<TopicPerformanceData[]>([]);
+export default function TopicPerformanceChart({ studentId, examPositionId }: TopicPerformanceChartProps) {
+  const [chartData, setChartData] = useState<TopicPerformanceData[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   useEffect(() => {
     const fetchData = async () => {
+      if (!studentId || !examPositionId) {
+        setChartData([]); // Limpa os dados se não houver ID de estudante ou cargo
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
       try {
-        const data = await getTopicPerformanceComparison(studentId, examId);
-        setPerformanceData(data);
+        console.log(`[TopicPerformanceChart] Buscando dados para student ${studentId}, position ${examPositionId}`);
+        // TODO: Substituir mock por chamada real ao backend que usa studentId e examPositionId
+        const data = await getTopicPerformanceComparison(studentId, examPositionId);
+        setChartData(data);
       } catch (error) {
-        console.error("Error fetching performance data:", error);
+        console.error("Error fetching topic performance data:", error);
+        setChartData([]); // Limpa em caso de erro
       } finally {
         setLoading(false);
       }
     };
-    
+
     fetchData();
-  }, [studentId, examId]);
-  
-  // Get the best and worst performing topics
-  const bestPerforming = [...performanceData].sort((a, b) => b.difference - a.difference).slice(0, 5);
-  const worstPerforming = [...performanceData].sort((a, b) => a.difference - b.difference).slice(0, 5);
-  
+  }, [studentId, examPositionId]); // Re-busca quando studentId ou examPositionId mudarem
+
   if (loading) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle>Desempenho por Tópico</CardTitle>
-        </CardHeader>
-        <CardContent className="h-[400px] flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-        </CardContent>
+        <CardHeader><CardTitle>Desempenho por Tópico</CardTitle></CardHeader>
+        <CardContent><p>Carregando dados de desempenho...</p></CardContent>
       </Card>
     );
   }
   
+  if (chartData.length === 0 && !loading) {
+     return (
+      <Card>
+        <CardHeader><CardTitle>Desempenho por Tópico</CardTitle></CardHeader>
+        <CardContent><p>Ainda não há dados de desempenho suficientes para este concurso.</p></CardContent>
+      </Card>
+    );
+  }
+
+  // Separar tópicos com melhor e pior desempenho em relação à média
+  const bestTopics = chartData.filter(d => d.performance > d.average).sort((a, b) => (b.performance - b.average) - (a.performance - a.average)).slice(0, 5);
+  const worstTopics = chartData.filter(d => d.performance < d.average).sort((a, b) => (a.performance - a.average) - (b.performance - b.average)).slice(0, 5);
+
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Desempenho por Tópico</CardTitle>
+        <CardDescription>Compare seu desempenho com a média geral dos estudantes.</CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="h-[300px] mb-6">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={performanceData.slice(0, 8)} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+      <CardContent className="space-y-6">
+        {chartData.length > 0 && (
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={chartData} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}> {/* Ajuste de margem left */}
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="topic" tick={{ fontSize: 12 }} height={60} interval={0} tickFormatter={(value) => value.length > 15 ? `${value.substring(0, 15)}...` : value} />
-              <YAxis domain={[0, 100]} />
-              <Tooltip formatter={(value) => `${value}%`} />
+              <XAxis dataKey="topic" angle={-30} textAnchor="end" height={70} interval={0} tick={{ fontSize: 10 }} />
+              <YAxis tickFormatter={(value) => `${value}%`} />
+              <Tooltip formatter={(value: number) => `${value}%`} />
               <Legend />
-              <Bar dataKey="performance" name="Seu Desempenho" fill="#9b87f5" />
-              <Bar dataKey="average" name="Média Geral" fill="#8E9196" />
+              <Bar dataKey="performance" fill="#8884d8" name="Seu Desempenho" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="average" fill="#82ca9d" name="Média Geral" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        )}
         
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Best performing topics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <h4 className="font-medium mb-2 text-sm">Tópicos com melhor desempenho</h4>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Tópico</TableHead>
-                  <TableHead className="text-right">Seu Desempenho</TableHead>
-                  <TableHead className="text-right">Média Geral</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {bestPerforming.map((topic) => (
-                  <TableRow key={topic.topicId}>
-                    <TableCell className="font-medium">{topic.topic}</TableCell>
-                    <TableCell className="text-right">{topic.performance}%</TableCell>
-                    <TableCell className="text-right">{topic.average}%</TableCell>
-                  </TableRow>
+            <h3 className="font-semibold mb-2 text-green-600">Tópicos com melhor desempenho (vs Média)</h3>
+            {bestTopics.length > 0 ? (
+              <ul className="list-disc pl-5 space-y-1 text-sm">
+                {bestTopics.map(t => (
+                  <li key={t.topicId}>{t.topic}: <span className="font-semibold">{t.performance}%</span> (Média: {t.average}%)</li>
                 ))}
-              </TableBody>
-            </Table>
+              </ul>
+            ) : <p className="text-sm text-muted-foreground">Seu desempenho está alinhado ou abaixo da média em todos os tópicos.</p>}
           </div>
-          
-          {/* Worst performing topics */}
           <div>
-            <h4 className="font-medium mb-2 text-sm">Tópicos que precisam de atenção</h4>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Tópico</TableHead>
-                  <TableHead className="text-right">Seu Desempenho</TableHead>
-                  <TableHead className="text-right">Média Geral</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {worstPerforming.map((topic) => (
-                  <TableRow key={topic.topicId}>
-                    <TableCell className="font-medium">{topic.topic}</TableCell>
-                    <TableCell className="text-right">{topic.performance}%</TableCell>
-                    <TableCell className="text-right">{topic.average}%</TableCell>
-                  </TableRow>
+            <h3 className="font-semibold mb-2 text-red-600">Tópicos que precisam de atenção (vs Média)</h3>
+            {worstTopics.length > 0 ? (
+              <ul className="list-disc pl-5 space-y-1 text-sm">
+                {worstTopics.map(t => (
+                  <li key={t.topicId}>{t.topic}: <span className="font-semibold">{t.performance}%</span> (Média: {t.average}%)</li>
                 ))}
-              </TableBody>
-            </Table>
+              </ul>
+            ) : <p className="text-sm text-muted-foreground">Seu desempenho está alinhado ou acima da média em todos os tópicos.</p>}
           </div>
         </div>
       </CardContent>

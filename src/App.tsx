@@ -1,8 +1,9 @@
 // src/App.tsx
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Outlet } from 'react-router-dom'; // <<< ADICIONADO Outlet
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { AuthProvider } from './contexts/AuthContext';
+import { StudentFocusProvider } from './contexts/StudentFocusContext';
 import { Toaster } from "@/components/ui/sonner";
 import { queryClient } from '@/lib/react-query';
 import { useAuthNavigation } from './hooks/useAuthNavigation';
@@ -20,16 +21,29 @@ import LoginPage from './pages/auth/Login';
 import SignupPage from './pages/auth/Signup';
 import ForgotPasswordPage from './pages/auth/ForgotPassword';
 import ResetPasswordPage from './pages/auth/ResetPassword';
-import StudentDashboard from './pages/dashboard/student/Index';
-import ManagerDashboard from './pages/dashboard/manager/Index';
-import StudentManagePage from './pages/dashboard/manager/StudentManagePage'; // <<-- IMPORTAR NOVA PÁGINA
-// import AdminDashboard from './pages/dashboard/admin/Index';
+
+// Páginas do Dashboard do Estudante
+import StudentDashboardPage from './pages/dashboard/student/Index'; // Renomeado para clareza (página principal)
+import PracticePage from './pages/student/PracticePage';      // <<<< IMPORTAR PracticePage
 import ExamDetailPage from './pages/student/ExamDetail';
+// import StudentSettingsPage from './pages/student/SettingsPage'; // Exemplo de outra página
+
+// Páginas do Manager
+import ManagerDashboard from './pages/dashboard/manager/Index';
+import StudentManagePage from './pages/dashboard/manager/StudentManagePage';
+
 import NotFoundPage from './pages/NotFound';
 import UnauthorizedPage from './pages/Unauthorized';
 
+
+// Um componente de layout simples para as rotas do estudante, se MainLayout não for suficiente
+// Ou você pode colocar o RoleGuard diretamente em cada rota filha.
+// Por agora, vamos assumir que MainLayout já tem o <Outlet/> e RoleGuard protege o conjunto.
+// Se StudentDashboard (Index.tsx) fosse um layout com menu lateral, ele teria o <Outlet/>.
+// Como não é, MainLayout é o layout pai.
+
 function AppContent() {
-  useAuthNavigation();
+  useAuthNavigation(); 
 
   return (
     <>
@@ -46,22 +60,69 @@ function AppContent() {
          </Route>
 
          {/* Rotas Protegidas (Dentro do MainLayout) */}
-         <Route element={<MainLayout />}>
-            {/* Rotas do Estudante */}
-           <Route path="/dashboard/student/*" element={ <RoleGuard allowedRoles={['student']}><StudentDashboard /></RoleGuard> } />
-           <Route path="/student/exams/:examId" element={ <RoleGuard allowedRoles={['student']}><ExamDetailPage /></RoleGuard> } />
+         <Route element={<MainLayout />}> {/* MainLayout DEVE ter <Outlet /> */}
+            
+            {/* Rotas do Estudante - ANINHADAS */}
+            <Route path="/dashboard/student"> {/* Rota pai para o dashboard do estudante */}
+              <Route 
+                index // Rota padrão para /dashboard/student
+                element={ 
+                  <RoleGuard allowedRoles={['student']}>
+                    <StudentDashboardPage /> 
+                  </RoleGuard>
+                } 
+              />
+              <Route 
+                path="practice" // Rota para /dashboard/student/practice
+                element={
+                  <RoleGuard allowedRoles={['student']}>
+                    <PracticePage />
+                  </RoleGuard>
+                } 
+              />
+              {/* Adicione outras sub-rotas do estudante aqui, ex:
+              <Route 
+                path="settings"
+                element={
+                  <RoleGuard allowedRoles={['student']}>
+                    <StudentSettingsPage />
+                  </RoleGuard>
+                }
+              /> 
+              */}
+            </Route>
+            {/* Rota para detalhes do exame do estudante (fora do aninhamento /dashboard/student se a URL for diferente) */}
+            <Route 
+              path="/student/exams/:examId" 
+              element={ 
+                <RoleGuard allowedRoles={['student']}>
+                  <ExamDetailPage />
+                </RoleGuard>
+              } 
+            />
 
             {/* Rotas do Gerente */}
-           <Route path="/dashboard/manager/*" element={ <RoleGuard allowedRoles={['manager']}><ManagerDashboard /></RoleGuard> } />
-           {/* --- NOVA ROTA PARA GERENCIAR ALUNO --- */}
-           <Route
-              path="/dashboard/manager/students/:studentId/manage" // <<-- Path dinâmico
-              element={
-                <RoleGuard allowedRoles={['manager']}> {/* Protegida pelo RoleGuard */}
-                  <StudentManagePage />                 {/* Renderiza o novo componente */}
-                </RoleGuard>
-              }
-            />
+            {/* Similarmente, se ManagerDashboard tiver sub-rotas, aninhe-as */}
+            <Route path="/dashboard/manager">
+                <Route 
+                    index
+                    element={ 
+                        <RoleGuard allowedRoles={['manager']}>
+                            <ManagerDashboard />
+                        </RoleGuard>
+                    } 
+                />
+                <Route
+                    path="students/:studentId/manage" 
+                    element={
+                        <RoleGuard allowedRoles={['manager']}> 
+                        <StudentManagePage />                 
+                        </RoleGuard>
+                    }
+                />
+                {/* Outras sub-rotas do manager aqui */}
+            </Route>
+            
            {/* <Route path="/dashboard/admin/*" element={ <RoleGuard allowedRoles={['admin']}><AdminDashboard /></RoleGuard> } /> */}
          </Route>
 
@@ -78,7 +139,9 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <AppContent />
+        <StudentFocusProvider>
+          <AppContent />
+        </StudentFocusProvider>
       </AuthProvider>
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
