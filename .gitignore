@@ -22,3 +22,28 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.vscode/
+.idea/
+
+# Arquivo de variáveis de ambiente dentro de extractors
+extractors/.env
+
+# Ambiente virtual Python dentro de extractors
+extractors/env_extractors/
+env_extractors/
+env_extractors_win/ # Se você criar com esse nome no Windows
+venv/
+*.venv/
+.venv/
+
+# Pasta de PDFs baixados localmente
+output_scraper_pci/downloaded_pdfs_local/
+extractors/output_scraper_pci/
+extractors/output_scraped_data/
+extractors/output_scraped_data_fase1/
+
+# Arquivos de cache Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
