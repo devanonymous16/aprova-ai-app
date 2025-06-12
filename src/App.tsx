@@ -7,6 +7,8 @@ import { StudentFocusProvider } from './contexts/StudentFocusContext';
 import { Toaster } from "@/components/ui/sonner";
 import { queryClient } from '@/lib/react-query';
 import { useAuthNavigation } from './hooks/useAuthNavigation';
+import AdminDashboardPage from './pages/dashboard/admin/Index'; // << ADICIONE ESTA LINHA
+
 
 // Layouts
 import MainLayout from './components/layout/MainLayout';
@@ -122,9 +124,17 @@ function AppContent() {
                 />
                 {/* Outras sub-rotas do manager aqui */}
             </Route>
-            
-           {/* <Route path="/dashboard/admin/*" element={ <RoleGuard allowedRoles={['admin']}><AdminDashboard /></RoleGuard> } /> */}
-         </Route>
+            {/* Rotas do Admin */}
+            <Route path="/dashboard/admin" // Ou /admin/dashboard se preferir
+                    element={
+                        <RoleGuard allowedRoles={['admin']}> {/* Garante que só admin acesse */}
+                            <AdminDashboardPage />
+                        </RoleGuard>
+                    }
+                />
+                {/* Se houver sub-rotas para o admin, aninhe-as aqui como fizemos para student */}
+                {/* <Route path="/dashboard/admin/*" element={ <RoleGuard allowedRoles={['admin']}><AdminDashboard /></RoleGuard> } /> */}
+            </Route>
 
          {/* Rotas de Erro */}
          <Route path="/unauthorized" element={<UnauthorizedPage />} />

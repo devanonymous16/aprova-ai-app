@@ -149,7 +149,7 @@ export default function PracticePage() {
 
   const fetchBankQuestion = useCallback(async () => { 
     console.log('[PracticePage DEBUG] Botão "Buscar Banco de Questões" CLICADO'); 
-    if (!user?.id || !currentActiveExamPositionId || !currentFocusDetails?.banca_id ) { 
+    if (!user?.id || !currentActiveExamPositionId || !currentFocusDetails?.banca_id ) {  
       toast.info("Faltam dados do foco: Banca não definida para o cargo atual."); 
       console.error("Dados de foco ausentes para fetchBankQuestion:", { currentActiveExamPositionId, currentFocusDetails });
       return; 
@@ -159,8 +159,6 @@ export default function PracticePage() {
     const paramsForRpc = {
         p_student_id: user.id, 
         p_exam_position_id: currentActiveExamPositionId,
-        // p_banca_id_foco: currentFocusDetails.banca_id, // Se a RPC filtrar por banca
-        // p_education_level_id_foco: currentFocusDetails.education_level_id, // Se a RPC filtrar por nível
         p_subject_id: selectedSubjectId, 
         p_topic_id: selectedTopicId
     };
@@ -176,7 +174,7 @@ export default function PracticePage() {
   
   const generateAiQuestion = useCallback(async () => { 
     console.log('[PracticePage DEBUG] Botão "Gerar Questão Inédita" CLICADO');
-    if (!user?.id || !currentActiveExamPositionId || !currentFocusDetails || !currentFocusDetails.banca_name ) { // Checa banca_name para o payload
+    if (!user?.id || !currentActiveExamPositionId || !currentFocusDetails || !currentFocusDetails.banca_name ) {
       toast.error("Erro de Configuração", { description: "Detalhes do concurso em foco (como Banca) não estão definidos." }); 
       console.error("generateAiQuestion: currentFocusDetails incompleto:", currentFocusDetails);
       return;
@@ -195,7 +193,7 @@ export default function PracticePage() {
           const paramsForExampleRpc = {
             p_student_id: user.id, p_exam_position_id: currentActiveExamPositionId,
             p_subject_id: selectedSubjectId, p_topic_id: selectedTopicId,
-            p_exclude_question_ids: [] // Pode adicionar lógica de exclusão aqui depois
+            p_exclude_question_ids: [] 
           };
           const { data: exampleData, error: exampleError } = await supabase.rpc('get_random_practice_question', paramsForExampleRpc);
           if (exampleError) { console.warn("[PracticePage] Não foi possível buscar questão exemplo:", exampleError.message); } 
@@ -239,9 +237,9 @@ export default function PracticePage() {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody)
         });
 
-        if (!response.ok) { /* ... */ throw new Error(`Erro N8N ${response.status}`); }
+        if (!response.ok) { const txt = await response.text(); throw new Error(`Erro N8N ${response.status}: ${txt}`); }
         
-        const aiFullResponse = await response.json(); // N8N retorna { output: "stringJSON", threadId: "..." }
+        const aiFullResponse = await response.json();
         console.log("[PracticePage] N8N response.json() raw:", aiFullResponse);
 
         if (!aiFullResponse || typeof aiFullResponse.output !== 'string' || typeof aiFullResponse.threadId !== 'string' || 
@@ -305,7 +303,7 @@ export default function PracticePage() {
       } else { console.log("Questão IA salva:", insertedData); toast.success("Questão inédita gerada e salva!"); }
     } catch (err: any) { console.error("Erro em generateAiQuestion (catch):", err.message); toast.error("Erro ao gerar questão inédita", { description: err.message }); setCurrentQuestion(null);
     } finally { setIsLoadingAiQuestion(false); }
-  }, [user, currentActiveExamPositionId, currentFocusDetails, subjects, topics, selectedSubjectId, selectedTopicId, currentQuestion]); // Adicionado currentQuestion na dependência
+  }, [user, currentActiveExamPositionId, currentFocusDetails, subjects, topics, selectedSubjectId, selectedTopicId, currentQuestion]);
 
   const handleRespond = (answer: string) => { 
     if (!currentQuestion) return;
@@ -362,7 +360,6 @@ export default function PracticePage() {
               <SelectContent>
                 <SelectItem value="all">Todas as Disciplinas</SelectItem>
                 {subjects?.map((subject) => (
-                  // Usar subject.subject_id e subject.subject_name conforme a interface Subject atualizada
                   <SelectItem key={subject.subject_id} value={subject.subject_id}>
                     {subject.subject_name}
                   </SelectItem>
@@ -415,9 +412,118 @@ export default function PracticePage() {
         </>
       )}
 
-      {(isLoadingBankQuestion || isLoadingAiQuestion) && ( /* ... (Skeleton/Loading igual) ... */ )}
-      {!isLoadingBankQuestion && !isLoadingAiQuestion && currentQuestion && ( /* ... (Card da questão igual) ... */ )}
-      {!isLoadingBankQuestion && !isLoadingAiQuestion && !currentQuestion && currentActiveExamPositionId && ( /* ... (Mensagem para iniciar igual) ... */ )}
+      {(isLoadingBankQuestion || isLoadingAiQuestion) && (
+        <div className="text-center py-10">
+            <div role="status" className="flex flex-col items-center">
+                <svg aria-hidden="true" className="w-10 h-10 text-gray-200 animate-spin dark:text-gray-600 fill-primary" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+                    <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0492C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+                </svg>
+                <p className="mt-3 text-muted-foreground">Buscando uma nova questão para você...</p>
+            </div>
+        </div>
+      )}
+
+      {!isLoadingBankQuestion && !isLoadingAiQuestion && currentQuestion && (
+        <Card className="mt-6">
+          <CardHeader>
+            <div className="text-xs text-muted-foreground mb-2 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-x-2 gap-y-1">
+              {currentQuestion.organ_name && (
+                <span className="truncate">Órgão: {currentQuestion.organ_name}</span>
+              )}
+              {currentQuestion.position_name && (
+                <> 
+                  {currentQuestion.organ_name && <span className="hidden sm:inline mx-1">/</span>} 
+                  <span className="truncate">Cargo: {currentQuestion.position_name}</span>
+                </>
+              )}
+              {currentQuestion.source_year && (
+                <>
+                  {(currentQuestion.organ_name || currentQuestion.position_name) && <span className="hidden sm:inline mx-1">/</span>}
+                  <span>Ano: {currentQuestion.source_year}</span>
+                </>
+              )}
+              {currentQuestion.banca_name && (
+                <>
+                  {(currentQuestion.organ_name || currentQuestion.position_name || currentQuestion.source_year) && <span className="hidden sm:inline mx-1">/</span>}
+                  <span className="truncate">Banca: {currentQuestion.banca_name}</span>
+                </>
+              )}
+              {currentQuestion.difficulty_level && (
+                <span className={`ml-0 sm:ml-auto mt-1 sm:mt-0 px-2 py-0.5 text-xs font-medium rounded-full inline-block ${
+                    currentQuestion.difficulty_level <= 2 ? 'bg-green-100 text-green-700' :
+                    currentQuestion.difficulty_level === 3 ? 'bg-yellow-100 text-yellow-700' :
+                    'bg-red-100 text-red-700'
+                }`}>
+                    {difficultyMapRender[currentQuestion.difficulty_level] || 'Não definida'}
+                </span>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {currentQuestion.reference_text && (
+              <div className="mb-4 p-3 bg-slate-50 border border-slate-200 rounded-md text-sm prose max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1" 
+                   dangerouslySetInnerHTML={{ __html: currentQuestion.reference_text }} />
+            )}
+            
+            <div className="mb-4 prose max-w-none prose-sm sm:prose-base prose-p:my-2 prose-ul:my-2 prose-ol:my-2" 
+                 dangerouslySetInnerHTML={{ __html: currentQuestion.statement }} />
+
+            {currentQuestion.reference_image_url && (
+              <img src={currentQuestion.reference_image_url} alt="Referência da questão" className="my-4 max-w-md mx-auto h-auto rounded-md shadow-sm" />
+            )}
+
+            <div className="space-y-3">
+              {currentQuestion.question_style_name === 'CE' && currentQuestion.item_text && (
+                <div className="p-3 border rounded-md bg-amber-50/60">
+                  <p className="mb-3 font-medium text-amber-900">Julgue o item a seguir:</p>
+                  <div className="prose prose-sm sm:prose-base max-w-none prose-p:my-1" dangerouslySetInnerHTML={{__html: currentQuestion.item_text}} />
+                  <div className="mt-4 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+                    <Button onClick={() => handleRespond('C')} variant={selectedAnswer === 'C' && showAnswer ? "default" : "outline"} disabled={showAnswer} className="flex-1">Certo</Button>
+                    <Button onClick={() => handleRespond('E')} variant={selectedAnswer === 'E' && showAnswer ? "default" : "outline"} disabled={showAnswer} className="flex-1">Errado</Button>
+                  </div>
+                </div>
+              )}
+
+              {(currentQuestion.question_style_name === 'ME4' || currentQuestion.question_style_name === 'ME5') && (
+                <>
+                  {[
+                    { label: 'A', item: currentQuestion.item_a },
+                    { label: 'B', item: currentQuestion.item_b },
+                    { label: 'C', item: currentQuestion.item_c },
+                    { label: 'D', item: currentQuestion.item_d },
+                    ...(currentQuestion.question_style_name === 'ME5' && currentQuestion.item_e ? [{ label: 'E', item: currentQuestion.item_e }] : []),
+                  ].filter(alt => alt.item !== null && alt.item !== undefined).map((alt) => (
+                    <Button 
+                      key={alt.label} 
+                      onClick={() => handleRespond(alt.label)} 
+                      variant={(selectedAnswer === alt.label && showAnswer) ? (currentQuestion.correct_option === alt.label ? "default" : "destructive") : (showAnswer && currentQuestion.correct_option === alt.label ? "secondary" : "outline") } 
+                      disabled={showAnswer} 
+                      className="w-full justify-start text-left h-auto py-2 px-3 whitespace-normal hover:bg-slate-50"
+                    >
+                      <span className="font-semibold mr-2">{alt.label})</span> 
+                      <div className="prose-sm sm:prose-base max-w-none prose-p:inline" dangerouslySetInnerHTML={{ __html: alt.item! }} />
+                    </Button>
+                  ))}
+                </>
+              )}
+            </div>
+
+            {showAnswer && (
+              <div className={`mt-6 p-3 rounded-md text-sm font-medium ${feedback.includes('Correto') ? 'bg-green-100 border border-green-300 text-green-700' : 'bg-red-100 border border-red-300 text-red-700'}`}>
+                <p className="font-bold">{feedback.includes('Correto') ? "Resposta Correta!" : "Resposta Incorreta."}</p>
+                <p>{feedback}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {!isLoadingBankQuestion && !isLoadingAiQuestion && !currentQuestion && currentActiveExamPositionId && (
+        <p className="mt-6 text-center text-muted-foreground">
+          Selecione filtros e clique em "Buscar no Banco" ou "Gerar Inédita (IA)".
+        </p>
+      )}
     </div>
   );
 }
