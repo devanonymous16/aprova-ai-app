@@ -882,8 +882,8 @@ if __name__ == "__main__":
             
             todas_as_provas_desta_categoria = []
             pagina_atual = 1
-            MAX_PAGINAS_POR_CATEGORIA_FALLBACK = 3 
-            LIMITE_ITENS_DETALHES_POR_CATEGORIA_PARA_TESTE = 70
+            MAX_PAGINAS_POR_CATEGORIA_FALLBACK = 1000 
+            LIMITE_ITENS_DETALHES_POR_CATEGORIA_PARA_TESTE = 1000
             
             total_paginas_categoria = None
             limite_paginacao_real = MAX_PAGINAS_POR_CATEGORIA_FALLBACK
