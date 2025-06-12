@@ -9,11 +9,13 @@
     "paths": {
       "@/*": ["./src/*"]
     },
+    "esModuleInterop": true, // <<<< ADICIONE ESTA LINHA
     "noImplicitAny": false,
     "noUnusedParameters": false,
     "skipLibCheck": true,
     "allowJs": true,
     "noUnusedLocals": false,
     "strictNullChecks": false
+    // Se a opção "jsx" estava aqui, ela deveria estar no tsconfig.app.json
   }
 }

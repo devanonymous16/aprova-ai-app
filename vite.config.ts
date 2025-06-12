@@ -1,34 +1,25 @@
-// vite.config.ts (Versão CORRIGIDA que eu enviei antes)
+// vite.config.ts
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react-swc'; // Mantenha este se não houver problemas específicos com SWC
+import path from 'path';
 
-import { defineConfig, loadEnv } from "vite";
-import react from "@vitejs/plugin-react-swc";
-import path from "path";
-import { fileURLToPath } from 'url';
-import { componentTagger } from "lovable-tagger";
+// Não é necessário __filename e __dirname com import.meta.url em módulos ES
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '');
-
-  return {
-    server: {
-      port: 5173,
-      historyApiFallback: true,
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'), // Alias principal para src
+      // Adicionando aliases específicos do components.json para redundância/clareza
+      '@/components': path.resolve(__dirname, './src/components'),
+      '@/lib': path.resolve(__dirname, './src/lib'),
+      '@/hooks': path.resolve(__dirname, './src/hooks'), // Se você usa este alias
+      // O alias para "@/components/ui" é implicitamente coberto por "@/components"
     },
-    plugins: [
-      react(),
-      mode === 'development' && componentTagger(),
-    ].filter(Boolean),
-    resolve: {
-      alias: {
-        "@": path.resolve(__dirname, "./src"),
-      },
-    },
-    // --- SEÇÃO 'define' FOI REMOVIDA ---
-    // As variáveis VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY
-    // definidas no arquivo .env são carregadas automaticamente
-    // pelo Vite e acessíveis via import.meta.env no código frontend.
-  };
+  },
+  server: {
+    port: 5173,
+  },
 });
