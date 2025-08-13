@@ -1,4 +1,8 @@
 // src/pages/dashboard/student/Index.tsx
+
+// Propósito: Página inicial do aluno após o login. Fornece uma visão geral do seu progresso, 
+// acesso aos concursos em que está focado/matriculado, e navegação para outras funcionalidades de estudo.
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom'; // Para navegação
 import { useAuth } from '@/contexts/AuthContext';
