@@ -84,6 +84,15 @@ export default function PracticePage() {
 
   const fetchBankQuestion = useCallback(async () => {
     if (!currentFocusDetails?.organ_id || !currentFocusDetails?.exam_position_id) return;
+    
+    // LOGS PARA DEBUG
+    console.log('🔍 DEBUG - Parâmetros enviados para busca:');
+    console.log('  - organ_id:', currentFocusDetails.organ_id);
+    console.log('  - exam_position_id:', currentFocusDetails.exam_position_id);
+    console.log('  - selectedSubjectId:', selectedSubjectId);
+    console.log('  - selectedTopicId:', selectedTopicId);
+    console.log('  - currentFocusDetails:', currentFocusDetails);
+    
     setIsLoadingQuestion(true);
     resetPracticeState();
     try {
@@ -93,10 +102,26 @@ export default function PracticePage() {
         p_subject_id: selectedSubjectId,
         p_topic_id: selectedTopicId
       });
+      
+      // LOGS PARA DEBUG
+      console.log('🔍 DEBUG - Resposta do Supabase:');
+      console.log('  - error:', error);
+      console.log('  - data:', data);
+      console.log('  - data.length:', data?.length);
+      
       if (error) throw error;
-      if (data && data.length > 0) { setCurrentQuestion(data[0]); setStartTime(Date.now()); } 
-      else { toast.info("Nenhuma questão (não-IA) encontrada para estes filtros.", { description: "Tente filtros mais amplos ou gere uma questão com IA.", duration: 5000 }); }
-    } catch (err: any) { toast.error("Erro ao carregar questão do banco", { description: err.message });
+      if (data && data.length > 0) { 
+        console.log('✅ DEBUG - Questão encontrada:', data[0]);
+        setCurrentQuestion(data[0]); 
+        setStartTime(Date.now()); 
+      } 
+      else { 
+        console.log('❌ DEBUG - Nenhuma questão encontrada');
+        toast.info("Nenhuma questão (não-IA) encontrada para estes filtros.", { description: "Tente filtros mais amplos ou gere uma questão com IA.", duration: 5000 }); 
+      }
+    } catch (err: any) { 
+      console.log('💥 DEBUG - Erro na busca:', err);
+      toast.error("Erro ao carregar questão do banco", { description: err.message });
     } finally { setIsLoadingQuestion(false); }
   }, [currentFocusDetails, selectedSubjectId, selectedTopicId, resetPracticeState]);
 
