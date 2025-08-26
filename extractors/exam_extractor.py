@@ -326,6 +326,13 @@ Metadados da Prova Fornecidos:
 - Órgão Aplicador: {metadados_prova.get('orgao_original', 'N/A')}
 - Cargo/Prova (Nome): {metadados_prova.get('nome_prova_original', 'N/A')}
 - Nível de Escolaridade: {metadados_prova.get('nivel_original', 'N/A')}
+<<<<<<< HEAD
+=======
+- Tipo de Exame: {metadados_prova.get('tipo_exame', 'Concurso Público')}
+- URL da Prova no GCS: {metadados_prova.get('gcs_uri_prova', 'N/A')}
+- ID da Prova no PCI Concursos: {metadados_prova.get('id_prova_pci', 'N/A')}
+- Categoria PCI (Usada para agrupar provas, pode se relacionar ao Cargo): {metadados_prova.get('categoria_pci', 'N/A')}
+>>>>>>> feature/atualizacao-de-paginas
 
 Instruções Detalhadas para Extração de Questões:
 {instrucao_lote}
@@ -347,11 +354,27 @@ Para CADA questão DENTRO DESTE INTERVALO encontrada no PDF da prova, você deve
 15. "difficulty_level_sugerido": (Integer) Nível de dificuldade percebido: 1 (Muito Fácil), 2 (Fácil), 3 (Médio), 4 (Difícil), 5 (Muito Difícil).
 16. "ai_confidence_score": (Float) Sua confiança (de 0.0 a 1.0) na precisão da extração e análise desta questão.
 
+<<<<<<< HEAD
 REQUISITOS DE FORMATAÇÃO (MUITO IMPORTANTE):
 - A sua única e exclusiva saída deve ser um objeto JSON válido, começando diretamente com '{{' e terminando com '}}'.
 - É PROIBIDO incluir qualquer texto, explicação ou comentário fora do JSON.
 - É IMPERATIVO fazer o escape correto de aspas duplas (") dentro dos valores de string usando uma barra invertida (\\"). Exemplo: "campo": "O texto diz \\"olá\\".".
 - Se, por qualquer motivo, você não conseguir processar o documento, sua resposta DEVE ser um JSON contendo uma lista vazia para a chave "questoes". Ex: {{"questoes": []}}.
+=======
+Requisitos Obrigatórios para Múltipla Escolha (ME4, ME5):
+- O tipo de exame pode ser classificado em: Concurso Público, Vestibular, OAB, Residência Médica, Certificação Profissional, ou outro 
+- Os campos "item_a", "item_b", "item_c", "item_d" DEVEM ser preenchidos com o texto da alternativa.
+- Se for ME5, "item_e" também DEVE ser preenchido.
+- Se for ME4 e a prova só tiver 4 alternativas, "item_e" DEVE ser null.
+- É crucial que para cada alternativa (A, B, C, D, E), uma explicação concisa seja fornecida em explanation_X.
+- Ensure that the output is valid JSON. Do not include any reasoning or additional text.
+- SUA ÚNICA E EXCLUSIVA SAÍDA DEVE SER UM OBJETO JSON VÁLIDO.
+- NÃO inclua nenhum texto introdutório, pensamentos, ou qualquer outro conteúdo fora da estrutura JSON.
+- Se, por qualquer motivo, você não conseguir processar o documento ou encontrar questões no intervalo especificado, sua resposta AINDA ASSIM DEVE SER um JSON contendo uma lista vazia para a chave "questoes".
+- É ABSOLUTAMENTE PROIBIDO retornar qualquer texto que não seja o JSON formatado. Qualquer desvio do formato JSON será considerado uma falha.
+- É IMPERATIVO que você faça o escape correto de quaisquer caracteres de aspas duplas (") que apareçam DENTRO dos valores de string no JSON. Use uma barra invertida (\\") para fazer o escape. Exemplo: "campo": "O texto diz \\"olá\\".". A falha em fazer o escape correto de aspas internas invalidará TODO o JSON.
+- LEMBRE-SE: Sua resposta final deve começar DIRETAMENTE com '{' e terminar DIRETAMENTE com '}'. NENHUM outro texto, explicação, pensamento ou comentário prévio é permitido. A sua única e exclusiva saída deve ser o objeto JSON.
+>>>>>>> feature/atualizacao-de-paginas
 """
     model = GenerativeModel(model_name)
     content_parts = [Part.from_text(prompt_llm)]
@@ -400,16 +423,21 @@ REQUISITOS DE FORMATAÇÃO (MUITO IMPORTANTE):
 # ─── FUNÇÕES DE BANCO DE DADOS (SUPABASE) ──────────────────────────────────
 # ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 _supabase_client_instance = None
 def get_supabase_client() -> typing.Optional[SupabaseClient_TypeHint]:
     global _supabase_client_instance
     if _supabase_client_instance:
         return _supabase_client_instance
         
+=======
+def get_supabase_client() -> typing.Optional[SupabaseClient_TypeHint]:
+>>>>>>> feature/atualizacao-de-paginas
     url: str = os.environ.get("SUPABASE_URL")
     key: str = os.environ.get("SUPABASE_SERVICE_KEY")
     if not url or not key: print("[ERRO SUPABASE] SUPABASE_URL ou SUPABASE_SERVICE_KEY não definidas."); return None
     if not _supabase_create_client_runtime: print("[ERRO SUPABASE] Função create_client do Supabase não importada."); return None
+<<<<<<< HEAD
     try: 
         _supabase_client_instance = _supabase_create_client_runtime(url, key)
         return _supabase_client_instance
@@ -463,6 +491,37 @@ def get_or_create_reference_id(
     except Exception as e:
         print(f"    [SUPABASE ERRO GENÉRICO] Em get_or_create_reference_id para '{table_name}', valor '{name_value_cleaned}': {e}")
         return None
+=======
+    try: return _supabase_create_client_runtime(url, key)
+    except Exception as e: print(f"[ERRO SUPABASE] Falha ao criar cliente Supabase: {e}"); return None
+
+def get_or_create_reference_id( supabase: SupabaseClient_TypeHint, table_name: str, name_column: str, name_value: Optional[str], other_columns: Optional[dict] = None) -> typing.Optional[str]:
+    if not supabase: return None
+    if not name_value or not name_value.strip():
+        if table_name == "exam_subtopics" and name_column == "name": return None
+        elif name_value is None: return None
+        elif not name_value.strip(): return None
+    name_value_cleaned = name_value.strip()
+    try:
+        query = supabase.table(table_name).select("id", count="exact").eq(name_column, name_value_cleaned)
+        if other_columns:
+            if table_name == "exam_topics" and "exam_subject_id" in other_columns and other_columns["exam_subject_id"]: query = query.eq("exam_subject_id", other_columns["exam_subject_id"])
+            elif table_name == "exam_subtopics" and "exam_topic_id" in other_columns and other_columns["exam_topic_id"]: query = query.eq("exam_topic_id", other_columns["exam_topic_id"])
+            elif table_name == "exam_subjects" and "exam_area_id" in other_columns and other_columns["exam_area_id"]: query = query.eq("exam_area_id", other_columns["exam_area_id"])
+        response = query.limit(1).execute()
+        if response.data: return response.data[0]['id']
+        else:
+            data_to_insert = {name_column: name_value_cleaned}
+            if other_columns:
+                if table_name == "exam_topics" and "exam_subject_id" in other_columns and other_columns["exam_subject_id"]: data_to_insert["exam_subject_id"] = other_columns["exam_subject_id"]
+                elif table_name == "exam_subtopics" and "exam_topic_id" in other_columns and other_columns["exam_topic_id"]: data_to_insert["exam_topic_id"] = other_columns["exam_topic_id"]
+                elif table_name == "exam_subjects" and "exam_area_id" in other_columns and other_columns["exam_area_id"]: data_to_insert["exam_area_id"] = other_columns["exam_area_id"]
+            insert_response = supabase.table(table_name).insert(data_to_insert).execute()
+            if insert_response.data and len(insert_response.data) > 0: return insert_response.data[0]['id']
+            else: return None
+    except _PostgrestAPIError_runtime as e: print(f"    [SUPABASE API ERRO] Tabela: '{table_name}', Col: '{name_column}', Valor: '{name_value_cleaned}'. Erro: {getattr(e, 'message', str(e))}"); return None
+    except Exception as e: print(f"    [SUPABASE ERRO GENÉRICO] Em get_or_create_reference_id para tabela '{table_name}', valor '{name_value_cleaned}': {e}"); return None
+>>>>>>> feature/atualizacao-de-paginas
 
 def get_or_create_exam_paper_id(supabase: SupabaseClient_TypeHint, prova_info_scraper: dict, position_id: Optional[str]) -> Optional[str]:
     if not supabase: return None
@@ -483,6 +542,7 @@ def get_or_create_exam_paper_id(supabase: SupabaseClient_TypeHint, prova_info_sc
     except _PostgrestAPIError_runtime as e: print(f"    [SUPABASE API ERRO] Ao processar 'exam_papers' para '{gcs_uri_prova}'. Erro: {getattr(e, 'message', str(e))}"); return None
     except Exception as e: print(f"    [SUPABASE ERRO GENÉRICO] Em get_or_create_exam_paper_id para '{gcs_uri_prova}': {e}"); return None
 
+<<<<<<< HEAD
 def inserir_questoes_com_cache(supabase: SupabaseClient_TypeHint, questoes_processadas: list, cache_ids: dict) -> tuple[int, int]:
     questoes_para_inserir_lote = []
 
@@ -549,10 +609,58 @@ def inserir_questoes_com_cache(supabase: SupabaseClient_TypeHint, questoes_proce
         print(f"      [ERRO DB LOTE FINAL] Falha na inserção em lote: {e}")
 
     return sucessos, total_a_inserir
+=======
+def inserir_questoes_supabase(supabase: SupabaseClient_TypeHint, lista_questoes_llm: list, metadados_prova_gerais: dict) -> int:
+    if not supabase: print("    [SUPABASE ERRO] Cliente Supabase não inicializado."); return 0
+    questoes_para_inserir_supa = []
+    sucessos = 0
+    position_id_geral = get_or_create_reference_id(supabase, "exam_positions", "name", metadados_prova_gerais.get('nome_prova_original'))
+    banca_id = get_or_create_reference_id(supabase, "exam_bancas", "name", metadados_prova_gerais.get('banca_original'))
+    institution_id = get_or_create_reference_id(supabase, "exam_institutions", "name", metadados_prova_gerais.get('orgao_original'))
+    education_id_geral = get_or_create_reference_id(supabase, "exam_education", "name", metadados_prova_gerais.get('nivel_original'))
+    exam_paper_uuid = get_or_create_exam_paper_id(supabase, metadados_prova_gerais, position_id=position_id_geral)
+    if not exam_paper_uuid: print(f"    [SUPABASE ERRO CRÍTICO] Não foi possível obter/criar exam_paper_id para GCS: {metadados_prova_gerais.get('gcs_uri_prova', 'GCS URI não disponível')}."); return 0
+    SYSTEM_USER_ID = os.getenv("SYSTEM_USER_ID_FOR_QUESTIONS")
+    if not SYSTEM_USER_ID: print("    [ERRO FATAL SUPABASE] SYSTEM_USER_ID_FOR_QUESTIONS não definido no .env."); return 0
+    COLUNA_IDENTIFICADORA_EXAM_STYLES = "name"
+    for q_llm in lista_questoes_llm:
+        knowledge_area_sugerido_pela_llm = q_llm.get('knowledge_area_sugerido')
+        if not knowledge_area_sugerido_pela_llm or not knowledge_area_sugerido_pela_llm.strip(): knowledge_area_sugerido_pela_llm = "Conhecimentos Específicos"
+        knowledge_area_id_para_questao = get_or_create_reference_id(supabase, "exam_areas", "name", knowledge_area_sugerido_pela_llm)
+        subject_id = None
+        if knowledge_area_id_para_questao: subject_id = get_or_create_reference_id(supabase, "exam_subjects", "name", q_llm.get('exam_subject_sugerido'), other_columns={"exam_area_id": knowledge_area_id_para_questao})
+        else: print(f"    [AVISO SUPABASE] Questão {q_llm.get('sequencial_original', '')}: Não foi possível obter/criar knowledge_area_id para '{knowledge_area_sugerido_pela_llm}'."); subject_id = get_or_create_reference_id(supabase, "exam_subjects", "name", q_llm.get('exam_subject_sugerido'))
+        topic_id = None
+        if subject_id: topic_id = get_or_create_reference_id(supabase, "exam_topics", "name", q_llm.get('exam_topic_sugerido'), {"exam_subject_id": subject_id})
+        subtopic_id = None
+        if topic_id: subtopic_id = get_or_create_reference_id(supabase, "exam_subtopics", "name", q_llm.get('exam_subtopic_sugerido'), {"exam_topic_id": topic_id})
+        style_id = get_or_create_reference_id(supabase, "exam_styles", COLUNA_IDENTIFICADORA_EXAM_STYLES, q_llm.get('question_style'))
+        source_year_val = None
+        if metadados_prova_gerais.get('ano','').isdigit(): source_year_val = int(metadados_prova_gerais.get('ano'))
+        if not subject_id: print(f"    [AVISO SUPABASE] Questão {q_llm.get('sequencial_original', '')} pulada: 'exam_subject_id' é obrigatório (valor: {q_llm.get('exam_subject_sugerido')})."); continue
+        if not position_id_geral: print(f"    [AVISO SUPABASE] Questão {q_llm.get('sequencial_original', '')} pulada: 'exam_position_id' é obrigatório (valor: {metadados_prova_gerais.get('nome_prova_original')})."); continue
+        if not style_id: print(f"    [AVISO SUPABASE] Questão {q_llm.get('sequencial_original', '')} pulada: 'question_style_id' é obrigatório (valor LLM: '{q_llm.get('question_style')}')."); continue
+        if not q_llm.get("statement"): print(f"    [AVISO SUPABASE] Questão {q_llm.get('sequencial_original', '')} pulada: 'statement' está vazio."); continue
+        questao_supa = { "origin_user": SYSTEM_USER_ID, "area": knowledge_area_id_para_questao, "exam_subject_id": subject_id, "exam_position_id": position_id_geral, "exam_topic_id": topic_id, "exam_subtopic_id": subtopic_id, "question_style_id": style_id, "statement": q_llm.get("statement"), "item_a": q_llm.get("item_a"), "explanation_a": q_llm.get("explanation_a"), "item_b": q_llm.get("item_b"), "explanation_b": q_llm.get("explanation_b"), "item_c": q_llm.get("item_c"), "explanation_c": q_llm.get("explanation_c"), "item_d": q_llm.get("item_d"), "explanation_d": q_llm.get("explanation_d"), "item_e": q_llm.get("item_e"), "explanation_e": q_llm.get("explanation_e"), "item_text": q_llm.get("item_text"), "explanation_text": q_llm.get("explanation_text"), "correct_option": q_llm.get("correct_option"), "reference_text": q_llm.get("reference_text"), "reference_image_url": q_llm.get("reference_image_description"), "source_exam_paper_id": exam_paper_uuid, "exam_institution_id": institution_id, "source_year": source_year_val, "difficulty_level": q_llm.get("difficulty_level_sugerido"), "exam_banca_id": banca_id, "exam_type": metadados_prova_gerais.get('tipo_exame', "Concurso Público"), "education_level_id": education_id_geral, }
+        questao_supa_limpa = {k: v for k, v in questao_supa.items() if v is not None}
+        questoes_para_inserir_supa.append(questao_supa_limpa)
+    if questoes_para_inserir_supa:
+        try:
+            batch_size = 500
+            for i_batch in range(0, len(questoes_para_inserir_supa), batch_size):
+                batch = questoes_para_inserir_supa[i_batch:i_batch + batch_size]
+                response = supabase.table('questions').insert(batch).execute()
+                if response.data: sucessos += len(response.data)
+                else: print(f"        [SUPABASE WARN] Inserção de lote não retornou dados claros. Resposta: {response}")
+        except _PostgrestAPIError_runtime as e: print(f"        [SUPABASE API ERRO] Falha ao inserir lote de questões: {getattr(e, 'message', str(e))}");
+        except Exception as e: print(f"    [SUPABASE ERRO INESPERADO] Ao inserir questões: {e}")
+    return sucessos
+>>>>>>> feature/atualizacao-de-paginas
 
 # ---------------------------------------------------------------------------
 # ─── FUNÇÃO WORKER PRINCIPAL ────────────────────────────────────────────────
 # ---------------------------------------------------------------------------
+<<<<<<< HEAD
 def analisar_prova_worker(args: tuple) -> Optional[dict]:
     ( prova_info, contador, total_provas, gcp_vars, pdf_download_dir_local ) = args
     
@@ -597,6 +705,136 @@ def analisar_prova_worker(args: tuple) -> Optional[dict]:
     except Exception as e:
         print(f"    [ERRO WORKER] Erro ao processar prova {prova_info.get('id_prova_pci')}: {e}")
         return None
+=======
+def processar_prova_completa(args: tuple) -> Optional[dict]:
+    """
+    Função 'worker' que encapsula todo o processamento de uma única prova.
+    Retorna um dicionário com estatísticas para o resumo final.
+    """
+    ( prova_info_original_da_lista, contador, total_a_processar, categoria_pci_do_scraper, pdf_download_dir_local, gcp_vars, writer_geral ) = args
+    supabase_client_local = get_supabase_client()
+    if not supabase_client_local:
+        print(f"    [ERRO WORKER CRÍTICO] Falha ao criar cliente Supabase para a prova {prova_info_original_da_lista['id_prova_pci']}.")
+        return {"success": False, "llm_found": 0, "llm_valid": 0, "db_inserted": 0, "error_type": "supabase_client_creation"}
+
+    id_prova_pci_atual = prova_info_original_da_lista['id_prova_pci']
+    stats = {"success": False, "llm_found": 0, "llm_valid": 0, "db_inserted": 0, "error_type": None}
+
+    try:
+        print(f"    Processando PROVA {contador}/{total_a_processar} de '{categoria_pci_do_scraper}': \"{prova_info_original_da_lista['nome_prova_original']}\"")
+        prova_info_para_processar_nesta_iteracao = json.loads(json.dumps(prova_info_original_da_lista))
+        dados_detalhe = extrair_dados_detalhes_prova(prova_info_para_processar_nesta_iteracao['url_pagina_detalhes'], prova_info_para_processar_nesta_iteracao)
+        
+        if dados_detalhe.get("nome_prova_detalhe"): prova_info_para_processar_nesta_iteracao["nome_prova_original"] = dados_detalhe["nome_prova_detalhe"]
+        if dados_detalhe.get("cargo_detalhe"): prova_info_para_processar_nesta_iteracao["nome_prova_original"] = dados_detalhe["cargo_detalhe"]
+        if dados_detalhe.get("ano_detalhe"): prova_info_para_processar_nesta_iteracao["ano"] = dados_detalhe["ano_detalhe"]
+        if dados_detalhe.get("órgão_detalhe"): prova_info_para_processar_nesta_iteracao["orgao_original"] = dados_detalhe["órgão_detalhe"]
+        if dados_detalhe.get("instituição_detalhe"): prova_info_para_processar_nesta_iteracao["banca_original"] = dados_detalhe["instituição_detalhe"]
+        if dados_detalhe.get("nível_detalhe"): prova_info_para_processar_nesta_iteracao["nivel_original"] = dados_detalhe["nível_detalhe"]
+        
+        prova_info_para_processar_nesta_iteracao['url_pdf_prova_pci'] = dados_detalhe.get('url_pdf_prova')
+        prova_info_para_processar_nesta_iteracao['url_pdf_gabarito_pci'] = dados_detalhe.get('url_pdf_gabarito')
+        prova_info_para_processar_nesta_iteracao['todos_url_pdf_encontrados_detalhe'] = json.dumps(dados_detalhe.get('todos_url_pdf_encontrados', []))
+
+        categoria_atual_fs = sanitizar_nome_arquivo(categoria_pci_do_scraper)
+        diretorio_local_da_prova = os.path.join(pdf_download_dir_local, categoria_atual_fs, sanitizar_nome_arquivo(os.path.basename(urlparse(id_prova_pci_atual).path) if urlparse(id_prova_pci_atual).path else prova_info_para_processar_nesta_iteracao.get('nome_prova_original', 'prova_desconhecida')))
+        os.makedirs(diretorio_local_da_prova, exist_ok=True)
+
+        for f_key in ['caminho_local_prova_pdf', 'caminho_local_gabarito_pdf', 'gcs_uri_prova', 'gcs_uri_gabarito', 'status_llm', 'status_supabase']:
+            prova_info_para_processar_nesta_iteracao[f_key] = None
+        prova_info_para_processar_nesta_iteracao['status_upload_gcs'] = 'nao_tentado'
+
+        status_download_prova = False
+        status_download_gabarito = False
+
+        if prova_info_para_processar_nesta_iteracao.get('url_pdf_prova_pci'):
+            nome_arquivo_prova_local = "prova_" + sanitizar_nome_arquivo(os.path.basename(urlparse(prova_info_para_processar_nesta_iteracao['url_pdf_prova_pci']).path))
+            caminho_local_prova = os.path.join(diretorio_local_da_prova, nome_arquivo_prova_local)
+            if baixar_pdf_para_arquivo(prova_info_para_processar_nesta_iteracao['url_pdf_prova_pci'], caminho_local_prova):
+                prova_info_para_processar_nesta_iteracao['caminho_local_prova_pdf'] = caminho_local_prova
+                status_download_prova = True
+                if gcp_vars['GCS_BUCKET_NAME']:
+                    chave_gcs_prova = f"provas_gabaritos_pdf/{categoria_atual_fs}/{sanitizar_nome_arquivo(os.path.basename(urlparse(id_prova_pci_atual).path))}/{nome_arquivo_prova_local}"
+                    uri_gcs = upload_para_gcs(caminho_local_prova, gcp_vars['GCS_BUCKET_NAME'], chave_gcs_prova)
+                    if uri_gcs:
+                        prova_info_para_processar_nesta_iteracao['gcs_uri_prova'] = uri_gcs
+                        prova_info_para_processar_nesta_iteracao['status_upload_gcs'] = 'prova_gcs_ok'
+                    else:
+                        prova_info_para_processar_nesta_iteracao['status_upload_gcs'] = 'prova_gcs_falhou'
+
+        if prova_info_para_processar_nesta_iteracao.get('url_pdf_gabarito_pci'):
+            nome_arquivo_gabarito_local = "gabarito_" + sanitizar_nome_arquivo(os.path.basename(urlparse(prova_info_para_processar_nesta_iteracao['url_pdf_gabarito_pci']).path))
+            caminho_local_gabarito = os.path.join(diretorio_local_da_prova, nome_arquivo_gabarito_local)
+            if baixar_pdf_para_arquivo(prova_info_para_processar_nesta_iteracao['url_pdf_gabarito_pci'], caminho_local_gabarito):
+                prova_info_para_processar_nesta_iteracao['caminho_local_gabarito_pdf'] = caminho_local_gabarito
+                status_download_gabarito = True
+                if gcp_vars['GCS_BUCKET_NAME']:
+                    chave_gcs_gabarito = f"provas_gabaritos_pdf/{categoria_atual_fs}/{sanitizar_nome_arquivo(os.path.basename(urlparse(id_prova_pci_atual).path))}/{nome_arquivo_gabarito_local}"
+                    uri_gcs_gab = upload_para_gcs(caminho_local_gabarito, gcp_vars['GCS_BUCKET_NAME'], chave_gcs_gabarito)
+                    if uri_gcs_gab:
+                        prova_info_para_processar_nesta_iteracao['gcs_uri_gabarito'] = uri_gcs_gab
+                        current_gcs_status = prova_info_para_processar_nesta_iteracao.get('status_upload_gcs', 'nao_tentado')
+                        if current_gcs_status == 'prova_gcs_ok': prova_info_para_processar_nesta_iteracao['status_upload_gcs'] = 'ambos_gcs_ok'
+                        elif current_gcs_status == 'nao_tentado': prova_info_para_processar_nesta_iteracao['status_upload_gcs'] = 'gabarito_gcs_ok'
+                    else:
+                        current_gcs_status = prova_info_para_processar_nesta_iteracao.get('status_upload_gcs', 'nao_tentado')
+                        if current_gcs_status == 'prova_gcs_ok': prova_info_para_processar_nesta_iteracao['status_upload_gcs'] = 'prova_gcs_ok_gabarito_gcs_falhou'
+
+        if status_download_prova and status_download_gabarito: prova_info_para_processar_nesta_iteracao['status_coleta_pdf'] = 'ambos_baixados'
+        elif status_download_prova: prova_info_para_processar_nesta_iteracao['status_coleta_pdf'] = 'apenas_prova_baixada'
+        elif status_download_gabarito: prova_info_para_processar_nesta_iteracao['status_coleta_pdf'] = 'apenas_gabarito_baixado'
+        elif prova_info_para_processar_nesta_iteracao.get('url_pdf_prova_pci') or prova_info_para_processar_nesta_iteracao.get('url_pdf_gabarito_pci'): prova_info_para_processar_nesta_iteracao['status_coleta_pdf'] = 'links_encontrados_download_falhou'
+        else: prova_info_para_processar_nesta_iteracao['status_coleta_pdf'] = 'sem_links_pdf'
+        
+        if not all([gcp_vars['GCP_PROJECT_ID'], gcp_vars['GCS_BUCKET_NAME'], gcp_vars['GCP_LOCATION']]):
+            stats["error_type"] = "gcp_config_missing"
+        elif not prova_info_para_processar_nesta_iteracao.get('gcs_uri_prova'):
+            stats["error_type"] = "gcs_uri_missing"
+        else:
+            questoes_agregadas_da_prova = []
+            item_atual_inicio_lote = 1
+            
+            metadados_para_llm_e_db = { 'ano': prova_info_para_processar_nesta_iteracao.get('ano'), 'banca_original': prova_info_para_processar_nesta_iteracao.get('banca_original'), 'orgao_original': prova_info_para_processar_nesta_iteracao.get('orgao_original'), 'nome_prova_original': prova_info_para_processar_nesta_iteracao.get('nome_prova_original'), 'nivel_original': prova_info_para_processar_nesta_iteracao.get('nivel_original'), 'tipo_exame': "Concurso Público", 'gcs_uri_prova': prova_info_para_processar_nesta_iteracao.get('gcs_uri_prova'), 'gcs_uri_gabarito': prova_info_para_processar_nesta_iteracao.get('gcs_uri_gabarito'), 'id_prova_pci': id_prova_pci_atual, 'categoria_pci': prova_info_para_processar_nesta_iteracao.get('categoria_pci'), }
+            
+            while True:
+                item_atual_fim_lote = item_atual_inicio_lote + TAMANHO_LOTE_QUESTOES_LLM - 1
+                lista_questoes, total_encontrado, total_validado = analisar_prova_com_gemini( metadados_para_llm_e_db['gcs_uri_prova'], metadados_para_llm_e_db.get('gcs_uri_gabarito'), metadados_para_llm_e_db, gcp_vars['GCP_PROJECT_ID'], gcp_vars['GCP_LOCATION'], gcp_vars['GEMINI_MODEL_NAME'], item_inicio=item_atual_inicio_lote, item_fim=item_atual_fim_lote )
+                
+                stats["llm_found"] += total_encontrado
+                stats["llm_valid"] += total_validado
+
+                if lista_questoes is not None:
+                    if total_validado > 0: questoes_agregadas_da_prova.extend(lista_questoes)
+                    if len(lista_questoes) < TAMANHO_LOTE_QUESTOES_LLM: break
+                    item_atual_inicio_lote = item_atual_fim_lote + 1
+                else:
+                    print(f"        ✖ Lote para {id_prova_pci_atual} falhou criticamente na chamada da LLM.")
+                    stats["error_type"] = "llm_call_failure"
+                    break
+                time.sleep(PAUSA_ENTRE_LOTES_LLM_SEGUNDOS)
+            
+            if questoes_agregadas_da_prova:
+                num_inseridos = inserir_questoes_supabase(supabase_client_local, questoes_agregadas_da_prova, prova_info_para_processar_nesta_iteracao)
+                stats["db_inserted"] = num_inseridos
+                if num_inseridos > 0:
+                    print(f"      ✔ SUCESSO: {num_inseridos} de {len(questoes_agregadas_da_prova)} questões válidas para '{prova_info_para_processar_nesta_iteracao['nome_prova_original']}' inseridas.")
+                    stats["success"] = True
+                else:
+                    print(f"      ✖ FALHA DB: Nenhuma questão de '{prova_info_para_processar_nesta_iteracao['nome_prova_original']}' foi inserida.")
+                    stats["error_type"] = "db_insertion_failure"
+            else:
+                 if not stats.get("error_type"): stats["error_type"] = "no_valid_questions"
+        
+        writer_geral.writerow(prova_info_para_processar_nesta_iteracao)
+        return stats
+
+    except Exception as e:
+        mensagem_erro = f"FALHA GERAL no worker para a prova {id_prova_pci_atual}: {e}"
+        print(f"    [ERRO WORKER] {mensagem_erro}")
+        traceback.print_exc()
+        logging.error(f"FALHA_WORKER: Prova ID: {id_prova_pci_atual} | Erro: {mensagem_erro}")
+        return {"success": False, "llm_found": 0, "llm_valid": 0, "db_inserted": 0, "error_type": "worker_exception"}
+>>>>>>> feature/atualizacao-de-paginas
 
 # ---------------------------------------------------------------------------
 # ─── BLOCO DE EXECUÇÃO PRINCIPAL ────────────────────────────────────────────
@@ -622,14 +860,20 @@ if __name__ == "__main__":
 
     url_categoria_base_input = input("Por favor, insira a URL da categoria do PCI Concursos (ex: https://www.pciconcursos.com.br/provas/medico-veterinario): ")
     if not url_categoria_base_input or not url_categoria_base_input.startswith("https://www.pciconcursos.com.br/provas/"):
+<<<<<<< HEAD
         print("URL inválida. Usando exemplo: https://www.pciconcursos.com.br/provas/coveiro")
         url_categoria_base_input = "https://www.pciconcursos.com.br/provas/coveiro"
+=======
+        print("URL inválida. Usando exemplo: https://www.pciconcursos.com.br/provas/medico-veterinario")
+        url_categoria_base_input = "https://www.pciconcursos.com.br/provas/medico-veterinario"
+>>>>>>> feature/atualizacao-de-paginas
 
     categorias_para_raspar = [url_categoria_base_input]
     
     raiz_output_dir = "output_scraper_pci"
     pdf_download_dir_local = os.path.join(raiz_output_dir, "downloaded_pdfs_local")
     os.makedirs(pdf_download_dir_local, exist_ok=True)
+<<<<<<< HEAD
     
     supabase = get_supabase_client()
     if not supabase: raise Exception("Cliente Supabase não inicializado.")
@@ -719,6 +963,93 @@ if __name__ == "__main__":
         if sucessos > 0:
             provas_com_sucesso = len(dados_processados_llm) # Aproximação
 
+=======
+
+    nome_arquivo_csv_geral_provas = os.path.join(raiz_output_dir, 'todas_provas_coletadas_pci_com_gcs.csv')
+    fieldnames_geral_provas = [ 'id_prova_pci', 'categoria_pci', 'nome_prova_original', 'url_pagina_detalhes', 'ano', 'orgao_original', 'banca_original', 'nivel_original', 'url_pdf_prova_pci', 'caminho_local_prova_pdf', 'gcs_uri_prova', 'url_pdf_gabarito_pci', 'caminho_local_gabarito_pdf', 'gcs_uri_gabarito', 'status_coleta_pdf', 'status_upload_gcs', 'status_llm', 'status_supabase', 'todos_url_pdf_encontrados_detalhe' ]
+    
+    ids_provas_ja_processadas_com_sucesso_llm_e_supabase = set()
+    if os.path.exists(nome_arquivo_csv_geral_provas):
+        try:
+            with open(nome_arquivo_csv_geral_provas, 'r', newline='', encoding='utf-8') as f_read:
+                reader = csv.DictReader(f_read)
+                for row in reader:
+                    if row.get('id_prova_pci') and (row.get('status_llm', '').startswith('sucesso_') or row.get('status_supabase', '').startswith('sucesso_')):
+                        ids_provas_ja_processadas_com_sucesso_llm_e_supabase.add(row['id_prova_pci'])
+            if ids_provas_ja_processadas_com_sucesso_llm_e_supabase:
+                print(f"Encontradas {len(ids_provas_ja_processadas_com_sucesso_llm_e_supabase)} provas já processadas com algum sucesso no CSV.")
+        except Exception as e_read_csv: print(f"Erro ao ler CSV de provas processadas: {e_read_csv}.")
+
+    with open(nome_arquivo_csv_geral_provas, 'a', newline='', encoding='utf-8', buffering=1) as csvfile_geral:
+        writer_geral = csv.DictWriter(csvfile_geral, fieldnames=fieldnames_geral_provas, extrasaction='ignore')
+        if not os.path.exists(nome_arquivo_csv_geral_provas) or os.path.getsize(nome_arquivo_csv_geral_provas) == 0: writer_geral.writeheader()
+        
+        provas_processadas_total = 0
+        provas_com_sucesso = 0
+        provas_com_falha = 0
+        total_questoes_encontradas_llm = 0
+        total_questoes_validas_llm = 0
+        total_questoes_inseridas_db = 0
+
+        for url_categoria_base in categorias_para_raspar:
+            path_parts = [part for part in url_categoria_base.strip('/').split('/') if part]
+            categoria_pci_do_scraper = path_parts[-1] if path_parts else "desconhecida"
+            print(f"\n--- Iniciando scraper para CATEGORIA PCI: {categoria_pci_do_scraper} ({url_categoria_base}) ---")
+
+            todas_as_provas_desta_categoria = []
+            pagina_atual = 1
+            MAX_PAGINAS_POR_CATEGORIA_FALLBACK = 10000
+            total_paginas_categoria = None
+            limite_paginacao_real = MAX_PAGINAS_POR_CATEGORIA_FALLBACK
+            while True:
+                url_alvo_listagem = url_categoria_base if pagina_atual == 1 else urljoin(f"{url_categoria_base.strip('/')}/", str(pagina_atual))
+                provas_da_pagina, processada_ok, paginas_detectadas = extrair_provas_da_pagina_listagem(url_alvo_listagem, BASE_URL_SITE_RAIZ)
+                if not processada_ok: break
+                if pagina_atual == 1 and paginas_detectadas:
+                    total_paginas_categoria = paginas_detectadas
+                    limite_paginacao_real = min(total_paginas_categoria, MAX_PAGINAS_POR_CATEGORIA_FALLBACK) if MAX_PAGINAS_POR_CATEGORIA_FALLBACK is not None else total_paginas_categoria
+                if not provas_da_pagina: break
+                for prova_listagem in provas_da_pagina:
+                    prova_listagem['categoria_pci'] = categoria_pci_do_scraper
+                    todas_as_provas_desta_categoria.append(prova_listagem)
+                if pagina_atual >= limite_paginacao_real: break
+                pagina_atual += 1
+                time.sleep(0.7)
+
+            print(f"\n  --- Coleta da listagem para '{categoria_pci_do_scraper}' finalizada. Total: {len(todas_as_provas_desta_categoria)} links. ---")
+
+            if todas_as_provas_desta_categoria:
+                provas_a_processar_nesta_execucao = [ p for p in todas_as_provas_desta_categoria if p['id_prova_pci'] not in ids_provas_ja_processadas_com_sucesso_llm_e_supabase ]
+                if LIMITE_ITENS_DETALHES_POR_CATEGORIA_PARA_TESTE is not None:
+                    provas_a_processar_nesta_execucao = provas_a_processar_nesta_execucao[:LIMITE_ITENS_DETALHES_POR_CATEGORIA_PARA_TESTE]
+                
+                total_para_processar = len(provas_a_processar_nesta_execucao)
+                print(f"  --- {total_para_processar} provas a serem processadas nesta execução (após filtrar já concluídas e aplicar limite). ---")
+
+                if provas_a_processar_nesta_execucao:
+                    tasks_args = [ (p, i + 1, total_para_processar, categoria_pci_do_scraper, pdf_download_dir_local, gcp_vars_dict, writer_geral) for i, p in enumerate(provas_a_processar_nesta_execucao) ]
+                    
+                    if tasks_args:
+                        print(f"  --- Iniciando processamento paralelo com {MAX_WORKERS_PARALELOS} workers ---")
+                        start_time_paralelo = time.time()
+                        with ThreadPoolExecutor(max_workers=MAX_WORKERS_PARALELOS) as executor:
+                            resultados_finais = list(executor.map(processar_prova_completa, tasks_args))
+                        
+                        for res in resultados_finais:
+                            if res:
+                                provas_processadas_total += 1
+                                if res.get("success"): provas_com_sucesso += 1
+                                else: provas_com_falha += 1
+                                total_questoes_encontradas_llm += res.get("llm_found", 0)
+                                total_questoes_validas_llm += res.get("llm_valid", 0)
+                                total_questoes_inseridas_db += res.get("db_inserted", 0)
+                            else: # Caso um worker retorne None por exceção grave
+                                provas_processadas_total += 1
+                                provas_com_falha += 1
+            else:
+                print(f"  Nenhuma prova coletada para '{categoria_pci_do_scraper}'.")
+
+>>>>>>> feature/atualizacao-de-paginas
     end_time_total = time.time()
     duracao_total_execucao = end_time_total - start_time_total
 
@@ -729,6 +1060,7 @@ if __name__ == "__main__":
     print("-" * 80)
     print(f"  PROVAS PROCESSADAS NESTA EXECUÇÃO: {provas_processadas_total}")
     print(f"    - Com sucesso (pelo menos 1 questão inserida): {provas_com_sucesso}")
+<<<<<<< HEAD
     print(f"    - Com falha (nenhuma questão inserida): {provas_processadas_total - provas_com_sucesso}")
     if provas_processadas_total > 0: print(f"    - Tempo médio por prova: {formatar_duracao(duracao_total_execucao / provas_processadas_total)}")
     print("-" * 80)
@@ -738,13 +1070,35 @@ if __name__ == "__main__":
     print(f"  QUESTÕES (ETAPA BANCO DE DADOS):")
     print(f"    - Total de questões inseridas com sucesso no Supabase: {total_questoes_inseridas_db}")
     db_insertion_errors = total_questoes_llm - total_questoes_inseridas_db
+=======
+    print(f"    - Com falha (nenhuma questão inserida): {provas_com_falha}")
+    if provas_processadas_total > 0:
+        print(f"    - Tempo médio por prova: {formatar_duracao(duracao_total_execucao / provas_processadas_total)}")
+    print("-" * 80)
+    print(f"  QUESTÕES (ETAPA LLM):")
+    print(f"    - Total de objetos de questão encontrados nos JSONs: {total_questoes_encontradas_llm}")
+    print(f"    - Total de questões válidas (parse + validação OK): {total_questoes_validas_llm}")
+    json_parse_errors = total_questoes_encontradas_llm - total_questoes_validas_llm
+    if json_parse_errors > 0:
+        print(f"    - Questões descartadas por erro de JSON/validação: {json_parse_errors}")
+    print("-" * 80)
+    print(f"  QUESTÕES (ETAPA BANCO DE DADOS):")
+    print(f"    - Total de questões inseridas com sucesso no Supabase: {total_questoes_inseridas_db}")
+    db_insertion_errors = total_questoes_validas_llm - total_questoes_inseridas_db
+>>>>>>> feature/atualizacao-de-paginas
     if db_insertion_errors > 0:
          print(f"    - Questões válidas que falharam na inserção (erro de FK, etc.): {db_insertion_errors}")
     print("-" * 80)
     print(f"  PERFORMANCE GERAL:")
     if total_questoes_inseridas_db > 0:
         print(f"    - Tempo médio por questão inserida: {duracao_total_execucao / total_questoes_inseridas_db:.2f} segundos")
+<<<<<<< HEAD
     taxa_sucesso_db = (total_questoes_inseridas_db / total_questoes_llm * 100) if total_questoes_llm > 0 else 0
+=======
+    taxa_sucesso_llm = (total_questoes_validas_llm / total_questoes_encontradas_llm * 100) if total_questoes_encontradas_llm > 0 else 0
+    print(f"    - Taxa de sucesso do parse LLM: {taxa_sucesso_llm:.2f}%")
+    taxa_sucesso_db = (total_questoes_inseridas_db / total_questoes_validas_llm * 100) if total_questoes_validas_llm > 0 else 0
+>>>>>>> feature/atualizacao-de-paginas
     print(f"    - Taxa de sucesso de inserção no DB: {taxa_sucesso_db:.2f}%")
     print("="*80)
 

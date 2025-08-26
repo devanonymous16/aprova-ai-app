@@ -1,3 +1,6 @@
+//Propósito: Exibir informações completas sobre um concurso ou cargo específico, 
+//como edital, conteúdo programático detalhado, número de vagas, salário, etc.
+
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';

@@ -1,17 +1,22 @@
 // src/pages/dashboard/admin/Index.tsx
+
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { useQuery } from '@tanstack/react-query';
 import { 
-    getTotalQuestions, 
-    getQuestionEvolution,
-    getQuestionsBySubject,
-    getQuestionsByBanca,
+    // <<< IMPORTA AS NOVAS FUNÇÕES OTIMIZADAS >>>
+    getTotalQuestionsFromSummary,
+    getQuestionEvolutionFromSummary,
+    getSubjectSummary,
+    getBancaSummary,
+    
+    // Os tipos de dados são mantidos
     QuestionEvolutionData,
     QuestionsBySubjectData,
     QuestionsByBancaData
 } from '@/lib/adminQueries'; 
+
 import { Skeleton } from '@/components/ui/skeleton';
 import EvolutionChart from '@/components/admin/dashboard/EvolutionChart';
 import SubjectBarChart from '@/components/admin/dashboard/SubjectBarChart';
@@ -23,18 +28,43 @@ export default function AdminDashboardPage() {
   const [selectedSubjectForDetail, setSelectedSubjectForDetail] = useState<string | null>(null);
   const [selectedBancaForDetail, setSelectedBancaForDetail] = useState<string | null>(null);
 
+  // --- AS CHAMADAS useQuery AGORA USAM AS NOVAS FUNÇÕES ---
+
   const { 
     data: totalQuestions, isLoading: isLoadingTotalQuestions, error: errorTotalQuestions 
-  } = useQuery<number, Error>({ queryKey: ['adminTotalQuestions'], queryFn: getTotalQuestions, staleTime: 1000 * 60 * 5, refetchInterval: 1000 * 60 * 60 });
+  } = useQuery<number, Error>({ 
+    queryKey: ['adminTotalQuestionsSummary'], 
+    queryFn: getTotalQuestionsFromSummary, // <-- CORREÇÃO: Usa a função do resumo
+    staleTime: 1000 * 60 * 5,
+    refetchInterval: 1000 * 60 * 5
+  });
+
   const { 
     data: evolutionData, isLoading: isLoadingEvolution, error: errorEvolution 
-  } = useQuery<QuestionEvolutionData[], Error>({ queryKey: ['adminQuestionEvolution'], queryFn: getQuestionEvolution, staleTime: 1000 * 60 * 5, refetchInterval: 1000 * 60 * 60 });
+  } = useQuery<QuestionEvolutionData[], Error>({ 
+    queryKey: ['adminQuestionEvolutionSummary'], 
+    queryFn: getQuestionEvolutionFromSummary, // <-- CORREÇÃO: Usa a função do resumo
+    staleTime: 1000 * 60 * 5,
+    refetchInterval: 1000 * 60 * 5 
+  });
+
   const { 
     data: allQuestionsBySubjectData, isLoading: isLoadingQuestionsBySubject, error: errorQuestionsBySubject 
-  } = useQuery<QuestionsBySubjectData[], Error>({ queryKey: ['adminAllQuestionsBySubject'], queryFn: getQuestionsBySubject, staleTime: 1000 * 60 * 5, refetchInterval: 1000 * 60 * 60 });
+  } = useQuery<QuestionsBySubjectData[], Error>({ 
+    queryKey: ['adminQuestionsBySubjectSummary'], 
+    queryFn: getSubjectSummary, // <-- CORREÇÃO: Usa a função do resumo
+    staleTime: 1000 * 60 * 5,
+    refetchInterval: 1000 * 60 * 5 
+  });
+
   const { 
     data: allQuestionsByBancaData, isLoading: isLoadingQuestionsByBanca, error: errorQuestionsByBanca 
-  } = useQuery<QuestionsByBancaData[], Error>({ queryKey: ['adminAllQuestionsByBanca'], queryFn: getQuestionsByBanca, staleTime: 1000 * 60 * 5, refetchInterval: 1000 * 60 * 60 });
+  } = useQuery<QuestionsByBancaData[], Error>({ 
+    queryKey: ['adminQuestionsByBancaSummary'], 
+    queryFn: getBancaSummary, // <-- CORREÇÃO: Usa a função do resumo
+    staleTime: 1000 * 60 * 5,
+    refetchInterval: 1000 * 60 * 5 
+  });
 
   useEffect(() => { document.title = 'Forefy | Admin Dashboard'; }, []);
   useEffect(() => {
@@ -56,7 +86,6 @@ export default function AdminDashboardPage() {
         {profile && <p className="text-sm text-muted-foreground mt-2 sm:mt-0">Logado como: {profile.name} ({profile.role})</p>}
       </div>
 
-      {/* Seção de Destaque: Total de Questões e Evolução */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <Card className="lg:col-span-1 flex flex-col justify-center items-center text-center h-full">
           <CardHeader className="pb-2">
@@ -83,9 +112,7 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Seção de Análises Detalhadas: Disciplinas e Bancas */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Card para Questões por Disciplina */}
         <Card>
             <CardHeader>
                 <CardTitle>Questões por Disciplina</CardTitle>
@@ -123,15 +150,14 @@ export default function AdminDashboardPage() {
                     </p>
                 )}
                  <SubjectBarChart 
-                    data={allQuestionsBySubjectData} // Passa todos, o componente lida com o top N
+                    data={allQuestionsBySubjectData}
                     isLoading={isLoadingQuestionsBySubject}
                     error={errorQuestionsBySubject}
-                    maxItems={10} // Gráfico mostra top 10
+                    maxItems={10}
                 />
             </CardContent>
         </Card>
 
-        {/* Card para Questões por Banca */}
         <Card>
             <CardHeader>
                 <CardTitle>Questões por Banca</CardTitle>
@@ -169,15 +195,14 @@ export default function AdminDashboardPage() {
                     </p>
                 )}
                 <BancaDonutChart
-                    data={allQuestionsByBancaData} // Passa todos, o componente lida com o top N
+                    data={allQuestionsByBancaData}
                     isLoading={isLoadingQuestionsByBanca}
                     error={errorQuestionsByBanca}
-                    maxItems={10} // Gráfico mostra top 10
+                    maxItems={10}
                 />
             </CardContent>
         </Card>
       </div>
-      {/* Você pode adicionar mais seções/gráficos aqui no futuro */}
     </div>
   );
 }

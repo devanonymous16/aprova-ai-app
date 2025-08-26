@@ -1,3 +1,1149 @@
-"identificador_prova","nome_prova_cargo_listagem","url_pagina_detalhes","ano_listagem","orgao_listagem","banca_listagem","nivel_listagem","nome_prova_detalhe","cargo_detalhe","ano_detalhe","órgão_detalhe","instituição_detalhe","nível_detalhe","url_pdf_prova","url_pdf_gabarito","todos_url_pdf_encontrados"
-"https://www.pciconcursos.com.br/provas/download/1-tenente-pm-medico-veterinario-policia-militar-ma-cespe-2017","1º Tenente PM - Médico Veterinário","https://www.pciconcursos.com.br/provas/download/1-tenente-pm-medico-veterinario-policia-militar-ma-cespe-2017","2017","Polícia Militar/MA","CESPE","Superior","1º Tenente PM - Médico Veterinário - Polícia Militar/MA","1º Tenente PM - Médico Veterinário","2017","Polícia Militar/MA","CESPE","Superior","https://www.pciconcursos.com.br/provas/26213200/7d426a54dd14/1_tenente_pm_medico_veterinario.pdf","https://www.pciconcursos.com.br/provas/26213200/973c9692c54c/gabarito_preliminar.pdf","['https://www.pciconcursos.com.br/provas/26213200/7d426a54dd14/1_tenente_pm_medico_veterinario.pdf', 'https://www.pciconcursos.com.br/provas/26213200/973c9692c54c/gabarito_preliminar.pdf', 'https://www.pciconcursos.com.br/provas/26213200/7d426a54dd1/1_tenente_pm_medico_veterinario.pdf', 'https://www.pciconcursos.com.br/provas/26213200/973c9692c54/gabarito_preliminar.pdf']"
-"https://www.pciconcursos.com.br/provas/download/agente-tecnico-administrativo-medico-veterinario-fimes-fimes-2018","Agente Técnico Administrativo - Médico Veterinário","https://www.pciconcursos.com.br/provas/download/agente-tecnico-administrativo-medico-veterinario-fimes-fimes-2018","2018","FIMES","FIMES","Superior","Agente Técnico Administrativo - Médico Veterinário - FIMES","Agente Técnico Administrativo - Médico Veterinário","2018","FIMES","FIMES","Superior","https://www.pciconcursos.com.br/provas/34410269/00602cd22ba0/agente_tecnico_administrativo_medico_veterinario.pdf","https://www.pciconcursos.com.br/provas/34410269/afea3fa6776f/gabarito_oficial.pdf","['https://www.pciconcursos.com.br/provas/34410269/00602cd22ba0/agente_tecnico_administrativo_medico_veterinario.pdf', 'https://www.pciconcursos.com.br/provas/34410269/afea3fa6776f/gabarito_oficial.pdf', 'https://www.pciconcursos.com.br/provas/34410269/00602cd22ba/agente_tecnico_administrativo_medico_veterinario.pdf', 'https://www.pciconcursos.com.br/provas/34410269/afea3fa6776/gabarito_oficial.pdf']"
+"identificador_prova","categoria_concurso","nome_prova_cargo_listagem","url_pagina_detalhes","ano_listagem","orgao_listagem","banca_listagem","nivel_listagem","nome_prova_detalhe","cargo_detalhe","ano_detalhe","órgão_detalhe","instituição_detalhe","nível_detalhe","url_pdf_prova","url_pdf_gabarito","todos_url_pdf_encontrados","texto_integral_prova","texto_gabarito_extraido","gabarito_estruturado"
+"https://www.pciconcursos.com.br/provas/download/1-tenente-pm-medico-veterinario-policia-militar-ma-cespe-2017","medico-veterinario","1º Tenente PM - Médico Veterinário","https://www.pciconcursos.com.br/provas/download/1-tenente-pm-medico-veterinario-policia-militar-ma-cespe-2017","2017","Polícia Militar/MA","CESPE","Superior","1º Tenente PM - Médico Veterinário - Polícia Militar/MA","1º Tenente PM - Médico Veterinário","2017","Polícia Militar/MA","CESPE","Superior","https://www.pciconcursos.com.br/provas/26213200/9366c051dce6/1_tenente_pm_medico_veterinario.pdf","https://www.pciconcursos.com.br/provas/26213200/166b1e8be62c/gabarito_preliminar.pdf","['https://www.pciconcursos.com.br/provas/26213200/9366c051dce6/1_tenente_pm_medico_veterinario.pdf', 'https://www.pciconcursos.com.br/provas/26213200/166b1e8be62c/gabarito_preliminar.pdf', 'https://www.pciconcursos.com.br/provas/26213200/9366c051dce/1_tenente_pm_medico_veterinario.pdf', 'https://www.pciconcursos.com.br/provas/26213200/166b1e8be62/gabarito_preliminar.pdf']","pcimarkpci MjgwNDo0ZDk4OjAxNzE6YzkwMDplMWFhOmJiZDU6NzhiZjplYmQz:TW9uLCAwMiBKdW4gMjAyNSAxOTozMzo0NSAtMDMwMA==
+
+
+||359_PMMA_CG1_01N993477||                                 CESPE | CEBRASPE – PM/MA – Aplicação: 2017
+
+•   Cada um dos itens das provas objetivas está vinculado ao comando que imediatamente o antecede. De acordo com o comando a que
+    cada um deles esteja vinculado, marque, na Folha de Respostas, para cada item: o campo designado com o código C, caso julgue
+    o item CERTO; ou o campo designado com o código E, caso julgue o item ERRADO. A ausência de marcação ou a marcação de
+   ambos os campos não serão apenadas, ou seja, não receberão pontuação negativa. Para as devidas marcações, use a Folha de
+    Respostas, único documento válido para a correção das suas provas objetivas.
+•   Caso haja item(ns) constituído(s) pela estrutura Situação hipotética: ... seguida de Assertiva: ..., os dados apresentados como situação
+    hipotética devem ser considerados premissa(s) para o julgamento da assertiva proposta.
+•   Nos itens que demandarem conhecimentos de informática, a menos que seja explicitamente informado o contrário, considere que
+    todos os programas mencionados estão em configuração-padrão, em português, e que não há restrições de proteção, de funcionamento
+    e de uso em relação aos programas, arquivos, diretórios, recursos e equipamentos mencionados.
+•   Eventuais espaços livres — identificados ou não pela expressão “Espaço livre” — que constarem deste caderno de provas poderão
+     ser utilizados para anotações, rascunhos etc.
+
+                 CONHECIMENTOS GERAIS
+
+Texto CG1A1AAA                                        Texto CG1A1BBB
+
+  1          Encontradas  principalmente  nos  embriões,  mas       1        Quando dizemos que uma pessoa é doce, fica bem
+   também em alguns  tecidos adultos como o adiposo, as                                                                         claro que se trata de um elogio, e de um elogio emocionado,
+    células-tronco têm a capacidade de se transformar em células
+                                                               porque parte de remotas e ternas lembranças: o primeiro sabor
+  4  de  diversos  tipos. Embora  a chamada  plasticidade  das
+                                                                                                  4  que nos recebe no mundo é o gosto adocicado do leite materno,    embrionárias seja maior, os desafios éticos de pesquisas com
+    esse tipo de células levaram a atenção de muitos cientistas às       e dele nos lembraremos pelo resto de nossas vidas. A paixão
+  7  células-tronco adultas. Na virada do milênio, publicações       pelo açúcar é uma constante em nossa cultura. O açúcar é fonte
+     científicas em periódicos importantes sugeriam que ambas       7  de  energia, uma  substância  capaz de  proporcionar um
+    teriam propriedades equivalentes. Esperava-se que, ao serem        instantâneo  “barato” que  reconforta nervos  abalados. É
+ 10  injetadas em órgãos danificados, como um coração infartado,                                                                      paradoxal, portanto, a existência de uma doença em que o
+    as células-tronco adultas pudessem originar vasos sanguíneos
+                                                                                                 10  açúcar está ali, em nossa corrente sanguínea, mas não pode ser    e células cardíacas. Teve início, então, uma série de ensaios
+                                                                            utilizado pelo organismo por falta de insulina. As células 13  clínicos — testes em pessoas —, que foram amplamente
+    noticiados.                                                imploram pelo açúcar que não conseguem receber, e que sai,
+            Hoje, sabe-se que as células-tronco adultas não são tão      13  literalmente, na  urina. O  diabetes é conhecido desde a
+ 16  versáteis quanto prometiam. Os resultados dos ensaios não       Antiguidade,  sobretudo  porque  é uma doença de  fácil
+    foram animadores. Mas isso não significa que tenham sido                                                                        diagnóstico: as formigas se encarregam disso. Há séculos,
+    descartadas como possível tratamento ou que os esforços                                                                                                 16  sabe-se que a  urina do  diabético é uma  festa  para o
+ 19  tenham sido desperdiçados. Na ciência, o negativo também é
+                                                                       formigueiro. Também não escapou aos médicos de outrora o   um resultado; mesmo que não renda prêmios ou resulte em
+    publicações, contribui para o avanço do conhecimento.               fato de que a pessoa diabética urina muito e emagrece. “As
+                                                                                                 19  carnes se dissolvem na urina”, diziam os gregos.
+                                                    Alexandra Ozorio de Almeida. Dois passos para
+                                                               trás, um para frente. In: Revista Pesquisa Fapesp,
+                                                          260.ª  ed.,  out./2017,  p. 7 (com  adaptações).                           Moacyr Scliar. Doce problema. In: A face oculta — inusitadas e reveladoras
+                                                                                                                                                             histórias da medicina. Porto Alegre: Artes e Ofícios, 2001 (com adaptações).
+
+Considerando  as   ideias  e  os  aspectos   linguísticos  do
+texto CG1A1AAA, julgue os itens que se seguem.            No que concerne  às  ideias  e  aos  aspectos  linguísticos do
+                                                                     texto CG1A1BBB, julgue os próximos itens.
+1  O emprego do acento indicativo de crase em “às células-tronco
+     adultas” (R. 6 e 7) é facultativo, dada a presença de termo    6  No período “As células imploram pelo açúcar que não
+    masculino na palavra composta “células-tronco”.                                                        conseguem  receber,  e  que   sai,   literalmente,  na
+2   Dado o emprego da partícula “se”, em “Esperava-se” (R.9) e        urina” (R. 11 a 13), o vocábulo “que”, nas duas ocorrências,
+    “sabe-se” (R.15), é impossível determinar de modo preciso                                                            tem o mesmo referente e desempenha a função sintática de
+   quem esperava “que (...) as células-tronco adultas pudessem
+                                                                             sujeito nas orações em que se insere.     originar vasos sanguíneos e células cardíacas” (R. 9 a 12) e
+   quem sabe “que as células-tronco adultas não são tão versáteis    7  A  correção  gramatical do  texto  seria  mantida  caso o
+    quanto prometiam” (R. 15 e 16).                                       artigo “O”  (R.13)  fosse  substituído por A e a  palavra
+3  Em ciência, um resultado negativo, embora também tenha seu       “conhecido”  (R.13)  fosse  flexionada  no  feminino —
+    valor na construção do saber, é considerado algo de menor                                                              conhecida —, dada a variação de gênero característica da
+     prestígio, por não resultar em prêmios ou em publicações.                                                                      palavra “diabetes”.
+4    Infere-se do texto que apenas as células-tronco encontradas em
+                                                                        8  Há uma metáfora no período “Há séculos, sabe-se que a urina    embriões e no tecido adiposo são capazes de se transformar em
+     células de diversos tipos, apesar de haver outras fontes de      do diabético é uma festa para o formigueiro” (R. 15 a 17).
+     células-tronco.                                                                        9   Seriam mantidos a correção gramatical e os sentidos do texto
+5  O período “Teve início, então, uma série de ensaios clínicos —       caso o trecho “aos médicos” (R.17) fosse reescrito como
+     testes em pessoas —, que foram amplamente noticiados”                                                             dos médicos.
+      (R. 12 a 14) poderia ser corretamente reescrito da seguinte
+    forma: Iniciaram-se, então, vários ensaios clínicos — testes    10  As aspas foram empregadas em ‘barato’ (R.8) e em ‘As carnes
+   em pessoas —, os quais foram amplamente noticiados.              se dissolvem na urina’ (R. 18 e 19) por motivos distintos.
+
+
+                           www.pciconcursos.com.br          www.pciconcursos.com.br
+ pcimarkpci MjgwNDo0ZDk4OjAxNzE6YzkwMDplMWFhOmJiZDU6NzhiZjplYmQz:TW9uLCAwMiBKdW4gMjAyNSAxOTozMzo0NSAtMDMwMA==
+
+
+||359_PMMA_CG1_01N993477||                                 CESPE | CEBRASPE – PM/MA – Aplicação: 2017
+
+Texto CG1A1CCC                            A respeito da formação do Brasil contemporâneo, da República
+
+                                                          Velha e da Era Vargas, julgue os itens seguintes.
+
+
+                                                                        19  A Política dos Governadores, acordo que consistia no apoio
+
+                                                          do governo federal a grupos poderosos locais em troca do
+
+                                                                  apoio desses grupos às proposições do governo no Poder
+
+                                                                         Legislativo federal, garantiu a governabilidade do Brasil
+
+                                                                   durante a Primeira República, tendo se estendido aos níveis
+
+                                                                               Internet: <www.leovillanova.net>.        estadual e municipal.
+
+No que se refere aos aspectos linguísticos do texto CG1A1CCC,    20   Getúlio Vargas se manteve à frente do Palácio do Catete até
+julgue os itens subsequentes.                                        1945, quando perdeu o suporte da classe trabalhadora em
+
+                                                                     decorrência da insatisfação com as leis trabalhistas aprovadas
+11 O emprego das palavras “doido” e “véi” indica que há uma
+                                                                    pelo governo e do apoio dos trabalhadores à realização de
+    relação simétrica e informal entre os interlocutores.
+                                                                         eleições para nova assembleia constituinte.
+12  Conclui-se da fala do mosquito que está voando que ele se
+                                                                        21  Desde as primeiras discussões sobre a formação da nação
+     dirige a apenas um dos dois mosquitos que estão próximos ao
+                                                                                 brasileira, no século XIX, a mestiçagem foi considerada uma
+    vidro de vacina contra a dengue.
+                                                                  das principais marcas de sua população, seja por políticos,
+
+Considerando a legislação pertinente e a gestão do Sistema Único      como José Bonifácio, seja em estudos do Instituto Histórico e
+
+de Saúde (SUS), julgue os itens a seguir.                             Geográfico Brasileiro.
+
+13  Uma entidade de serviços privados de cobertura assistencial,   Julgue os itens subsequentes, relativos à história do Brasil da
+                                                           segunda metade do século XX.    após firmar convênio com o SUS, passa a integrá-lo de forma
+
+    complementar.
+                                                                        22  Os grupos legalistas das Forças Armadas asseguraram a
+
+14  Ao se consorciarem para  prestar  serviços de saúde, os        continuidade do regime democrático  nas  severas  crises
+
+    municípios contribuirão com recursos para o consórcio na         políticas de 1954, 1955 e 1961, quando  políticos  civis
+
+    proporção de suas populações.                                convocaram a intervenção militar para efetivarem golpes de
+
+                                                                     Estado, mas cederam espaço durante a crise que resultou no
+Com base na legislação sanitária nacional, julgue os próximos itens.
+                                                                  golpe de 1964, quando a hierarquia militar foi posta em risco,
+
+15  Todas as infrações sanitárias estão sujeitas à aplicação da      como evidenciado pela insurreição dos sargentos em Brasília.
+
+    penalidade de multa.
+                                                                        23  Para cumprir o objetivo de industrialização nacional constante
+
+16  Para funcionar, uma casa de repouso privada precisa obter      no Plano de Metas, o governo de Juscelino Kubitschek adotou
+
+     licença do órgão sanitário competente.                                estratégias como a atração de investimentos privados para a
+
+                                                                ampliação do parque industrial e o investimento estatal em
+Julgue  os  seguintes  itens,  que  versam  sobre  a  legislação
+                                                                        áreas estratégicas de infraestrutura.
+epidemiológica nacional.
+
+                                           Com relação à história das Constituições brasileiras, julgue o item
+17 O diretor de uma escola básica está isento da obrigação de
+                                                              a seguir.
+    comunicar à autoridade sanitária a suspeita de doença de
+     notificação compulsória ocorrida no estabelecimento que    24  Ao contrário da primeira Constituição brasileira, que foi
+     dirige.                                                        outorgada pelo Imperador d. Pedro I, em 1824, e vigorou por
+
+                                                                        sessenta  e  cinco  anos,  até  a queda da  monarquia,  as
+18 Um  empresário  individual  está  sujeito  a  investigações
+                                                                               seis  Constituições do  período  republicano  foram  todas
+    epidemiológicas  determinadas  pela  autoridade  sanitária
+                                                                  promulgadas.
+    apenas como pessoa natural.
+
+                           www.pciconcursos.com.br          www.pciconcursos.com.br
+ pcimarkpci MjgwNDo0ZDk4OjAxNzE6YzkwMDplMWFhOmJiZDU6NzhiZjplYmQz:TW9uLCAwMiBKdW4gMjAyNSAxOTozMzo0NSAtMDMwMA==
+
+
+||359_PMMA_CG1_01N993477||                                 CESPE | CEBRASPE – PM/MA – Aplicação: 2017
+
+No que diz respeito à história do Maranhão nos períodos colonial
+e imperial, julgue os itens subsequentes.
+
+25 O Estado do Maranhão e Grão Pará foi instituído devido a
+     dificuldades relacionadas à administração das possessões
+    portuguesas na América, como, por exemplo, a disputa entre
+    colonos e jesuítas pelo controle da mão de obra indígena na
+    região Norte, a qual motivou o movimento denominado
+    Revolta de Bequimão, contrário à decisão régia que entregou
+    aos inacianos o controle dos índios livres.
+26  A adesão da Província do Maranhão à independência do Brasil
+     resultou da derrota militar de parte da elite maranhense que
+    defendeu, por meio das armas, a manutenção dos laços com
+     Portugal, a despeito das estreitas relações existentes entre o       Fonte: IBGE – Censos Demográficos de 1950 a 2010
+    Maranhão e a Corte no Rio de Janeiro. As tropas portuguesas,                         Pirâmide etária brasileira entre 1950 e 2010. A. M. N. Vasconcelos; M. M. F. Gomes.
+   mesmo tendo vencido a Batalha de Jenipapo, foram derrotadas                        Transição demográfica: experiência brasileira. Epidemiol. Serv. Saúde, Brasília,
+    por Thomas Cochrane em São Luís.                                                                 21(4):539-48, out.-dez./2012. Internet: <http://scielo.iec.pa.gov.br> (com adaptações).
+27  A Balaiada, que sofreu violenta repressão comandada pelo
+    coronel do Exército Luiz Alves de Lima, foi um movimento de
+    composição social complexo, pois agregou artesãos, escravos,
+     libertos e pequenos proprietários das províncias do Maranhão
+    e Piauí contrários à opressão dos governos locais.
+28  No início do século XX, difundiu-se a ideia de que a cidade de
+    São Luís, fundada por Jerônimo de Albuquerque após a
+    expulsão dos franceses da região, teria sido fundada pelos
+     franceses.
+
+Acerca da história do Maranhão no período republicano, julgue os
+próximos itens.
+
+29 O domínio do chefe oligárquico Victoriano Freire sobre a
+     política maranhense  foi desafiado na década de 60 do
+    século  XX,  quando  José  Sarney,  com  propostas
+    modernizadoras,  despontou como  liderança  estadual  e
+    opositor a Victoriano.                                                                                           Índice de envelhecimento das regiões do Brasil. 1970-2010. Vera Elizabeth Closs e Carla
+                                                                                                                       Helena Augustin Schwanke. A evolução do índice de envelhecimento no Brasil, nas suas
+30  Após a conturbada adesão do Maranhão à República, a ordem                           regiões e unidades federativas no período de 1970 a 2010. Rev. Bras. Geriatr. Gerontol.
+     foi estabelecida a partir da ação das lideranças que já atuavam                     Rio  de   Janeiro,  2012;  15(3):443-58,   p.  447  (com  adaptações).
+    na política maranhense desde meados do século XIX.
+                                                      Tendo as figuras precedentes como referência inicial, julgue os
+31  José Maria dos Reis Perdigão e Tarquínio Lopes Filho foram                                                           próximos itens, a respeito da população brasileira.
+    grandes lideranças dos tarquinistas — grupo maranhense que
+    apoiou o tenentismo e a Revolução de 1930.                                                                        36  Em 1970, as regiões Sudeste, Sul e Centro-Oeste evidenciavam
+O crescimento industrial do Brasil ocorreu, até 1930, por meio da     um momento de pré-transição demográfica.
+concentração espacial, que, por sua vez, influenciou a organização
+do espaço geográfico brasileiro. Acerca desse assunto, julgue os    37 O  processo de  envelhecimento da  população  brasileira
+itens a seguir.                                                             iniciou-se na década de 90 do século passado.
+
+32 O  espaço  geográfico  urbano,  nos  centros  industriais,   Espaço Livre
+     caracterizou-se por uma nítida segregação socioespacial.
+33 Um dos fatores que promoveram a concentração espacial foi a
+    disponibilidade  de  capitais  financeiros  fornecidos  pela
+     cafeicultura.
+
+     O vertiginoso processo de urbanização no Brasil deu
+origem, em poucas décadas, a centros urbanos de todo porte, que,
+espalhados pelo país, passaram a ordenar os fluxos de pessoas,
+mercadorias,  informações  e  capitais no  território  brasileiro,
+configurando uma complexa rede geográfica de cidades.
+
+Com relação ao texto apresentado e aos múltiplos aspectos a ele
+relacionados, julgue os seguintes itens.
+
+34  As cidades que apresentam maior grau de complexidade
+    socioeconômica e polarizam todo o território brasileiro e parte
+    da América do Sul são as metrópoles nacionais.
+35  A desconcentração espacial das atividades econômicas, a partir
+    de 1990, promoveu o crescimento das cidades médias.
+
+                           www.pciconcursos.com.br          www.pciconcursos.com.br
+ pcimarkpci MjgwNDo0ZDk4OjAxNzE6YzkwMDplMWFhOmJiZDU6NzhiZjplYmQz:TW9uLCAwMiBKdW4gMjAyNSAxOTozMzo0NSAtMDMwMA==
+
+
+||359_PMMA_CG1_01N993477||                                 CESPE | CEBRASPE – PM/MA – Aplicação: 2017
+
+                                                             Duas linhas dirigiram o povoamento no Maranhão: a que
+                                                                 invadiu o litoral e a que avançou pelos altos sertões, oriunda do
+                                                                           interior nordestino.
+
+                                                                                                                              R. G. Rocha. O processo de ocupação do sul do Maranhão: dinamismo
+                                                                                                                       econômico e des(re)ordenamento territorial. In: Interespaço, v. 1, n.º 1, 2015,
+                                                                                                                                                        p.  5-26.  Internet:  <www.periodicoseletronicos.ufma.br> (com  adaptações).
+
+
+                                           Com relação ao povoamento do Maranhão, julgue os itens que se
+                                                           seguem.
+
+                                                                        41 O povoamento da região litorânea e do alto sertão maranhense
+                                                                                    instituiu, nessas regiões, bases econômicas semelhantes.
+
+                                                                        42  A ocupação do alto sertão maranhense foi realizada com o
+                                                           emprego da violência.
+                           Figura I
+                                           Com relação à geomorfologia do território maranhense, julgue os
+                                                                          itens a seguir.
+
+                                                                        43  As atividades dos agentes modeladores do relevo revela um
+                                                                              forte controle litológico no território maranhense.
+
+                                                                        44 O relevo do território maranhense apresenta feições típicas das
+                                                                       bacias sedimentares com formas tabulares e subtabulares.
+
+                                                                  Determinado laboratório de análises clínicas está sendo
+                                                                  investigado por emitir laudos falsos de um exame constituído por
+                                                       7 indicadores, correspondentes à concentração de 4 compostos na
+                                                                   corrente sanguínea, obtidos da seguinte forma: uma medição da
+                                                               concentração de cada um dos compostos A, B, C e D, e 3 medições,
+                                                              por 3  diferentes  técnicas, da concentração do composto E.
+                                                  Os laudos verdadeiros de 7 pacientes (chamados pacientes-fonte),
+                                     F. Mendonça; Dani Oliveira I. M. Climatologia: noções básicas e climas
+                             do  Brasil. São Paulo: Oficina de Textos, 2007 (com adaptações).  com prenomes distintos, entre eles Amanda, Bárbara, Carlos e
+                                                                   Daniel, eram usados para compor laudos falsos para os demais                          Figura II
+                                                                     pacientes. Para  dificultar a ação da  autoridade  policial, na
+                                                     montagem de um laudo falso, o laboratório tomava o cuidado de, no
+Tendo  como  referência   inicial  as  figuras  precedentes  e
+                                                               conjunto de 7 medições que constituíam cada laudo falsificado, usar
+considerando que o estado do Maranhão situa-se em uma região   apenas uma medição de cada paciente-fonte, ou seja, de nunca
+                                                                   usar 2 ou mais medições de um mesmo paciente-fonte.
+controlada por massas de ar quente, julgue os próximos itens.
+                                           Com referência a essa situação hipotética, julgue os itens seguintes.
+
+                                                                        45  Há mais de 5 maneiras distintas de se produzir um laudo falso
+38  A regularidade térmica observada na cidade de São Luís ao
+                                                                           utilizando-se os dados dos exames de Amanda, Bárbara, Carlos
+                                                                  e  Daniel,  nessa ordem,  para os  valores  referentes aos
+    longo do ano, conforme indicado na figura I, deve-se ao efeito
+                                                              compostos A, B, C e D.
+
+    da continentalidade.                                              46  Caso o laboratório escolhesse aleatoriamente, entre os dados
+                                                                dos 7 pacientes-fonte, aqueles que seriam usados nas medições
+                                                                           referentes ao composto E, a probabilidade de serem usados os39  A maior pluviosidade nos meses de março e abril na porção
+                                                               dados de Amanda, Bárbara e Carlos seria inferior a 3%.
+    norte do estado do Maranhão é efeito da zona de convergência    47  Se fosse adotada a estratégia de falsificar laudos seguindo-se
+                                                                  a ordem sucessiva de medições referentes aos compostos
+     intertropical (ZCIT).
+                                                             A, B, C e D  e, em seguida, as medições referentes ao
+                                                             composto E, a quantidade de laudos falsos distintos que
+40  Em  relação à  variação  sazonal, na  cidade de  Colinas,       poderiam ser gerados pelo laboratório seria superior a 800.
+
+                                                                        48  Com relação ao composto E, a quantidade de laudos falsos
+    as temperaturas do ar mais elevadas ocorrem entre os meses
+                                                                               distintos constituídos com dados dos exames de Amanda,
+    de setembro e dezembro, em virtude das massas de ar seco.         Bárbara e Carlos que poderia ser produzida é superior a 50.
+
+                           www.pciconcursos.com.br          www.pciconcursos.com.br
+ pcimarkpci MjgwNDo0ZDk4OjAxNzE6YzkwMDplMWFhOmJiZDU6NzhiZjplYmQz:TW9uLCAwMiBKdW4gMjAyNSAxOTozMzo0NSAtMDMwMA==
+
+
+||359_PMMA_CG1_01N993477||                                 CESPE | CEBRASPE – PM/MA – Aplicação: 2017
+
+                                            A pólvora é material empregado como propulsor em armas
+
+                                                          de fogo. Basicamente, a ideia é provocar uma reação que gere uma
+
+                                                               quantidade grande de gases sob pressão e temperatura elevadas. Ao
+
+                                                                   se expandirem, esses gases impulsionam um projétil. A pólvora
+
+                                                                  negra, empregada em armas mais antigas, é constituída por uma
+                                                                 mistura de salitre (KNO3), enxofre (S) e material de carbono (C). A
+                                                           equação não balanceada de uma das reações químicas que ocorrem
+
+                                                                 durante a queima da pólvora é apresentada a seguir.
+
+                           Figura I                                                 KNO3 (s) + S (s) + C (s) 6 K2S (s) + N2 (g) + CO2 (g)
+
+                                                            Considerando essas informações e sabendo que o número atômico
+
+                                                       do carbono é igual a 6, julgue os itens que se seguem.
+
+
+                                                                        53  Entre os produtos da reação química apresentada, podem ser
+
+                                                                           identificadas uma  substância  iônica  e  duas  substâncias
+
+                                                                      moleculares; entre as substâncias moleculares, uma é polar e,
+
+                                                                  a outra, apolar.
+
+                                                                        54 Um átomo neutro do isótopo de carbono-12, no estado
+
+                                                                    fundamental, apresenta, em seu núcleo, 6 prótons e 6 nêutrons;
+
+                                                             além disso, apresenta 6 elétrons na região extranuclear.
+
+                                                                        55  A menor soma de coeficientes estequiométricos inteiros que
+                          Figura II
+                                                              permitem balancear a equação química apresentada é igual a 8.
+
+     A figura I precedente ilustra um bloco de massa M que    56 O KNO3 é um  sal inorgânico  resultante da reação de
+parte do repouso e desliza sobre um plano inclinado de 30°, com        neutralização entre o hidróxido de potássio e o ácido nítrico.
+
+atrito, durante 5 s, até atingir sua base. A figura II mostra o gráfico                                       A respeito do Microsoft Word 2007 e dos softwares livres, julgue
+do módulo da velocidade, v, do bloco nesse intervalo de tempo.                                                              os itens a seguir.
+
+Com base nas informações e nas figuras apresentadas, julgue os
+                                                                        57  Mediante o acesso ao código-fonte de um software livre,
+próximos itens, considerando que o seno de 30° é igual a 0,5.
+                                               um desenvolvedor poderá modificar esse software e distribuir
+
+                                                                     cópias da versão modificada a outros indivíduos, sem restrição49  A altura em que o bloco se encontrava no início do movimento
+     era superior a 2 m.                                           de propósito de uso.
+
+50 O trabalho realizado pela força de atrito não é conservativo,    58  No Word 2007, embora esteja impedido de criar e(ou) exibir
+     visto que o atrito gera calor ao longo de todo o trajeto.               alterações controladas no texto, o usuário pode inserir, editar
+                                                                  e excluir modificações no texto.
+51  A força resultante sobre o bloco é nula.
+
+                                                                Julgue os itens subsequentes, relativos a software para o ambiente52  Ao se dobrar a massa desse bloco, a força de atrito atuante
+                                                          de microinformática e a proteção e segurança da informação.   também será dobrada.
+
+Espaço Livre                                                          59 O firewall do Windows protege esse sistema por meio da
+
+                                                                            criptografia dos dados  nas  unidades de dados  fixas  e
+
+                                                                     removíveis, bem como resguarda a unidade do sistema
+
+                                                                     operacional contra ataques offline, que são efetuados para
+
+                                                                              desabilitar ou descartar o sistema operacional instalado.
+
+                                                                        60  Fazer becape regularmente é uma conduta que permite
+
+                                                                 minimizar os danos  decorrentes de um ataque do  tipo
+
+                                                           ransomware locker, que impede o acesso ao equipamento
+
+                                                                          infectado, visto que o pagamento do resgate não garante acesso
+
+                                                                  aos dados.
+
+                           www.pciconcursos.com.br          www.pciconcursos.com.br
+ pcimarkpci MjgwNDo0ZDk4OjAxNzE6YzkwMDplMWFhOmJiZDU6NzhiZjplYmQz:TW9uLCAwMiBKdW4gMjAyNSAxOTozMzo0NSAtMDMwMA==
+
+
+||359_PMMA_003_01N458886||                                 CESPE | CEBRASPE – PM/MA – Aplicação: 2017
+
+               CONHECIMENTOS ESPECÍFICOS
+
+Julgue os itens subsequentes, relativos à anatomia veterinária de   Acerca da microbiologia veterinária, julgue os itens que se seguem.
+cães e equinos.
+                                                                        75  A principal forma de transmissão dos  alfavírus, agentes
+61  Tanto nos caninos quanto nos equinos, o número de vértebras                                                                          etiológicos de encefalites equinas, é o contato direto entre
+    caudais pode variar conforme a raça do animal.                                                                   animais portadores e animais suscetíveis, logo sem intermédio
+62  A constituição dentária dos cães varia de acordo com o sexo do       de vetores.
+    animal; nos equinos, é invariável entre machos e fêmeas.
+                                                                        76  Corpúsculos de inclusão intracitoplasmáticos aparecem em
+63  Plano mediano é aquele que divide o corpo dos cães e dos                                                                       infecções de cães acometidos pelo adenovírus canino 1, agente
+    equinos em duas metades simétricas: a direita e a esquerda.
+                                                                          etiológico da hepatite infecciosa canina.
+Com relação à fisiologia veterinária, julgue os próximos itens.
+                                                                        77 O vírus da cinomose, pertencente ao gênero Morbilivirus da
+64  A redução da síntese e da secreção da albumina sérica em        família Paramyxoviridae, é capaz de infectar um amplo
+    decorrência de doenças hepáticas crônicas aumenta a pressão        contingente de  espécies  animais,  incluindo-se  canídeos,
+    oncótica no sangue.                                             grandes felídeos, mustelídeos, procionídeos e viverrídeos.
+
+65   Alterações fisiológicas no organismo de animais como cães e                                                                Julgue os próximos itens, relativos à parasitologia veterinária.
+    gatos são mediadas por proteínas, cujas funções dependem de
+    sua conformação estrutural.                                      78  Temperaturas extremamente elevadas ou baixas, bem como
+                                                                  prolongados períodos chuvosos ou de  seca, reduzem oEm relação à imunologia veterinária, julgue os itens a seguir.
+                                                                 desenvolvimento de miíases produzidas no gado pela “mosca
+66  Na resposta imune inata contra agentes virais, atuam as células                                                              da bicheira” (Cochliomyia hominivorax).
+     dendríticas, o interferon tipo I, as células natural killer e os
+                                                                        79  A habronemose cutânea, causada por larvas do nematoide    componentes ativos do sistema complemento.
+                                                       Habronema spp., que parasita equinos e asininos, apresenta
+67 O processamento prévio de antígenos microbianos por células
+                                                                            ciclo evolutivo indireto, pois tem como vetores carrapatos do
+    apresentadoras de antígenos permite o reconhecimento desses
+                                                                 gênero Amblyomma.    elementos proteicos por linfócitos T.
+68  A ativação dos mecanismos envolvidos na resposta imune    80  Boophilus, Anocentor e Rhipicephalus são os principais
+    adquirida ocorre independentemente de sua exposição prévia       gêneros de carrapatos encontrados em bovinos, equinos e cães,
+    aos antígenos do agente infeccioso.                                respectivamente.
+
+Acerca de anomalias decorrentes de alterações cromossômicas em  Em relação à nutrição de equinos, julgue os itens a seguir.
+animais, julgue os itens que se seguem.
+                                                                        81  A ingestão de pastagem com alta concentração de carboidratos
+69  Animais  que  apresentam  cariótipos  anormais  não  são
+                                                             não estruturais evita a ocorrência de laminite.
+    necessariamente menos saudáveis ou estéreis.
+                                                                        82  No cavalo, o amido não digerido no intestino delgado pode ser
+70  Animais que apresentam trissomia do cromossomo X são
+                                                                     convertido em ácido graxo volátil como resultado da ação de
+    geralmente  férteis; é  rara a  fertilidade em animais que
+                                                                  fermentação microbiana no intestino grosso e ceco para, então,    apresentam monossomia desse mesmo cromossomo.
+                                                                            ser absorvido e utilizado como fonte de energia.
+71  Animais com aneuploidia XXY e XXXY apresentam fenótipo
+    predominantemente feminino.                                    83  Cavalos mantidos estabulados são, muitas vezes, submetidos
+                                                                  a situações que os predispõem ao desenvolvimento de úlceras
+No que se refere à hematologia veterinária, julgue os próximos
+                                                                            gástricas decorrentes, por exemplo, do estresse envolvido noitens.
+                                                                confinamento e da concentração da alimentação em poucas
+72  A presença de neutrófilos imaturos no sangue em quantidade                                                                    horas do dia.
+    considerada acima do normal para a espécie provoca desvio
+                                                                        84  Alimentos mais secos, como feno e grãos, predispõem os    para a esquerda na medula.
+                                                                    cavalos à doença periodontal, por reduzir a amplitude e a
+73  Nos mamíferos, o núcleo eritrocitário permanece no decorrer
+                                                                   quantidade do movimento de mastigação e aumentar a
+    do processo de eritropoiese, o que resulta em hemácias
+                                                               produção de saliva.
+    maduras nucleadas.
+                                                                        85  Dieta rica em feno de alfafa predispõe o animal à enterolitíase:74   Linfócitos e monócitos são leucócitos polimorfonucleares,
+    enquanto neutrófilos, eosinófilos e basófilos são leucócitos      o alto conteúdo de magnésio presente na alfafa aumenta o pH
+    mononucleares.                                          do lúmen intestinal e favorece a precipitação da estruvita.
+
+                           www.pciconcursos.com.br          www.pciconcursos.com.br
+ pcimarkpci MjgwNDo0ZDk4OjAxNzE6YzkwMDplMWFhOmJiZDU6NzhiZjplYmQz:TW9uLCAwMiBKdW4gMjAyNSAxOTozMzo0NSAtMDMwMA==
+
+
+||359_PMMA_003_01N458886||                                 CESPE | CEBRASPE – PM/MA – Aplicação: 2017
+
+Com relação ao diagnóstico por imagens, julgue os itens a seguir.   Considerando as boas práticas anestésicas e operatórias em cães
+
+                                                              e equinos, julgue os itens subsecutivos.86  Em se tratando de radiografias torácicas em cães, o padrão
+     respiratório do  paciente deve  ser observado por alguns
+                                                                        96  Para  a  remoção  de  segmentos  intestinais  isquêmicos,    segundos antes da exposição radiográfica, de modo que
+    a radiografia seja realizada de forma coordenada ao pico       necrosados ou  neoplásicos em  cães,  são recomendadas
+    da expiração, momento em que o contraste pulmonar será       a ressecção e anastomose intestinais, devendo o cirurgião,
+    otimizado devido ao menor volume do pulmão.                                                               na anastomose de extremidade com extremidade com suturas
+87  Durante o procedimento de  radiografia  laterolateral da                                                                         contínuas, atentar para não tracionar o fio demasiadamente,
+     traqueia, é importante manter a cabeça do cão em posição de
+                                                              de modo a evitar o efeito de bolsa de tabaco, que causa     “alerta”  evitando-se  flexionar  ventralmente ou  estender
+    dorsalmente o crânio, pois o deslocamento dorsal focal da        estenose intestinal.
+     traqueia, no primeiro caso pode mimetizar uma massa no
+                                                                        97 O bloqueio anestésico é exemplo de procedimento que facilita
+    mediastino cranial, enquanto, no segundo caso, a traqueia pode
+                                                                  a avaliação e o diagnóstico de claudicação em equinos,     apresentar-se comprimida.
+                                                             devendo ser realizado com aplicação de injeções de anestésico88  São sinais radiográficos de pneumotórax em cães a retração
+    pulmonar — de modo que uma linha radiolucente pode ser       nas estruturas mais proximais, primeiramente, e no sentido
+    observada entre o contorno do pulmão e a parede torácica —,         distal, paulatinamente, até que o animal não apresente sinais
+    o aumento da radiopacidade pulmonar devido à atelectasia,
+                                                              de claudicação.
+    o deslocamento dorsal do contorno cardíaco — também
+    conhecido por “coração flutuante” —, e o deslocamento caudal    98  A  acepromazina,  medicação  pré-anestésica  que  produz
+    do diafragma.                                                                  relaxamento muscular sem  efeito  analgésico, pode  estar
+89  Para a correta interpretação das imagens radiográficas da                                                                     associada ao prolapso peniano quando administrada em
+    medula espinhal, é necessária a utilização de contraste positivo
+                                                                         cavalos.
+    baritado por via epidural, que permite diferenciar uma lesão
+    mural de uma lesão extramural.                                  99  Para  radiografia com  fins  de  diagnóstico  de  displasia
+90  Os efeitos adversos da radiação por raios X classificam-se       coxofemoral em cães, é necessário o correto posicionamento
+   como determinísticos — caso em que a gravidade do efeito                                                          do animal com a extensão e rotação dos membros anteriores,
+    independe da dose de radiação — ou como estocásticos —
+                                                                procedimento que muitas vezes exige anestesia geral, caso em    caso em que, ultrapassado determinado limite, a gravidade
+    do efeito aumenta à medida que a dose se eleva, como ocorre,       que a utilização de um relaxante muscular, como o pancurônio,
+    por  exemplo,  no  surgimento  de  cataratas  induzidas       é indicada.
+    por radiação.
+                                                                        100 São características desejáveis do fio de sutura: mínima reação
+91 O  contraste  radiográfico  depende  primordialmente  da
+                                                    com o tecido animal, capacidade de inibir o crescimento    combinação entre a quilovoltagem (kV) e a miliamperagem
+    por segundo (mAs), que estabelecem a energia ou força        bacteriano e baixa capilaridade.
+    do raio X e a quantidade de raios X gerada por segundo,
+                                       A respeito do tétano, julgue os itens a seguir.    respectivamente.
+
+No que se  refere à  obstetrícia, prenhez e cuidados durante                                                                        101 A vacina utilizada na profilaxia do tétano é produzida a partir
+a gestação em equinos e caninos, julgue os itens subsequentes.
+                                                          do toxoide tetânico purificado, que, apesar de perder a
+92  Além da ausência de batimentos cardíacos no saco gestacional,        patogenicidade, mantém certo grau de imunogenicidade.
+    os  achados  que  podem  ser  detectados  na  avaliação
+     ultrassonográfica e que auxiliam no diagnóstico de morte fetal    102 O tétano é uma doença aguda, geralmente fatal, causada por
+   em cadelas incluem a perda da definição dos contornos fetais,      uma exotoxina (tetanospasmina) produzida pela  bactéria
+    a  diminuição  progressiva  do  volume  de  líquido  e  a                                                                    Clostridium tetani.
+    hipoecogenicidade do útero adjacente.
+                                                                        103 As espécies de animais domésticos mais suscetíveis à infecção93  A má apresentação fetal é uma das principais causas de
+     distocia em éguas, devendo a cesariana e a fetotomia (em caso       por tétano são os cães e os gatos.
+    de morte do potro) ser as primeiras ações realizadas pelo
+                                                                        104 Bovinos e equinos apresentam maior quantidade de toxinas
+     obstetra para garantir o bem-estar da égua.
+                                                                           circulantes necessárias para conter o tétano, por isso, nesses
+94  Infecção viral por herpes-vírus equino-1, infecção bacteriana
+                                                                       animais, comumente se manifesta a forma clínica localizada da    ou fúngica e placentite ascendente e hematógena, incluindo-se
+    as infecções por Leptospira spp., estão entre as causas de       doença.
+    aborto em equinos.
+                                                                        105  Protrusão  da  terceira  pálpebra,  orelhas  eretas,  trismo
+95  Na anestesia de cadelas prenhes, é fortemente desaconselhada
+                                                                    mandibular, espasmos musculares, opistótono, vocalização,
+    a  pré-oxigenação, mesmo em  caso de  hipóxia,  pois  a
+    administração de oxigênio suplementar à mãe implica redução        reações a estímulos táteis e auditivos, disúria, constipação e
+    do fluxo sanguíneo uterino e acidose fetal.                          hipertermia são sinais clínicos do tétano.
+
+                           www.pciconcursos.com.br          www.pciconcursos.com.br
+ pcimarkpci MjgwNDo0ZDk4OjAxNzE6YzkwMDplMWFhOmJiZDU6NzhiZjplYmQz:TW9uLCAwMiBKdW4gMjAyNSAxOTozMzo0NSAtMDMwMA==
+
+
+||359_PMMA_003_01N458886||                                 CESPE | CEBRASPE – PM/MA – Aplicação: 2017
+
+No que se refere às doenças de notificação obrigatória ao serviço  A respeito da prevenção e do controle da anemia infecciosa equina
+veterinário oficial e à aplicação de medidas de defesa sanitária,   (AIE), julgue os itens subsequentes.
+julgue os itens seguintes.                                              116 A desinterdição de propriedade com foco de AIE ocorrerá
+                                                               somente após todos os equídeos existentes na propriedade
+106  Entre as doenças que acometem equídeos e que requerem       terem sido submetidos, em um intervalo de trinta dias, à
+     notificação imediata incluem-se a raiva, a anemia infecciosa        realização de  seis exames consecutivos cujos resultados
+                                                             tenham sido negativos para AIE.    equina, a encefalomielite equina do leste, a encefalomielite
+    equina do oeste e o mormo.                                      117 O diagnóstico da AIE é realizado por meio da prova sorológica
+                                                              de imunodifusão em gel de ágar (IDGA).
+107 O  tétano (Clostridium  tetani), o botulismo (Clostridium
+                                                                        118 Havendo detecção de foco de AIE, as medidas a serem
+    botulinum), a tripanosomose (Trypanossoma vivax) e a gripe                                                                   adotadas após a identificação do equídeo portador da doença
+    equina são exemplos de doenças que requerem notificação       incluem a interdição da propriedade, a marcação permanente
+    mensal de qualquer caso confirmado em equídeos.               do animal e o sacrifício ou o isolamento do equídeo.
+                                                                        119 A marcação permanente dos equídeos portadores da AIE
+108  Entre as doenças que afetam animais domésticos como cães
+                                                                  deverá ser realizada por meio da aplicação de ferro candente
+    e gatos e que requerem notificação mensal de qualquer caso                                                               na paleta do lado esquerdo, com a letra P contida em um
+    confirmado incluem-se a raiva, a cinomose e a parvovirose        círculo de oito centímetros de diâmetro seguido da sigla do
+    canina (CPV-2).                                                 estado (UF) da propriedade que apresenta o foco da doença.
+                                                                        120 A propriedade será considerada controlada para AIE quando
+109 Tanto qualquer cidadão quanto os profissionais que atuam na
+                                                                    todos os equídeos da área apresentarem resultados negativos
+    área de diagnóstico, ensino ou pesquisa em saúde animal                                                                nos  exames  diagnósticos  para  AIE, em  dois  exames
+   devem realizar a notificação de suspeita ou ocorrência das        consecutivos realizados dentro de um intervalo de trinta a
+    doenças listadas como de notificação obrigatória.                    sessenta dias e, ainda, repetidos no mínimo uma vez a cada seis
+                                                                  meses.
+110 A encefalomielite equina venezuelana e a encefalomielite
+                                                         Espaço livre
+    equina do leste são doenças equinas jamais registradas no
+     Brasil, mas que requerem notificação imediata caso seja
+     identificado um caso suspeito ou realizado um diagnóstico
+     laboratorial.
+
+No que se refere ao controle da raiva em herbívoros domésticos,
+julgue os próximos itens.
+
+111 Após o óbito de animal cujo diagnóstico da raiva não tenha
+    sido confirmado ou que tenham sido sacrificados em razão de
+    se encontrarem na fase adiantada da doença (fase paralítica),
+    a coleta de amostras do sistema nervoso central para a
+    confirmação da raiva será realizada por médico veterinário ou
+    por auxiliar que tenha recebido treinamento adequado e que
+     esteja devidamente imunizado.
+
+112 Na profilaxia da raiva dos herbívoros domésticos, deve-se
+     utilizar vacina com  vírus vivo modificado, na dosagem
+    de 2 mL, a ser administrada através da via subcutânea ou
+     intramuscular.
+
+113 A vacina antirrábica possui prazo de validade de até um ano e
+    deve ser armazenada em temperatura ambiente que varie
+    de 16 ºC a 25 ºC.
+
+114 Nas áreas de ocorrência da raiva, a vacina deverá ser aplicada,
+    sistematicamente, em equídeos com idade igual ou superior a
+     três  meses,  e  os  animais  primovacinados  deverão  ser
+    revacinados trinta dias após a administração da primeira dose.
+
+115  Será considerada área de ocorrência da raiva aquela onde a
+    doença tiver sido confirmada por meio de exames laboratoriais
+     realizados ao longo de um ano.
+
+                           www.pciconcursos.com.br          www.pciconcursos.com.br","pcimarkpci MDAwMDowMDAwOjAwMDA6MDAwMDowMDAwOmZmZmY6YzhlMTo3MWRk:TW9uLCAwMiBKdW4gMjAyNSAxOTozMzo0NyAtMDMwMA==
+
+
+
+
+
+                                                ESTADO DO MARANHÃO
+                                        SECRETARIA DE ESTADO DA GESTÃO E PREVIDÊNCIA
+                                                     POLÍCIA MILITAR DO MARANHÃO
+                  CONCURSO PÚBLICO PARA PROVIMENTO DE VAGAS E FORMAÇÃO DE CADASTRO DE RESERVA PARA O
+                 CARGO DE 1º TENENTE DO QUADRO DE OFICIAIS DE SAÚDE DA POLÍCIA MILITAR DO MARANHÃO (QOS) E
+                                 PARA O CARGO DE SOLDADO DO QUADRO DE PRAÇA POLICIAL
+
+
+
+                                                                   Aplicação: 17/12/2017
+
+                                   CONHECIMENTOS GERAIS PARA O CARGO DE NÍVEL MÉDIO
+
+
+
+                                                                                                                                                                                                   359_PMMA_CG2_01
+
+                                                                     0
+                                                                     0
+                                             GABARITOS OFICIAIS PRELIMINARES
+
+0
+
+     Item    1     2       3       4       5       6       7       8       9       10      11      12      13      14     15     16      17     18     19      20
+ Gabarito   E    C      E      E     C     C     C      E      E     C     C      E     C      E     E    C     C     E    C     C
+
+     Item    21    22      23      24      25      26      27      28      29      30      31      32      33      34     35     36      37     38     39      40
+ Gabarito   C    E      E     C      E      E     C     C      E     C      E      E     C     C    C    C     C     E     E     C
+
+     Item    41    42      43      44      45      46      47      48      49      50      51      52      53      54     55     56      57     58     59      60
+ Gabarito   E    E     C     C     C     C      E      E     C     C      E      E     C      E     E    C     C     E     E     C
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+
+
+
+
+                          www.pciconcursos.com.br          www.pciconcursos.com.br
+pcimarkpci MDAwMDowMDAwOjAwMDA6MDAwMDowMDAwOmZmZmY6YzhlMTo3MWRk:TW9uLCAwMiBKdW4gMjAyNSAxOTozMzo0NyAtMDMwMA==
+
+
+
+
+
+                                                ESTADO DO MARANHÃO
+                                        SECRETARIA DE ESTADO DA GESTÃO E PREVIDÊNCIA
+                                                     POLÍCIA MILITAR DO MARANHÃO
+                  CONCURSO PÚBLICO PARA PROVIMENTO DE VAGAS E FORMAÇÃO DE CADASTRO DE RESERVA PARA O
+                 CARGO DE 1º TENENTE DO QUADRO DE OFICIAIS DE SAÚDE DA POLÍCIA MILITAR DO MARANHÃO (QOS) E
+                                 PARA O CARGO DE SOLDADO DO QUADRO DE PRAÇA POLICIAL
+
+
+
+                                                                   Aplicação: 17/12/2017
+
+                                 CONHECIMENTOS GERAIS PARA OS CARGOS DE NÍVEL SUPERIOR
+
+
+
+                                                                                                                                                                                                   359_PMMA_CG1_01
+
+                                                                     0
+                                                                     0
+                                             GABARITOS OFICIAIS PRELIMINARES
+
+0
+
+     Item    1     2       3       4       5       6       7       8       9       10      11      12      13      14     15     16      17     18     19      20
+ Gabarito   E    C      E      E     C      E     C     C      E     C     C     C     C      E    C    C      E     E    C      E
+
+     Item    21    22      23      24      25      26      27      28      29      30      31      32      33      34     35     36      37     38     39      40
+ Gabarito   C    C     C      E     C      E      E     C     C      E     C     C     C      E    C     E      E     E    C     C
+
+     Item    41    42      43      44      45      46      47      48      49      50      51      52      53      54     55     56      57     58     59      60
+ Gabarito   E    C      E     C      E     C     C      E      E     C      E     C      E     C     E    C     C     E     E     C
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+
+
+
+
+                          www.pciconcursos.com.br          www.pciconcursos.com.br
+pcimarkpci MDAwMDowMDAwOjAwMDA6MDAwMDowMDAwOmZmZmY6YzhlMTo3MWRk:TW9uLCAwMiBKdW4gMjAyNSAxOTozMzo0NyAtMDMwMA==
+
+
+
+
+
+                                                ESTADO DO MARANHÃO
+                                        SECRETARIA DE ESTADO DA GESTÃO E PREVIDÊNCIA
+                                                     POLÍCIA MILITAR DO MARANHÃO
+                  CONCURSO PÚBLICO PARA PROVIMENTO DE VAGAS E FORMAÇÃO DE CADASTRO DE RESERVA PARA O
+                 CARGO DE 1º TENENTE DO QUADRO DE OFICIAIS DE SAÚDE DA POLÍCIA MILITAR DO MARANHÃO (QOS) E
+                                 PARA O CARGO DE SOLDADO DO QUADRO DE PRAÇA POLICIAL
+
+
+
+                                                                   Aplicação: 17/12/2017
+
+                                              Cargo 1: 1º TENENTE PM – CIRURGIÃO-DENTISTA
+
+
+
+                                                                                                                                                                                                             359_PMMA_001_01
+
+                                                                     0
+
+                                                                     0
+
+                                             GABARITOS OFICIAIS PRELIMINARES
+
+0
+
+     Item    61    62      63      64      65      66      67      68      69      70      71      72      73      74     75     76      77     78     79      80
+ Gabarito   C    C     C     C      E      E      E      E      E      E      E     C      E     C    C     E      E     E     E     C
+
+     Item    81    82      83      84      85      86      87      88      89      90      91      92      93      94     95     96      97     98     99      100
+ Gabarito   E    E     C     C     C     C     C     C      E      E     C      E     C      E     E     E      E    C    C     C
+
+     Item   101   102     103     104     105     106     107     108     109     110     111     112     113     114    115    116     117    118    119     120
+ Gabarito   E    C     C      E     C      E      E     C      E     C      E      E     C     C    C    C      E     E     E     C
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+
+
+
+
+                          www.pciconcursos.com.br          www.pciconcursos.com.br
+pcimarkpci MDAwMDowMDAwOjAwMDA6MDAwMDowMDAwOmZmZmY6YzhlMTo3MWRk:TW9uLCAwMiBKdW4gMjAyNSAxOTozMzo0NyAtMDMwMA==
+
+
+
+
+
+                                                ESTADO DO MARANHÃO
+                                        SECRETARIA DE ESTADO DA GESTÃO E PREVIDÊNCIA
+                                                     POLÍCIA MILITAR DO MARANHÃO
+                  CONCURSO PÚBLICO PARA PROVIMENTO DE VAGAS E FORMAÇÃO DE CADASTRO DE RESERVA PARA O
+                 CARGO DE 1º TENENTE DO QUADRO DE OFICIAIS DE SAÚDE DA POLÍCIA MILITAR DO MARANHÃO (QOS) E
+                                 PARA O CARGO DE SOLDADO DO QUADRO DE PRAÇA POLICIAL
+
+
+
+                                                                   Aplicação: 17/12/2017
+
+                                              Cargo 3: 1º TENENTE PM – MÉDICO-VETERINÁRIO
+
+
+
+                                                                                                                                                                                                             359_PMMA_003_01
+
+                                                                     0
+                                                                     0
+                                             GABARITOS OFICIAIS PRELIMINARES
+
+0
+
+     Item    61    62      63      64      65      66      67      68      69      70      71      72      73      74     75     76      77     78     79      80
+ Gabarito   C    E     C      E     C     C     C      E     C     C      E     C      E      E     E     E     C    C     E     C
+
+     Item    81    82      83      84      85      86      87      88      89      90      91      92      93      94     95     96      97     98     99      100
+ Gabarito   E    C     C      E     C      E     C     C      E      E     C     C      E     C     E    C      E    C     E     C
+
+     Item   101   102     103     104     105     106     107     108     109     110     111     112     113     114    115    116     117    118    119     120
+ Gabarito   C    C      E      E     C     C     C      E     C      E     C      E      E     C     E     E     C    C     E     C
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+
+
+
+
+                          www.pciconcursos.com.br          www.pciconcursos.com.br
+pcimarkpci MDAwMDowMDAwOjAwMDA6MDAwMDowMDAwOmZmZmY6YzhlMTo3MWRk:TW9uLCAwMiBKdW4gMjAyNSAxOTozMzo0NyAtMDMwMA==
+
+
+
+
+
+                                                ESTADO DO MARANHÃO
+                                        SECRETARIA DE ESTADO DA GESTÃO E PREVIDÊNCIA
+                                                     POLÍCIA MILITAR DO MARANHÃO
+                  CONCURSO PÚBLICO PARA PROVIMENTO DE VAGAS E FORMAÇÃO DE CADASTRO DE RESERVA PARA O
+                 CARGO DE 1º TENENTE DO QUADRO DE OFICIAIS DE SAÚDE DA POLÍCIA MILITAR DO MARANHÃO (QOS) E
+                                 PARA O CARGO DE SOLDADO DO QUADRO DE PRAÇA POLICIAL
+
+
+
+                                                                   Aplicação: 17/12/2017
+
+                                                    Cargo 2: 1º TENENTE PM – MÉDICO
+
+
+
+                                                                                                                                                                                                             359_PMMA_002_01
+
+                                                                     0
+                                                                     0
+                                             GABARITOS OFICIAIS PRELIMINARES
+
+0
+
+     Item    61    62      63      64      65      66      67      68      69      70      71      72      73      74     75     76      77     78     79      80
+ Gabarito   E    E      E     C      E      E      E     C     C     C      E      E     C     C     E    C      E     E    C     C
+
+     Item    81    82      83      84      85      86      87      88      89      90      91      92      93      94     95     96      97     98     99      100
+ Gabarito   C    E      E     C     C      E      E      E     C      E     C     C      E      E     E     E     C     E    C      E
+
+     Item   101   102     103     104     105     106     107     108     109     110     111     112     113     114    115    116     117    118    119     120
+ Gabarito   C    C      E     C     C     C     C      E      E      E      E      E     C      E     E    C      E     E    C     C
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+
+
+
+
+                          www.pciconcursos.com.br          www.pciconcursos.com.br
+pcimarkpci MDAwMDowMDAwOjAwMDA6MDAwMDowMDAwOmZmZmY6YzhlMTo3MWRk:TW9uLCAwMiBKdW4gMjAyNSAxOTozMzo0NyAtMDMwMA==
+
+
+
+
+
+                                                ESTADO DO MARANHÃO
+                                        SECRETARIA DE ESTADO DA GESTÃO E PREVIDÊNCIA
+                                                     POLÍCIA MILITAR DO MARANHÃO
+                  CONCURSO PÚBLICO PARA PROVIMENTO DE VAGAS E FORMAÇÃO DE CADASTRO DE RESERVA PARA O
+                 CARGO DE 1º TENENTE DO QUADRO DE OFICIAIS DE SAÚDE DA POLÍCIA MILITAR DO MARANHÃO (QOS) E
+                                 PARA O CARGO DE SOLDADO DO QUADRO DE PRAÇA POLICIAL
+
+
+
+                                                                   Aplicação: 17/12/2017
+
+                                                   Cargo 4: 1º TENENTE PM – PSICÓLOGO
+
+
+                                                                                                                                                                                                             359_PMMA_004_01
+
+                                                                     0
+                                                                     0
+                                             GABARITOS OFICIAIS PRELIMINARES
+
+0
+
+     Item    61    62      63      64      65      66      67      68      69      70      71      72      73      74     75     76      77     78     79      80
+ Gabarito   C    E      E     C      E     C      E     C     C      E      E     C      E      E     E    C      E    C     E     C
+
+     Item    81    82      83      84      85      86      87      88      89      90      91      92      93      94     95     96      97     98     99      100
+ Gabarito   C    E     C     C     C     C     C      E      E      E     C      E      E     C    C    C      E     E    C      E
+
+     Item   101   102     103     104     105     106     107     108     109     110     111     112     113     114    115    116     117    118    119     120
+ Gabarito   E    C      E      E      E      E     C     C      E     C     C     C     C      E     E    C      E    C    C      E
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+
+
+
+
+                          www.pciconcursos.com.br          www.pciconcursos.com.br
+pcimarkpci MDAwMDowMDAwOjAwMDA6MDAwMDowMDAwOmZmZmY6YzhlMTo3MWRk:TW9uLCAwMiBKdW4gMjAyNSAxOTozMzo0NyAtMDMwMA==
+
+
+
+
+
+                                                ESTADO DO MARANHÃO
+                                        SECRETARIA DE ESTADO DA GESTÃO E PREVIDÊNCIA
+                                                     POLÍCIA MILITAR DO MARANHÃO
+                  CONCURSO PÚBLICO PARA PROVIMENTO DE VAGAS E FORMAÇÃO DE CADASTRO DE RESERVA PARA O
+                 CARGO DE 1º TENENTE DO QUADRO DE OFICIAIS DE SAÚDE DA POLÍCIA MILITAR DO MARANHÃO (QOS) E
+                                 PARA O CARGO DE SOLDADO DO QUADRO DE PRAÇA POLICIAL
+
+
+
+                                                                   Aplicação: 17/12/2017
+
+                                             Cargo 5: SOLDADO DO QUADRO DE PRAÇA POLICIAL
+
+
+
+                                                                                                                                                                                                             359_PMMA_005_01
+
+                                                                     0
+                                                                     0
+                                             GABARITOS OFICIAIS PRELIMINARES
+
+0
+
+     Item    61    62      63      64      65      66      67      68      69      70      71      72      73      74     75     76      77     78     79      80
+ Gabarito   E    C     C     C     C      E     C      E      E     C      E      E     C      E     E    C     C     E    C     C
+
+     Item    81    82      83      84      85      86      87      88      89      90      91      92      93      94     95     96      97     98     99      100
+ Gabarito   E    E      E     C     C      E     C     C     C     C      E      E      E     C    C    C      E     E    C      E
+
+     Item   101   102     103     104     105     106     107     108     109     110     111     112     113     114    115    116     117    118    119     120
+ Gabarito   E    C      E     C      E     C      E      E      E     C      E      E      E     C    C    C      E    C    C      E
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+             0     0       0       0       0       0       0       0       0       0       0       0       0       0      0      0       0      0      0       0
+
+
+
+
+
+                          www.pciconcursos.com.br          www.pciconcursos.com.br","{'61': 'C', '62': 'E', '63': 'C', '64': 'E', '65': 'C', '66': 'C', '67': 'C', '68': 'E', '69': 'C', '70': 'C', '71': 'E', '72': 'C', '73': 'E', '74': 'E', '75': 'E', '76': 'E', '77': 'C', '78': 'C', '79': 'E', '80': 'C', '81': 'E', '82': 'C', '83': 'C', '84': 'E', '85': 'C', '86': 'E', '87': 'C', '88': 'C', '89': 'E', '90': 'E', '91': 'C', '92': 'C', '93': 'E', '94': 'C', '95': 'E', '96': 'C', '97': 'E', '98': 'C', '99': 'E', '100': 'C', '101': 'C', '102': 'C', '103': 'E', '104': 'E', '105': 'C', '106': 'C', '107': 'C', '108': 'E', '109': 'C', '110': 'E', '111': 'C', '112': 'E', '113': 'E', '114': 'C', '115': 'E', '116': 'E', '117': 'C', '118': 'C', '119': 'E', '120': 'C'}"

@@ -1,0 +1,7 @@
+sentence-transformers
+torch
+supabase
+pandas
+numpy
+tqdm
+python-dotenv
