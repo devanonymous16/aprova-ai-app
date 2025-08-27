@@ -21,6 +21,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import EvolutionChart from '@/components/admin/dashboard/EvolutionChart';
 import SubjectBarChart from '@/components/admin/dashboard/SubjectBarChart';
 import BancaDonutChart from '@/components/admin/dashboard/BancaDonutChart';
+import QuestionSampleSection from '@/components/admin/dashboard/QuestionSampleSection';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function AdminDashboardPage() {
@@ -203,6 +204,9 @@ export default function AdminDashboardPage() {
             </CardContent>
         </Card>
       </div>
+
+      {/* Nova Seção: Amostra de Questões */}
+      <QuestionSampleSection />
     </div>
   );
 }

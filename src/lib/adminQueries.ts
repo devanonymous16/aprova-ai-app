@@ -12,7 +12,7 @@ export interface TotalQuestionsData {
 export interface QuestionEvolutionData {
   dia_turno: string;
   label_eixo_x: string;
-  quantidade_cumulativa: number;
+  quantidade: number;
 }
 
 export interface QuestionsBySubjectData {
@@ -60,25 +60,63 @@ export const getTotalQuestionsFromSummary = async (): Promise<number> => {
 };
 
 export const getQuestionEvolutionFromSummary = async (): Promise<QuestionEvolutionData[]> => {
+  console.log('🔍 [getQuestionEvolutionFromSummary] Buscando evolução de questões...');
+
+  // Busca questões agrupadas por data de criação
   const { data, error } = await supabase
-    .from('daily_evolution_summary')
-    .select('dia, quantidade_no_dia')
-    .order('dia', { ascending: true });
+    .from('questions')
+    .select('created_at')
+    .eq('status', 'active')
+    .order('created_at', { ascending: true });
 
   if (error) {
-    console.error('Error fetching question evolution summary:', error);
+    console.error('Error fetching question evolution:', error);
     throw error;
   }
 
+  if (!data || data.length === 0) {
+    console.log('🔍 [getQuestionEvolutionFromSummary] Nenhuma questão encontrada');
+    return [];
+  }
+
+  // Agrupa questões por data
+  const questionsByDate: { [key: string]: number } = {};
+  
+  data.forEach(question => {
+    const date = new Date(question.created_at).toISOString().split('T')[0]; // YYYY-MM-DD
+    questionsByDate[date] = (questionsByDate[date] || 0) + 1;
+  });
+
+  // Converte para array e ordena por data
+  const sortedDates = Object.keys(questionsByDate).sort();
+  
+  // Pega apenas os últimos 60 pontos para não sobrecarregar o gráfico
+  const recentDates = sortedDates.slice(-60);
+  
+  // Calcula valores cumulativos
   let cumulativeTotal = 0;
-  return (data || []).map(row => {
-    cumulativeTotal += row.quantidade_no_dia;
+  
+  // Se temos muitas datas, calcula o total inicial até o ponto de corte
+  if (sortedDates.length > 60) {
+    const initialDates = sortedDates.slice(0, -60);
+    cumulativeTotal = initialDates.reduce((sum, date) => sum + questionsByDate[date], 0);
+  }
+  
+  const result = recentDates.map(date => {
+    cumulativeTotal += questionsByDate[date];
     return {
-      dia_turno: row.dia,
-      label_eixo_x: new Date(row.dia).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', timeZone: 'UTC' }),
-      quantidade_cumulativa: cumulativeTotal
+      dia_turno: date,
+      label_eixo_x: new Date(date + 'T00:00:00Z').toLocaleDateString('pt-BR', { 
+        day: '2-digit', 
+        month: '2-digit',
+        timeZone: 'UTC' 
+      }),
+      quantidade: cumulativeTotal
     };
   });
+
+  console.log('🔍 [getQuestionEvolutionFromSummary] Resultado:', result.slice(0, 5), '... total:', result.length);
+  return result;
 };
 
 export const getSubjectSummary = async (): Promise<QuestionsBySubjectData[]> => {
@@ -177,4 +215,284 @@ export const getQuestionsByEducationLevel = async (): Promise<QuestionsByEducati
     throw error;
   }
   return data || [];
+};
+
+// ========================================================================
+// FUNÇÕES PARA AMOSTRA DE QUESTÕES
+// ========================================================================
+
+export interface PositionData {
+  id: string;
+  name: string;
+  institution_name: string;
+  institution_id: string;
+  question_count: number;
+}
+
+export interface SubjectForPositionData {
+  id: string;
+  name: string;
+  question_count: number;
+}
+
+export const getAllPositions = async (): Promise<PositionData[]> => {
+  const { data, error } = await supabase
+    .from('exam_positions')
+    .select(`
+      id,
+      name,
+      exam_institution_id,
+      exam_institutions!inner (
+        id,
+        name
+      )
+    `)
+    .order('name', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching positions:', error);
+    throw error;
+  }
+
+  return (data || []).map(item => ({
+    id: item.id,
+    name: item.name,
+    institution_name: item.exam_institutions?.name || 'N/A',
+    institution_id: item.exam_institution_id,
+    question_count: 0 // Será preenchido pelo componente se necessário
+  }));
+};
+
+export const getSubjectsForPosition = async (positionId: string, institutionId: string): Promise<SubjectForPositionData[]> => {
+  console.log('🔍 [getSubjectsForPosition] Tentando busca específica para cargo:', {
+    p_institution_id: institutionId,
+    p_position_id: positionId
+  });
+
+  // Primeira tentativa: busca específica por cargo
+  const { data: specificData, error: specificError } = await supabase.rpc('get_subjects_for_position', {
+    p_institution_id: institutionId,
+    p_position_id: positionId
+  });
+
+  console.log('🔍 [getSubjectsForPosition] Resultado da busca específica:', { specificData, specificError });
+
+  if (specificError) {
+    console.error('Error fetching subjects for specific position:', specificError);
+  }
+
+  // Se a busca específica retornou dados, use ela
+  if (specificData && specificData.length > 0) {
+    const result = specificData.map((item: any) => ({
+      id: item.subject_id,
+      name: item.subject_name,
+      question_count: item.question_count || 0
+    }));
+    console.log('🔍 [getSubjectsForPosition] Usando resultado específico:', result);
+    return result;
+  }
+
+  // Caso contrário, busca todas as disciplinas como fallback
+  console.log('🔍 [getSubjectsForPosition] Busca específica vazia, usando fallback (todas as disciplinas)');
+  
+  const { data: allSubjects, error: allError } = await supabase
+    .from('exam_subjects')
+    .select(`
+      id,
+      name,
+      questions:questions(count)
+    `)
+    .order('name', { ascending: true })
+    .limit(20);
+
+  if (allError) {
+    console.error('Error fetching all subjects:', allError);
+    throw allError;
+  }
+
+  const fallbackResult = (allSubjects || []).map((item: any) => ({
+    id: item.id,
+    name: item.name,
+    question_count: item.questions?.[0]?.count || 0
+  }));
+
+  console.log('🔍 [getSubjectsForPosition] Resultado fallback:', fallbackResult);
+  return fallbackResult;
+};
+
+// ========================================================================
+// FUNÇÃO PARA BUSCAR QUESTÃO ALEATÓRIA
+// ========================================================================
+
+export interface RandomQuestionData {
+  id: string;
+  statement: string;
+  item_a: string;
+  item_b: string;
+  item_c: string;
+  item_d: string;
+  item_e?: string;
+  correct_option: string;
+  subject_name: string;
+  topic_name?: string;
+  banca_name?: string;
+  question_position?: string;
+  question_institution?: string;
+  search_level: 'specific' | 'position_only' | 'general';
+}
+
+export const getRandomQuestionBySubject = async (
+  subjectId: string, 
+  positionId?: string, 
+  institutionId?: string
+): Promise<RandomQuestionData | null> => {
+  console.log('🔍 [getRandomQuestionBySubject] Buscando questão aleatória:', {
+    subjectId,
+    positionId,
+    institutionId
+  });
+
+  let query = supabase
+    .from('questions')
+    .select(`
+      id,
+      statement,
+      item_a,
+      item_b,
+      item_c,
+      item_d,
+      item_e,
+      correct_option,
+      exam_subjects!inner (
+        id,
+        name
+      ),
+      exam_topics (
+        id,
+        name
+      ),
+      exam_bancas (
+        id,
+        name
+      )
+    `)
+    .eq('exam_subject_id', subjectId)
+    .eq('status', 'active');
+
+  // Filtrar por cargo se fornecido
+  if (positionId) {
+    query = query.eq('exam_position_id', positionId);
+  }
+
+  // Filtrar por instituição se fornecido
+  if (institutionId) {
+    query = query.eq('exam_institution_id', institutionId);
+  }
+
+  const { data, error } = await query.limit(1);
+
+  if (error) {
+    console.error('Error fetching random question:', error);
+    throw error;
+  }
+
+  // Se não encontrou questão específica, tenta busca mais ampla
+  if (!data || data.length === 0) {
+    console.log('🔍 [getRandomQuestionBySubject] Nenhuma questão específica encontrada, tentando busca mais ampla...');
+    
+    // Tenta sem filtro de instituição
+    if (positionId && institutionId) {
+      console.log('🔍 Tentando sem filtro de instituição...');
+      const { data: dataWithoutInstitution } = await supabase
+        .from('questions')
+        .select(`
+          id, statement, item_a, item_b, item_c, item_d, item_e, correct_option,
+          exam_subjects!inner (id, name),
+          exam_topics (id, name),
+          exam_bancas (id, name)
+        `)
+        .eq('exam_subject_id', subjectId)
+        .eq('exam_position_id', positionId)
+        .eq('status', 'active')
+        .limit(1);
+      
+      if (dataWithoutInstitution && dataWithoutInstitution.length > 0) {
+        console.log('🔍 Encontrou questão sem filtro de instituição');
+        const question = dataWithoutInstitution[0];
+        return {
+          id: question.id,
+          statement: question.statement,
+          item_a: question.item_a,
+          item_b: question.item_b,
+          item_c: question.item_c,
+          item_d: question.item_d,
+          item_e: question.item_e,
+          correct_option: question.correct_option,
+          subject_name: question.exam_subjects?.name || 'Disciplina não informada',
+          topic_name: question.exam_topics?.name,
+          banca_name: question.exam_bancas?.name,
+          search_level: 'position_only' as const
+        };
+      }
+    }
+    
+    // Última tentativa: só por disciplina
+    console.log('🔍 Última tentativa: só por disciplina...');
+    const { data: dataOnlySubject } = await supabase
+      .from('questions')
+      .select(`
+        id, statement, item_a, item_b, item_c, item_d, item_e, correct_option,
+        exam_subjects!inner (id, name),
+        exam_topics (id, name),
+        exam_bancas (id, name),
+        exam_positions (id, name),
+        exam_institutions (id, name)
+      `)
+      .eq('exam_subject_id', subjectId)
+      .eq('status', 'active')
+      .limit(1);
+    
+    if (!dataOnlySubject || dataOnlySubject.length === 0) {
+      console.log('🔍 [getRandomQuestionBySubject] Nenhuma questão encontrada mesmo com busca ampla');
+      return null;
+    }
+    
+    console.log('🔍 Encontrou questão com busca só por disciplina');
+    const question = dataOnlySubject[0];
+    return {
+      id: question.id,
+      statement: question.statement,
+      item_a: question.item_a,
+      item_b: question.item_b,
+      item_c: question.item_c,
+      item_d: question.item_d,
+      item_e: question.item_e,
+      correct_option: question.correct_option,
+      subject_name: question.exam_subjects?.name || 'Disciplina não informada',
+      topic_name: question.exam_topics?.name,
+      banca_name: question.exam_bancas?.name,
+      question_position: question.exam_positions?.name,
+      question_institution: question.exam_institutions?.name,
+      search_level: 'general' as const
+    };
+  }
+
+  const question = data[0];
+  const result: RandomQuestionData = {
+    id: question.id,
+    statement: question.statement,
+    item_a: question.item_a,
+    item_b: question.item_b,
+    item_c: question.item_c,
+    item_d: question.item_d,
+    item_e: question.item_e,
+    correct_option: question.correct_option,
+    subject_name: question.exam_subjects?.name || 'Disciplina não informada',
+    topic_name: question.exam_topics?.name,
+    banca_name: question.exam_bancas?.name,
+    search_level: 'specific' as const
+  };
+
+  console.log('🔍 [getRandomQuestionBySubject] Questão encontrada:', result);
+  return result;
 };
