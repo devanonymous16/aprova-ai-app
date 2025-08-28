@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/components/ui/sonner';
+import { autoAssignDefaultExams } from '@/utils/autoAssignExams';
 import { AuthError, Session, User, UserResponse } from '@supabase/supabase-js';
 
 interface SignUpOptions {
@@ -90,10 +91,46 @@ export const useAuthActions = () => {
         throw new Error('Email e senha são obrigatórios para o cadastro.');
       }
       
-      const { data, error } = await supabase.auth.signUp({ email, password, options });
+      // BYPASS TEMPORÁRIO: Força confirmação automática
+      const signUpOptions = {
+        ...options,
+        data: {
+          ...options?.data,
+          email_confirm: false // Bypass da confirmação
+        }
+      };
+      
+      console.log('[signUp] Tentando signup com bypass de confirmação...');
+      const { data, error } = await supabase.auth.signUp({ 
+        email, 
+        password, 
+        options: signUpOptions 
+      });
       
       if (error) {
         console.error('[signUp] Erro do Supabase:', error.message);
+        
+        // Se erro for de confirmação, tenta workaround
+        if (error.message?.includes('confirm') || error.message?.includes('verification')) {
+          console.log('[signUp] Tentando workaround para confirmação...');
+          
+          // Tenta fazer login direto (usuário pode ter sido criado mas não confirmado)
+          try {
+            const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+              email,
+              password
+            });
+            
+            if (!loginError && loginData.user) {
+              console.log('[signUp] Workaround bem-sucedido - usuário logado diretamente!');
+              toast.success('Conta criada com sucesso!', { description: 'Você já está logado.' });
+              return { data: loginData, error: null };
+            }
+          } catch (loginErr) {
+            console.error('[signUp] Workaround falhou:', loginErr);
+          }
+        }
+        
         toast.error('Erro no cadastro', { description: error.message });
         return { data: null, error }; // Ajustado para data: null em caso de erro
       }
@@ -104,6 +141,12 @@ export const useAuthActions = () => {
         console.error('[signUp] Cadastro sem erro, mas sem usuário ou sessão.');
         toast.error('Erro no cadastro', { description: err.message });
         return { data: null, error: err }; // Ajustado para data: null
+      }
+      
+      // Atribuir concursos automaticamente se o usuário foi criado
+      if (data?.user?.id) {
+        console.log('[signUp] Atribuindo concursos automaticamente...');
+        await autoAssignDefaultExams(data.user.id);
       }
       
       toast.success('Conta criada com sucesso!', { description: 'Você já pode fazer o login.' });

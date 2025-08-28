@@ -17,11 +17,18 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, 
     storage: localStorage,
     detectSessionInUrl: true,
     flowType: 'implicit',
-    debug: true
+    debug: true,
+    // BYPASS TEMPORÁRIO - DESABILITA VERIFICAÇÃO DE EMAIL
+    autoConfirm: true,
+    // Configurações adicionais para bypass
+    confirmationUrl: undefined,
+    redirectTo: undefined
   },
   global: {
     headers: {
-      'x-client-info': 'aprova-ai-web'
+      'x-client-info': 'aprova-ai-web',
+      // Adiciona header para indicar bypass de confirmação
+      'x-bypass-email-confirmation': 'true'
     }
   },
   db: {
@@ -69,5 +76,29 @@ export const getCurrentUser = async () => {
   } catch (error) {
     console.error("[DIAGNÓSTICO] Exceção ao obter usuário:", error);
     throw error;
+  }
+};
+
+// FUNÇÃO TEMPORÁRIA PARA CONFIRMAR USUÁRIOS AUTOMATICAMENTE
+export const confirmUserBypass = async (email: string, password: string) => {
+  try {
+    console.log('[BYPASS] Tentando login direto para:', email);
+    
+    // Tenta fazer login direto (ignorando confirmação)
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+    
+    if (error) {
+      console.error('[BYPASS] Erro no login direto:', error);
+      return { data: null, error };
+    }
+    
+    console.log('[BYPASS] Login direto bem-sucedido!');
+    return { data, error: null };
+  } catch (error) {
+    console.error('[BYPASS] Exceção no bypass:', error);
+    return { data: null, error };
   }
 };

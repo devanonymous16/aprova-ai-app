@@ -11,6 +11,7 @@ interface QuestionPreviewModalProps {
   isLoading: boolean;
   error: Error | null;
   subjectName: string;
+  bancaName?: string;
 }
 
 const QuestionPreviewModal: React.FC<QuestionPreviewModalProps> = ({
@@ -19,7 +20,8 @@ const QuestionPreviewModal: React.FC<QuestionPreviewModalProps> = ({
   question,
   isLoading,
   error,
-  subjectName
+  subjectName,
+  bancaName
 }) => {
   const options = question ? [
     { letter: 'A', text: question.item_a },
@@ -33,7 +35,9 @@ const QuestionPreviewModal: React.FC<QuestionPreviewModalProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Amostra de Questão - {subjectName}</DialogTitle>
+          <DialogTitle>
+            Amostra de Questão - {bancaName || 'BANCA'}
+          </DialogTitle>
           <DialogDescription>
             Exemplo de questão desta disciplina (apenas para visualização)
           </DialogDescription>
@@ -71,42 +75,45 @@ const QuestionPreviewModal: React.FC<QuestionPreviewModalProps> = ({
 
           {question && !isLoading && !error && (
             <div className="space-y-6">
-              {/* Aviso sobre busca não específica */}
-              {question.search_level !== 'specific' && (
-                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                  <div className="flex items-start space-x-2">
-                    <span className="text-amber-600">⚠️</span>
-                    <div className="text-amber-700 text-sm">
-                      <p className="font-medium">Questão de outro cargo relacionado</p>
-                      <p>
-                        {question.search_level === 'position_only' 
-                          ? 'Esta questão é do mesmo cargo mas de outra instituição'
-                          : `Esta questão é do cargo "${question.question_position || 'N/A'}" ${question.question_institution ? `da ${question.question_institution}` : ''}`
-                        }
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
               {/* Metadados da questão */}
               <div className="flex flex-wrap gap-2">
+                {/* Banca (destacada) */}
+                {question.banca_name && (
+                  <Badge variant="default" className="bg-blue-600">
+                    {question.banca_name}
+                  </Badge>
+                )}
+                
+                {/* Disciplina */}
                 <Badge variant="secondary">
                   {question.subject_name}
                 </Badge>
+                
+                {/* Tópico */}
                 {question.topic_name && (
                   <Badge variant="outline">
                     {question.topic_name}
                   </Badge>
                 )}
-                {question.banca_name && (
-                  <Badge variant="outline">
-                    {question.banca_name}
+                
+                {/* Cargo */}
+                {question.question_position && (
+                  <Badge variant="outline" className="bg-orange-50 border-orange-300 text-orange-700">
+                    📋 {question.question_position}
                   </Badge>
                 )}
-                {question.search_level !== 'specific' && question.question_position && (
-                  <Badge variant="outline" className="bg-amber-50 border-amber-300 text-amber-700">
-                    🏢 {question.question_position}
+                
+                {/* Ano da Prova */}
+                {question.source_year && (
+                  <Badge variant="outline" className="bg-purple-50 border-purple-300 text-purple-700">
+                    📅 {question.source_year}
+                  </Badge>
+                )}
+                
+                {/* Instituição se diferente */}
+                {question.question_institution && (
+                  <Badge variant="outline" className="bg-gray-50">
+                    {question.question_institution}
                   </Badge>
                 )}
               </div>

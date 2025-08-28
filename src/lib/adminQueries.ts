@@ -218,9 +218,22 @@ export const getQuestionsByEducationLevel = async (): Promise<QuestionsByEducati
 };
 
 // ========================================================================
-// FUNÇÕES PARA AMOSTRA DE QUESTÕES
+// FUNÇÕES PARA AMOSTRA DE QUESTÕES POR BANCA
 // ========================================================================
 
+export interface BancaData {
+  id: string;
+  name: string;
+  question_count: number;
+}
+
+export interface SubjectForBancaData {
+  id: string;
+  name: string;
+  question_count: number;
+}
+
+// Interfaces antigas mantidas para compatibilidade
 export interface PositionData {
   id: string;
   name: string;
@@ -234,6 +247,96 @@ export interface SubjectForPositionData {
   name: string;
   question_count: number;
 }
+
+// ========================================================================
+// NOVAS FUNÇÕES PARA BUSCA POR BANCA
+// ========================================================================
+
+export const getAllBancas = async (): Promise<BancaData[]> => {
+  console.log('🔍 [getAllBancas] Buscando todas as bancas...');
+  
+  const { data, error } = await supabase
+    .from('exam_bancas')
+    .select(`
+      id,
+      name
+    `)
+    .order('name', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching bancas:', error);
+    throw error;
+  }
+
+  // Para cada banca, vamos contar as questões separadamente
+  const bancasWithCount = await Promise.all(
+    (data || []).map(async (banca) => {
+      const { count } = await supabase
+        .from('questions')
+        .select('id', { count: 'exact' })
+        .eq('exam_banca_id', banca.id)
+        .eq('status', 'active');
+      
+      return {
+        id: banca.id,
+        name: banca.name,
+        question_count: count || 0
+      };
+    })
+  );
+
+  console.log('🔍 [getAllBancas] Resultado:', bancasWithCount);
+  return bancasWithCount;
+};
+
+export const getSubjectsForBanca = async (bancaId: string): Promise<SubjectForBancaData[]> => {
+  console.log('🔍 [getSubjectsForBanca] Buscando disciplinas para banca:', bancaId);
+
+  const { data, error } = await supabase
+    .from('questions')
+    .select(`
+      exam_subjects!inner (
+        id,
+        name
+      )
+    `)
+    .eq('exam_banca_id', bancaId)
+    .eq('status', 'active');
+
+  if (error) {
+    console.error('Error fetching subjects for banca:', error);
+    throw error;
+  }
+
+  // Agrupa por disciplina e conta questões
+  const subjectCounts: { [key: string]: { id: string; name: string; count: number } } = {};
+  
+  (data || []).forEach((item: any) => {
+    const subject = item.exam_subjects;
+    if (subject) {
+      if (subjectCounts[subject.id]) {
+        subjectCounts[subject.id].count++;
+      } else {
+        subjectCounts[subject.id] = {
+          id: subject.id,
+          name: subject.name,
+          count: 1
+        };
+      }
+    }
+  });
+
+  const result = Object.values(subjectCounts)
+    .map(item => ({
+      id: item.id,
+      name: item.name,
+      question_count: item.count
+    }))
+    .sort((a, b) => b.question_count - a.question_count); // Ordena por quantidade decrescente
+
+  console.log('🔍 [getSubjectsForBanca] Resultado:', result);
+  return result;
+};
 
 export const getAllPositions = async (): Promise<PositionData[]> => {
   const { data, error } = await supabase
@@ -338,8 +441,89 @@ export interface RandomQuestionData {
   banca_name?: string;
   question_position?: string;
   question_institution?: string;
+  source_year?: number;
   search_level: 'specific' | 'position_only' | 'general';
 }
+
+export const getRandomQuestionByBancaAndSubject = async (
+  bancaId: string,
+  subjectId: string
+): Promise<RandomQuestionData | null> => {
+  console.log('🔍 [getRandomQuestionByBancaAndSubject] Buscando questão aleatória:', {
+    bancaId,
+    subjectId
+  });
+
+  const { data, error } = await supabase
+    .from('questions')
+    .select(`
+      id,
+      statement,
+      item_a,
+      item_b,
+      item_c,
+      item_d,
+      item_e,
+      correct_option,
+      source_year,
+      exam_subjects!inner (
+        id,
+        name
+      ),
+      exam_topics (
+        id,
+        name
+      ),
+      exam_bancas!inner (
+        id,
+        name
+      ),
+      exam_positions (
+        id,
+        name
+      ),
+      exam_institutions (
+        id,
+        name
+      )
+    `)
+    .eq('exam_banca_id', bancaId)
+    .eq('exam_subject_id', subjectId)
+    .eq('status', 'active')
+    .limit(1);
+
+  if (error) {
+    console.error('Error fetching random question by banca and subject:', error);
+    throw error;
+  }
+
+  if (!data || data.length === 0) {
+    console.log('🔍 [getRandomQuestionByBancaAndSubject] Nenhuma questão encontrada');
+    return null;
+  }
+
+  const question = data[0];
+  const result: RandomQuestionData = {
+    id: question.id,
+    statement: question.statement,
+    item_a: question.item_a,
+    item_b: question.item_b,
+    item_c: question.item_c,
+    item_d: question.item_d,
+    item_e: question.item_e,
+    correct_option: question.correct_option,
+    subject_name: question.exam_subjects?.name || 'Disciplina não informada',
+    topic_name: question.exam_topics?.name,
+    banca_name: question.exam_bancas?.name || 'Banca não informada',
+    question_position: question.exam_positions?.name,
+    question_institution: question.exam_institutions?.name,
+    source_year: question.source_year,
+    search_level: 'specific' as const
+  };
+
+  console.log('🔍 [getRandomQuestionByBancaAndSubject] Questão encontrada:', result);
+  return result;
+};
 
 export const getRandomQuestionBySubject = async (
   subjectId: string, 

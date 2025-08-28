@@ -122,6 +122,42 @@ export const createDefaultProfile = async (userId: string, email: string) => {
       return null;
     }
     
+    // Criar concursos padrão para o novo usuário
+    try {
+      console.log('[PROFILE DEBUG] Criando concursos padrão para o usuário...');
+      
+      // Buscar alguns concursos padrão
+      const { data: defaultExams, error: examsError } = await supabase
+        .from('exam_positions')
+        .select('id, exam_id, name')
+        .not('exam_id', 'is', null)
+        .limit(3);
+      
+      if (!examsError && defaultExams && defaultExams.length > 0) {
+        // Criar student_exams para cada concurso
+        const studentExamsData = defaultExams.map((exam, index) => ({
+          student_id: userId,
+          exam_id: exam.exam_id,
+          exam_position_id: exam.id,
+          access_type: 'paid',
+          is_current_focus: index === 0, // Primeiro é o foco
+          status: 'Em andamento'
+        }));
+        
+        const { error: insertError } = await supabase
+          .from('student_exams')
+          .insert(studentExamsData);
+        
+        if (insertError) {
+          console.error('[PROFILE DEBUG] Erro ao criar concursos padrão:', insertError);
+        } else {
+          console.log('[PROFILE DEBUG] Concursos padrão criados com sucesso!', studentExamsData.length);
+        }
+      }
+    } catch (examError) {
+      console.error('[PROFILE DEBUG] Erro ao criar concursos padrão:', examError);
+    }
+
     const endTime = new Date();
     console.log('[PROFILE DEBUG] Perfil padrão criado com sucesso:', {
       timestamp: endTime.toISOString(),
